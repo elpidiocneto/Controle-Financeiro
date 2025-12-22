@@ -105,7 +105,11 @@
 
             const [metas, setMetas] = useState(() => {
                 const saved = localStorage.getItem('metas');
-                return saved ? JSON.parse(saved) : { mensal: 20000 };
+                return saved ? JSON.parse(saved) : { 
+                    mensal: 20000,
+                    jan: 18000, fev: 16000, mar: 15000, abr: 14000, mai: 13000, jun: 12000,
+                    jul: 12000, ago: 12000, set: 13000, out: 14000, nov: 15000, dez: 18000
+                };
             });
 
             const [orcamento, setOrcamento] = useState(() => {
@@ -114,6 +118,24 @@
                     cartoes: 8000,
                     fixos: 5500,
                     variaveis: 2000
+                };
+            });
+
+            const [orcamentosMensais, setOrcamentosMensais] = useState(() => {
+                const saved = localStorage.getItem('orcamentosMensais');
+                return saved ? JSON.parse(saved) : {
+                    jan: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
+                    fev: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
+                    mar: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
+                    abr: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
+                    mai: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
+                    jun: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
+                    jul: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
+                    ago: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
+                    set: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
+                    out: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
+                    nov: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
+                    dez: { cartoes: 8000, fixos: 5500, variaveis: 2000 }
                 };
             });
 
@@ -137,6 +159,7 @@
             useEffect(() => { localStorage.setItem('farol', JSON.stringify(farol)); }, [farol]);
             useEffect(() => { localStorage.setItem('metas', JSON.stringify(metas)); }, [metas]);
             useEffect(() => { localStorage.setItem('orcamento', JSON.stringify(orcamento)); }, [orcamento]);
+            useEffect(() => { localStorage.setItem('orcamentosMensais', JSON.stringify(orcamentosMensais)); }, [orcamentosMensais]);
             useEffect(() => { localStorage.setItem('orcamentoAnual', JSON.stringify(orcamentoAnual)); }, [orcamentoAnual]);
             useEffect(() => { localStorage.setItem('planejadosMes', JSON.stringify(planejadosMes)); }, [planejadosMes]);
 
@@ -148,6 +171,8 @@
             };
 
             const totais = calcularTotais(mesAtual);
+            const metaMensal = metas[mesAtual] || metas.mensal;
+            const orcamentoMensal = orcamentosMensais[mesAtual] || orcamento;
 
             // CÁLCULO DE RECEITAS E SALDO
             const calcularSaldo = (mes) => {
@@ -163,7 +188,42 @@
                 };
             };
 
+            const calcularPagamentos = (mes) => {
+                const itensPagamento = [
+                    ...cartoes.map(c => ({ 
+                        tipo: 'CARTÃO', 
+                        nome: c.nome, 
+                        valor: c.valores[mes] || 0,
+                        pago: farol[`${c.nome}-${mes}`] || false
+                    })),
+                    ...gastosFixos.map(g => ({ 
+                        tipo: 'FIXO', 
+                        nome: g.descricao, 
+                        valor: g.valor,
+                        pago: farol[`${g.descricao}-${mes}`] || false
+                    }))
+                ].filter(item => item.valor > 0);
+
+                const totalPagar = itensPagamento.reduce((sum, item) => sum + item.valor, 0);
+                const totalPago = itensPagamento.filter(item => item.pago).reduce((sum, item) => sum + item.valor, 0);
+                const totalPendente = totalPagar - totalPago;
+                const percentualPago = totalPagar > 0 ? (totalPago / totalPagar) * 100 : 0;
+                const quantidadePaga = itensPagamento.filter(item => item.pago).length;
+                const quantidadeTotal = itensPagamento.length;
+
+                return {
+                    total: totalPagar,
+                    pago: totalPago,
+                    pendente: totalPendente,
+                    percentual: percentualPago,
+                    qtdPago: quantidadePaga,
+                    qtdTotal: quantidadeTotal,
+                    items: itensPagamento
+                };
+            };
+
             const saldo = calcularSaldo(mesAtual);
+            const pagamentos = calcularPagamentos(mesAtual);
 
             // COMPARAÇÃO ENTRE MESES
             const compararMeses = () => {
@@ -501,7 +561,7 @@
             const fazerBackup = () => {
                 try {
                     const dadosBackup = {
-                        versao: '1.0',
+                        versao: '2.0',
                         dataBackup: new Date().toISOString(),
                         dados: {
                             cartoes: cartoes,
@@ -511,6 +571,7 @@
                             farol: farol,
                             metas: metas,
                             orcamento: orcamento,
+                            orcamentosMensais: orcamentosMensais,
                             orcamentoAnual: orcamentoAnual,
                             planejadosMes: planejadosMes
                         }
@@ -559,6 +620,7 @@
                                 setFarol(dadosBackup.dados.farol || {});
                                 setMetas(dadosBackup.dados.metas || { mensal: 20000 });
                                 setOrcamento(dadosBackup.dados.orcamento || { cartoes: 8000, fixos: 5500, variaveis: 2000 });
+                                setOrcamentosMensais(dadosBackup.dados.orcamentosMensais || {});
                                 setOrcamentoAnual(dadosBackup.dados.orcamentoAnual || {});
                                 setPlanejadosMes(dadosBackup.dados.planejadosMes || []);
                                 
@@ -770,31 +832,74 @@
             };
 
             const FormMetas = () => {
-                const [metaMensal, setMetaMensal] = useState(metas.mensal);
+                const [metasTemp, setMetasTemp] = useState(metas);
 
                 const handleSalvar = () => {
-                    setMetas({ ...metas, mensal: parseFloat(metaMensal) });
+                    setMetas(metasTemp);
                     setModalAberto(null);
-                    alert('Meta salva com sucesso!');
+                    alert('Metas salvas com sucesso!');
+                };
+
+                const aplicarParaTodos = () => {
+                    const valor = metasTemp.mensal;
+                    setMetasTemp({
+                        mensal: valor,
+                        jan: valor, fev: valor, mar: valor, abr: valor,
+                        mai: valor, jun: valor, jul: valor, ago: valor,
+                        set: valor, out: valor, nov: valor, dez: valor
+                    });
                 };
 
                 return (
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Meta de Gastos Mensal</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Meta Padrão</label>
                             <input 
                                 type="number"
                                 step="0.01"
-                                value={metaMensal}
-                                onChange={(e) => setMetaMensal(e.target.value)}
+                                value={metasTemp.mensal}
+                                onChange={(e) => setMetasTemp({...metasTemp, mensal: parseFloat(e.target.value) || 0})}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                                 placeholder="20000.00"
                             />
-                            <p className="text-sm text-gray-500 mt-2">Valor máximo que você quer gastar por mês</p>
+                            <button 
+                                onClick={aplicarParaTodos}
+                                className="mt-2 w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300"
+                            >
+                                📋 Aplicar para Todos os Meses
+                            </button>
                         </div>
-                        <button onClick={handleSalvar} className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
-                            ✅ Salvar Meta
-                        </button>
+
+                        <div className="pt-4 border-t">
+                            <h4 className="font-bold text-gray-800 mb-3">Metas por Mês</h4>
+                            <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                                {['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].map(mes => (
+                                    <div key={mes}>
+                                        <label className="block text-xs font-semibold text-gray-700 mb-1 uppercase">{mes}</label>
+                                        <input 
+                                            type="number"
+                                            step="0.01"
+                                            value={metasTemp[mes]}
+                                            onChange={(e) => setMetasTemp({...metasTemp, [mes]: parseFloat(e.target.value) || 0})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="pt-4 border-t">
+                            <div className="text-sm text-gray-600 mb-3">
+                                <strong>Total Anual:</strong> R$ {(
+                                    metasTemp.jan + metasTemp.fev + metasTemp.mar + metasTemp.abr +
+                                    metasTemp.mai + metasTemp.jun + metasTemp.jul + metasTemp.ago +
+                                    metasTemp.set + metasTemp.out + metasTemp.nov + metasTemp.dez
+                                ).toFixed(2)}
+                            </div>
+                            <button onClick={handleSalvar} className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
+                                ✅ Salvar Metas
+                            </button>
+                        </div>
                     </div>
                 );
             };
@@ -1051,6 +1156,191 @@
                                 </button>
                             </div>
                         </div>
+
+                        {/* CARD DE PAGAMENTOS */}
+                        <div className="bg-white rounded-xl shadow-lg p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xl font-bold text-gray-800">💰 Status de Pagamentos - {mesAtual.toUpperCase()}</h3>
+                                <button 
+                                    onClick={() => setTelaAtiva('farol')}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                                >
+                                    Ver Todos →
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div className="bg-blue-50 rounded-lg p-4">
+                                    <div className="text-sm text-gray-600">Total a Pagar</div>
+                                    <div className="text-2xl font-bold text-blue-600">R$ {pagamentos.total.toFixed(2)}</div>
+                                    <div className="text-xs text-gray-500 mt-1">{pagamentos.qtdTotal} itens</div>
+                                </div>
+                                <div className="bg-green-50 rounded-lg p-4">
+                                    <div className="text-sm text-gray-600">✅ Já Pago</div>
+                                    <div className="text-2xl font-bold text-green-600">R$ {pagamentos.pago.toFixed(2)}</div>
+                                    <div className="text-xs text-gray-500 mt-1">{pagamentos.qtdPago} pagos</div>
+                                </div>
+                                <div className="bg-orange-50 rounded-lg p-4">
+                                    <div className="text-sm text-gray-600">⏳ Pendente</div>
+                                    <div className="text-2xl font-bold text-orange-600">R$ {pagamentos.pendente.toFixed(2)}</div>
+                                    <div className="text-xs text-gray-500 mt-1">{pagamentos.qtdTotal - pagamentos.qtdPago} pendentes</div>
+                                </div>
+                            </div>
+
+                            <div className="mb-4">
+                                <div className="flex justify-between text-sm mb-2">
+                                    <span className="font-semibold text-gray-700">Progresso de Pagamentos</span>
+                                    <span className="font-bold text-gray-800">{pagamentos.percentual.toFixed(0)}%</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-4">
+                                    <div 
+                                        className={`h-4 rounded-full transition-all ${
+                                            pagamentos.percentual >= 100 ? 'bg-green-500' :
+                                            pagamentos.percentual >= 50 ? 'bg-yellow-500' :
+                                            'bg-red-500'
+                                        }`}
+                                        style={{ width: `${Math.min(pagamentos.percentual, 100)}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            {pagamentos.items.slice(0, 5).length > 0 && (
+                                <div>
+                                    <div className="text-sm font-semibold text-gray-700 mb-2">Próximos Pagamentos:</div>
+                                    <div className="space-y-2">
+                                        {pagamentos.items.slice(0, 5).map((item, idx) => (
+                                            <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-lg">{item.pago ? '✅' : '⏳'}</span>
+                                                    <span className={`font-medium ${item.pago ? 'text-gray-500 line-through' : 'text-gray-800'}`}>
+                                                        {item.nome}
+                                                    </span>
+                                                </div>
+                                                <span className={`font-bold ${item.pago ? 'text-green-600' : 'text-gray-800'}`}>
+                                                    R$ {item.valor.toFixed(2)}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* VISÃO ANUAL RETRÁTIL */}
+                        {(() => {
+                            const [expandido, setExpandido] = React.useState(false);
+                            
+                            const mesesComDados = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+                                .filter(mes => calcularTotais(mes).total > 0);
+                            
+                            const totalGastoAnoAteAgora = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+                                .reduce((sum, mes) => sum + calcularTotais(mes).total, 0);
+                            
+                            const totalMetaAno = metas.jan + metas.fev + metas.mar + metas.abr + metas.mai + metas.jun + 
+                                                 metas.jul + metas.ago + metas.set + metas.out + metas.nov + metas.dez;
+
+                            return (
+                                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                                    <div 
+                                        onClick={() => setExpandido(!expandido)}
+                                        className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                                    📊 Resumo Anual 2025
+                                                    <span className={`text-2xl transition-transform ${expandido ? 'rotate-180' : ''}`}>▼</span>
+                                                </h3>
+                                                <p className="text-sm text-gray-600 mt-1">
+                                                    {mesesComDados.length} meses com dados • R$ {totalGastoAnoAteAgora.toFixed(2)} gastos no ano
+                                                </p>
+                                            </div>
+                                            <button 
+                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setTelaAtiva('planejamento');
+                                                }}
+                                            >
+                                                Ver Detalhes
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {expandido && (
+                                        <div className="px-6 pb-6 border-t">
+                                            <div className="mt-4 space-y-2">
+                                                {['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].map(mes => {
+                                                    const gasto = calcularTotais(mes).total;
+                                                    const meta = metas[mes] || 0;
+                                                    const percentual = meta > 0 ? (gasto / meta) * 100 : 0;
+                                                    const dentroMeta = gasto <= meta && gasto > 0;
+                                                    const semDados = gasto === 0;
+                                                    const mesAtualBool = mes === mesAtual;
+                                                    
+                                                    return (
+                                                        <div 
+                                                            key={mes}
+                                                            onClick={() => setMesAtual(mes)}
+                                                            className={`flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-all ${
+                                                                mesAtualBool ? 'bg-blue-50 border-2 border-blue-300' : 'hover:bg-gray-50'
+                                                            }`}
+                                                        >
+                                                            <div className="w-12 text-center">
+                                                                {mesAtualBool && <span className="text-blue-600 font-bold">►</span>}
+                                                            </div>
+                                                            <div className="w-16">
+                                                                <span className="font-bold text-gray-800 uppercase">{mes}</span>
+                                                            </div>
+                                                            <div className="w-32">
+                                                                <span className={`font-semibold ${semDados ? 'text-gray-400' : 'text-gray-800'}`}>
+                                                                    R$ {gasto.toFixed(0)}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <div className="w-full bg-gray-200 rounded-full h-3">
+                                                                    <div 
+                                                                        className={`h-3 rounded-full transition-all ${
+                                                                            semDados ? 'bg-gray-300' :
+                                                                            dentroMeta ? 'bg-green-500' : 
+                                                                            'bg-red-500'
+                                                                        }`}
+                                                                        style={{ width: meta > 0 ? `${Math.min((gasto / meta) * 100, 100)}%` : '0%' }}
+                                                                    ></div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="w-24 text-right">
+                                                                <span className={`font-bold ${
+                                                                    semDados ? 'text-gray-400' :
+                                                                    dentroMeta ? 'text-green-600' : 
+                                                                    'text-red-600'
+                                                                }`}>
+                                                                    {semDados ? '-' : `${percentual.toFixed(0)}%`}
+                                                                </span>
+                                                            </div>
+                                                            <div className="w-12 text-center text-2xl">
+                                                                {semDados ? '⏳' : dentroMeta ? '✅' : '❌'}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            <div className="mt-6 pt-4 border-t grid grid-cols-2 gap-4 text-sm">
+                                                <div>
+                                                    <span className="text-gray-600">Total Gasto (Ano):</span>
+                                                    <span className="font-bold text-gray-800 ml-2">R$ {totalGastoAnoAteAgora.toFixed(2)}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-600">Meta Anual:</span>
+                                                    <span className="font-bold text-gray-800 ml-2">R$ {totalMetaAno.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
 
                         {/* COMPARAÇÃO ENTRE MESES */}
                         {comparacao.temAnterior && (
@@ -1575,6 +1865,16 @@
                             >
                                 📝 Pré-Mês
                             </button>
+                            <button 
+                                onClick={() => setAbaAtiva('metasanuais')}
+                                className={`px-6 py-3 font-semibold border-b-2 transition-colors ${
+                                    abaAtiva === 'metasanuais' 
+                                        ? 'border-blue-600 text-blue-600' 
+                                        : 'border-transparent text-gray-600 hover:text-gray-800'
+                                }`}
+                            >
+                                🎯 Metas Anuais
+                            </button>
                         </div>
 
                         {/* Conteúdo Aba Orçamento */}
@@ -1837,45 +2137,322 @@
                                 )}
                             </div>
                         )}
+
+                        {/* Conteúdo Aba Metas Anuais */}
+                        {abaAtiva === 'metasanuais' && (
+                            <div className="space-y-6">
+                                <div className="flex justify-end">
+                                    <button 
+                                        onClick={() => setModalAberto('metas')}
+                                        className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                                    >
+                                        📝 Editar Metas
+                                    </button>
+                                </div>
+
+                                {/* Cards de Resumo Anual */}
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div className="bg-white rounded-xl shadow-lg p-6">
+                                        <div className="text-sm text-gray-600">Total Planejado (Ano)</div>
+                                        <div className="text-2xl font-bold text-blue-600">
+                                            R$ {(metas.jan + metas.fev + metas.mar + metas.abr + metas.mai + metas.jun + 
+                                                 metas.jul + metas.ago + metas.set + metas.out + metas.nov + metas.dez).toFixed(2)}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-white rounded-xl shadow-lg p-6">
+                                        <div className="text-sm text-gray-600">Gasto (até {mesAtual.toUpperCase()})</div>
+                                        <div className="text-2xl font-bold text-purple-600">
+                                            R$ {['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+                                                .slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1)
+                                                .reduce((sum, mes) => sum + calcularTotais(mes).total, 0).toFixed(2)}
+                                        </div>
+                                    </div>
+
+                                    {(() => {
+                                        const totalMetaAteAgora = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+                                            .slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1)
+                                            .reduce((sum, mes) => sum + (metas[mes] || 0), 0);
+                                        const totalGastoAteAgora = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+                                            .slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1)
+                                            .reduce((sum, mes) => sum + calcularTotais(mes).total, 0);
+                                        const diferenca = totalMetaAteAgora - totalGastoAteAgora;
+                                        const dentroMeta = diferenca >= 0;
+                                        
+                                        return (
+                                            <div className={`rounded-xl shadow-lg p-6 ${dentroMeta ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-red-500 to-red-600'} text-white`}>
+                                                <div className="text-sm opacity-90">{dentroMeta ? 'Economia' : 'Excesso'}</div>
+                                                <div className="text-2xl font-bold">R$ {Math.abs(diferenca).toFixed(2)}</div>
+                                                <div className="text-sm mt-2">{dentroMeta ? '✅ Abaixo da meta' : '⚠️ Acima da meta'}</div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {(() => {
+                                        const mesesAteAgora = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+                                            .slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1);
+                                        const mesesNoTarget = mesesAteAgora.filter(mes => {
+                                            const meta = metas[mes] || 0;
+                                            const gasto = calcularTotais(mes).total;
+                                            return gasto <= meta;
+                                        }).length;
+                                        
+                                        return (
+                                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                                <div className="text-sm text-gray-600">Performance</div>
+                                                <div className="text-2xl font-bold text-green-600">{mesesNoTarget}/{mesesAteAgora.length}</div>
+                                                <div className="text-sm text-gray-500 mt-2">Meses no target ({((mesesNoTarget/mesesAteAgora.length)*100).toFixed(0)}%)</div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+
+                                {/* Tabela de Metas Mensais */}
+                                <div className="bg-white rounded-xl shadow-lg p-6">
+                                    <h3 className="text-xl font-bold text-gray-800 mb-4">Metas por Mês</h3>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b-2 border-gray-200">
+                                                    <th className="text-left py-3 px-4 font-bold text-gray-700">Mês</th>
+                                                    <th className="text-right py-3 px-4 font-bold text-gray-700">Meta</th>
+                                                    <th className="text-right py-3 px-4 font-bold text-gray-700">Real</th>
+                                                    <th className="text-right py-3 px-4 font-bold text-gray-700">Diferença</th>
+                                                    <th className="text-center py-3 px-4 font-bold text-gray-700">Status</th>
+                                                    <th className="text-right py-3 px-4 font-bold text-gray-700">%</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].map(mes => {
+                                                    const meta = metas[mes] || 0;
+                                                    const real = calcularTotais(mes).total;
+                                                    const diferenca = meta - real;
+                                                    const percentual = meta > 0 ? (real / meta) * 100 : 0;
+                                                    const dentroMeta = real <= meta && real > 0;
+                                                    const pendente = real === 0;
+                                                    
+                                                    return (
+                                                        <tr key={mes} className={`border-b border-gray-100 hover:bg-gray-50 ${mes === mesAtual ? 'bg-blue-50' : ''}`}>
+                                                            <td className="py-3 px-4">
+                                                                <span className="font-semibold uppercase">{mes}</span>
+                                                                {mes === mesAtual && <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-1 rounded">Atual</span>}
+                                                            </td>
+                                                            <td className="text-right py-3 px-4 text-blue-600 font-semibold">
+                                                                R$ {meta.toFixed(2)}
+                                                            </td>
+                                                            <td className="text-right py-3 px-4 font-semibold">
+                                                                R$ {real.toFixed(2)}
+                                                            </td>
+                                                            <td className={`text-right py-3 px-4 font-bold ${diferenca >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                                {diferenca >= 0 ? '+' : ''}R$ {diferenca.toFixed(2)}
+                                                            </td>
+                                                            <td className="text-center py-3 px-4 text-2xl">
+                                                                {pendente ? '⏳' : dentroMeta ? '✅' : '❌'}
+                                                            </td>
+                                                            <td className={`text-right py-3 px-4 font-bold ${dentroMeta ? 'text-green-600' : pendente ? 'text-gray-400' : 'text-red-600'}`}>
+                                                                {percentual.toFixed(0)}%
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                {/* Gráfico Visual Simples */}
+                                <div className="bg-white rounded-xl shadow-lg p-6">
+                                    <h3 className="text-xl font-bold text-gray-800 mb-4">Evolução Anual</h3>
+                                    <div className="space-y-3">
+                                        {['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].map(mes => {
+                                            const meta = metas[mes] || 0;
+                                            const real = calcularTotais(mes).total;
+                                            const maxValor = Math.max(meta, real, 1);
+                                            const larguraMeta = (meta / maxValor) * 100;
+                                            const larguraReal = (real / maxValor) * 100;
+                                            
+                                            return (
+                                                <div key={mes}>
+                                                    <div className="flex items-center gap-3 mb-1">
+                                                        <span className="font-semibold uppercase text-gray-700 w-12">{mes}</span>
+                                                        <div className="flex-1 relative h-10">
+                                                            <div 
+                                                                className="absolute top-0 left-0 h-4 bg-blue-200 rounded"
+                                                                style={{ width: `${larguraMeta}%` }}
+                                                                title={`Meta: R$ ${meta.toFixed(2)}`}
+                                                            ></div>
+                                                            <div 
+                                                                className={`absolute top-5 left-0 h-4 rounded ${real <= meta ? 'bg-green-500' : 'bg-red-500'}`}
+                                                                style={{ width: `${larguraReal}%` }}
+                                                                title={`Real: R$ ${real.toFixed(2)}`}
+                                                            ></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="flex gap-6 mt-6 text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-4 bg-blue-200 rounded"></div>
+                                            <span>Meta Planejada</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-4 bg-green-500 rounded"></div>
+                                            <span>Gasto Real (Dentro)</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-4 bg-red-500 rounded"></div>
+                                            <span>Gasto Real (Acima)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
             };
 
             const TelaFarol = () => {
+                const [filtroStatus, setFiltroStatus] = useState('todos');
+                
                 const itensTodos = [
                     ...cartoes.map(c => ({ tipo: 'CARTÃO', nome: c.nome, vencimento: c.vencimento, valor: c.valores[mesAtual] || 0 })),
                     ...gastosFixos.map(g => ({ tipo: 'FIXO', nome: g.descricao, vencimento: g.vencimento, valor: g.valor }))
-                ].sort((a, b) => a.vencimento - b.vencimento);
+                ].filter(item => item.valor > 0).sort((a, b) => a.vencimento - b.vencimento);
+
+                const itensFiltrados = filtroStatus === 'todos' ? itensTodos :
+                    filtroStatus === 'pagos' ? itensTodos.filter(item => getStatusFarol(item.nome, mesAtual) === 'PAGO') :
+                    itensTodos.filter(item => getStatusFarol(item.nome, mesAtual) === 'PENDENTE');
 
                 return (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         <div className="bg-white rounded-xl shadow-lg p-6">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-6">🚦 Farol de Pagamentos</h2>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-6">🚦 Farol de Pagamentos - {mesAtual.toUpperCase()}</h2>
+                            
+                            {/* Cards de Resumo */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                                    <div className="text-sm text-gray-600 mb-1">Total a Pagar</div>
+                                    <div className="text-3xl font-bold text-blue-600">R$ {pagamentos.total.toFixed(2)}</div>
+                                    <div className="text-sm text-gray-500 mt-2">{pagamentos.qtdTotal} itens</div>
+                                </div>
+                                <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
+                                    <div className="text-sm text-gray-600 mb-1">✅ Já Pago</div>
+                                    <div className="text-3xl font-bold text-green-600">R$ {pagamentos.pago.toFixed(2)}</div>
+                                    <div className="text-sm text-gray-500 mt-2">{pagamentos.qtdPago} pagos • {pagamentos.percentual.toFixed(0)}%</div>
+                                </div>
+                                <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
+                                    <div className="text-sm text-gray-600 mb-1">⏳ Ainda Falta</div>
+                                    <div className="text-3xl font-bold text-orange-600">R$ {pagamentos.pendente.toFixed(2)}</div>
+                                    <div className="text-sm text-gray-500 mt-2">{pagamentos.qtdTotal - pagamentos.qtdPago} pendentes</div>
+                                </div>
+                            </div>
+
+                            {/* Barra de Progresso */}
+                            <div className="mb-6">
+                                <div className="flex justify-between text-sm mb-2">
+                                    <span className="font-semibold text-gray-700">Progresso de Pagamentos</span>
+                                    <span className="font-bold text-gray-800">{pagamentos.percentual.toFixed(1)}%</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-6">
+                                    <div 
+                                        className={`h-6 rounded-full transition-all flex items-center justify-end pr-2 text-white text-xs font-bold ${
+                                            pagamentos.percentual >= 100 ? 'bg-green-500' :
+                                            pagamentos.percentual >= 50 ? 'bg-yellow-500' :
+                                            'bg-red-500'
+                                        }`}
+                                        style={{ width: `${Math.min(pagamentos.percentual, 100)}%` }}
+                                    >
+                                        {pagamentos.percentual >= 10 && `${pagamentos.percentual.toFixed(0)}%`}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Filtros */}
+                            <div className="flex gap-2 mb-6">
+                                <button 
+                                    onClick={() => setFiltroStatus('todos')}
+                                    className={`px-4 py-2 rounded-lg font-semibold ${
+                                        filtroStatus === 'todos' 
+                                            ? 'bg-blue-600 text-white' 
+                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    Todos ({itensTodos.length})
+                                </button>
+                                <button 
+                                    onClick={() => setFiltroStatus('pagos')}
+                                    className={`px-4 py-2 rounded-lg font-semibold ${
+                                        filtroStatus === 'pagos' 
+                                            ? 'bg-green-600 text-white' 
+                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    ✅ Pagos ({pagamentos.qtdPago})
+                                </button>
+                                <button 
+                                    onClick={() => setFiltroStatus('pendentes')}
+                                    className={`px-4 py-2 rounded-lg font-semibold ${
+                                        filtroStatus === 'pendentes' 
+                                            ? 'bg-orange-600 text-white' 
+                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    ⏳ Pendentes ({pagamentos.qtdTotal - pagamentos.qtdPago})
+                                </button>
+                            </div>
+
+                            {/* Lista de Pagamentos */}
                             <div className="space-y-2">
-                                {itensTodos.map((item, idx) => {
+                                {itensFiltrados.map((item, idx) => {
                                     const status = getStatusFarol(item.nome, mesAtual);
+                                    const isPago = status === 'PAGO';
                                     return (
                                         <div 
                                             key={idx}
                                             onClick={() => toggleFarol(item.nome, mesAtual)}
-                                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer"
+                                            className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all ${
+                                                isPago 
+                                                    ? 'bg-green-50 border-2 border-green-200 hover:bg-green-100' 
+                                                    : 'bg-gray-50 border-2 border-gray-200 hover:bg-gray-100'
+                                            }`}
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className={`w-5 h-5 rounded-full ${status === 'PAGO' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white font-bold ${
+                                                    isPago ? 'bg-green-500' : 'bg-orange-500'
+                                                }`}>
+                                                    {isPago ? '✓' : '!'}
+                                                </div>
                                                 <div>
-                                                    <div className="font-semibold text-gray-800">{item.nome}</div>
-                                                    <div className="text-sm text-gray-500">{item.tipo} • Dia {item.vencimento}</div>
+                                                    <div className={`font-semibold ${isPago ? 'text-green-700 line-through' : 'text-gray-800'}`}>
+                                                        {item.nome}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500">
+                                                        {item.tipo} • Vencimento: dia {item.vencimento}
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <div className="text-xl font-bold text-blue-600">R$ {item.valor.toFixed(2)}</div>
-                                                <span className={`px-4 py-2 rounded-full text-sm font-semibold ${status === 'PAGO' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                                    {status}
+                                                <div className={`text-xl font-bold ${isPago ? 'text-green-600' : 'text-gray-800'}`}>
+                                                    R$ {item.valor.toFixed(2)}
+                                                </div>
+                                                <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
+                                                    isPago 
+                                                        ? 'bg-green-500 text-white' 
+                                                        : 'bg-orange-500 text-white'
+                                                }`}>
+                                                    {isPago ? '✅ PAGO' : '⏳ PENDENTE'}
                                                 </span>
                                             </div>
                                         </div>
                                     );
                                 })}
+                                {itensFiltrados.length === 0 && (
+                                    <div className="text-center py-12 text-gray-500">
+                                        Nenhum item nesta categoria
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -1936,7 +2513,7 @@
                     {/* DASHBOARD RESUMO FIXO - SEMPRE VISÍVEL */}
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg sticky top-40 z-10">
                         <div className="max-w-7xl mx-auto px-4 py-4">
-                            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                            <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
                                 {/* Receitas */}
                                 <div className="bg-white bg-opacity-20 rounded-lg p-3 backdrop-blur-sm">
                                     <div className="text-xs opacity-90">💰 Receitas</div>
@@ -1961,6 +2538,17 @@
                                     </div>
                                 </div>
 
+                                {/* Pagamentos */}
+                                <div className={`rounded-lg p-3 backdrop-blur-sm ${
+                                    pagamentos.percentual >= 100 ? 'bg-green-500 bg-opacity-30' :
+                                    pagamentos.percentual >= 50 ? 'bg-yellow-500 bg-opacity-30' :
+                                    'bg-red-500 bg-opacity-30'
+                                }`}>
+                                    <div className="text-xs opacity-90">✔️ Pagos</div>
+                                    <div className="text-xl font-bold">{pagamentos.percentual.toFixed(0)}%</div>
+                                    <div className="text-xs opacity-75">{pagamentos.qtdPago}/{pagamentos.qtdTotal}</div>
+                                </div>
+
                                 {/* Cartões */}
                                 <div className="bg-white bg-opacity-20 rounded-lg p-3 backdrop-blur-sm">
                                     <div className="text-xs opacity-90">💳 Cartões</div>
@@ -1974,35 +2562,35 @@
                                 </div>
 
                                 {/* Meta */}
-                                {metas.mensal > 0 && (
+                                {metaMensal > 0 && (
                                     <div className={`rounded-lg p-3 backdrop-blur-sm ${
-                                        (totais.total / metas.mensal * 100) > 100 ? 'bg-red-500 bg-opacity-30' :
-                                        (totais.total / metas.mensal * 100) > 80 ? 'bg-yellow-500 bg-opacity-30' :
+                                        (totais.total / metaMensal * 100) > 100 ? 'bg-red-500 bg-opacity-30' :
+                                        (totais.total / metaMensal * 100) > 80 ? 'bg-yellow-500 bg-opacity-30' :
                                         'bg-green-500 bg-opacity-30'
                                     }`}>
-                                        <div className="text-xs opacity-90">🎯 Meta</div>
+                                        <div className="text-xs opacity-90">🎯 Meta {mesAtual.toUpperCase()}</div>
                                         <div className="text-xl font-bold">
-                                            {((totais.total / metas.mensal) * 100).toFixed(0)}%
+                                            {((totais.total / metaMensal) * 100).toFixed(0)}%
                                         </div>
                                     </div>
                                 )}
                             </div>
 
                             {/* Barra de progresso da meta */}
-                            {metas.mensal > 0 && (
+                            {metaMensal > 0 && (
                                 <div className="mt-3">
                                     <div className="flex justify-between text-xs mb-1 opacity-90">
-                                        <span>Meta: R$ {metas.mensal.toFixed(0)}</span>
-                                        <span>Faltam: R$ {Math.max(0, metas.mensal - totais.total).toFixed(0)}</span>
+                                        <span>Meta {mesAtual.toUpperCase()}: R$ {metaMensal.toFixed(0)}</span>
+                                        <span>{totais.total <= metaMensal ? `Faltam: R$ ${(metaMensal - totais.total).toFixed(0)}` : `Excedeu: R$ ${(totais.total - metaMensal).toFixed(0)}`}</span>
                                     </div>
                                     <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
                                         <div 
                                             className={`h-2 rounded-full transition-all ${
-                                                (totais.total / metas.mensal * 100) > 100 ? 'bg-red-400' :
-                                                (totais.total / metas.mensal * 100) > 80 ? 'bg-yellow-400' :
+                                                (totais.total / metaMensal * 100) > 100 ? 'bg-red-400' :
+                                                (totais.total / metaMensal * 100) > 80 ? 'bg-yellow-400' :
                                                 'bg-green-400'
                                             }`}
-                                            style={{ width: `${Math.min((totais.total / metas.mensal) * 100, 100)}%` }}
+                                            style={{ width: `${Math.min((totais.total / metaMensal) * 100, 100)}%` }}
                                         ></div>
                                     </div>
                                 </div>
