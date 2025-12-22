@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Sistema Financeiro</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7); display: flex;
+            align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-content {
+            background: white; border-radius: 1rem; padding: 2rem;
+            max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const DADOS_INICIAIS = {
+            gastosFixos: [
+                { id: 1, categoria: "MORADIA", descricao: "ALUGUEL", valor: 550, vencimento: 10 },
+                { id: 2, categoria: "MORADIA", descricao: "CONDOMINIO", valor: 440, vencimento: 10 },
+                { id: 3, categoria: "MORADIA", descricao: "APARTAMENTO", valor: 660, vencimento: 8 },
+                { id: 4, categoria: "MORADIA", descricao: "INTERNET", valor: 100, vencimento: 15 },
+                { id: 5, categoria: "MORADIA", descricao: "ENERGIA", valor: 300, vencimento: 20 },
+                { id: 6, categoria: "ESTUDO", descricao: "CONDUÇÃO", valor: 250, vencimento: 5 },
+                { id: 7, categoria: "ESTUDO", descricao: "PÓS GRADUAÇÃO", valor: 98, vencimento: 10 },
+                { id: 8, categoria: "ESTUDO", descricao: "ESCOLA", valor: 620, vencimento: 12 },
+                { id: 9, categoria: "ESTUDO", descricao: "FACULDADE CAMILLY", valor: 720, vencimento: 15 },
+                { id: 10, categoria: "TRANSPORTE", descricao: "CARRO", valor: 1300, vencimento: 25 },
+                { id: 11, categoria: "SERVIÇOS", descricao: "UNHA", valor: 80, vencimento: 18 }
+            ],
+            cartoes: [
+                { id: 1, nome: "CAMILLY", vencimento: 5, valores: { 
+                    jan: 200, fev: 200, mar: 0, abr: 0, mai: 0, jun: 0, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
+                }},
+                { id: 2, nome: "UNICLASS", vencimento: 5, valores: { 
+                    jan: 2920, fev: 2577, mar: 1952, abr: 1852, mai: 1676, jun: 1565, jul: 1565, ago: 111, set: 0, out: 0, nov: 0, dez: 0 
+                }},
+                { id: 3, nome: "PÃO DE AÇUCAR", vencimento: 5, valores: { 
+                    jan: 2760, fev: 1621, mar: 1621, abr: 1621, mai: 1621, jun: 0, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
+                }},
+                { id: 4, nome: "NUBANK", vencimento: 7, valores: { 
+                    jan: 3296, fev: 2613, mar: 2430, abr: 1493, mai: 338, jun: 338, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
+                }},
+                { id: 5, nome: "NEON", vencimento: 11, valores: { 
+                    jan: 150, fev: 0, mar: 0, abr: 0, mai: 0, jun: 0, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
+                }},
+                { id: 6, nome: "RIACHUELLO", vencimento: 15, valores: { 
+                    jan: 250, fev: 0, mar: 0, abr: 0, mai: 0, jun: 0, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
+                }},
+                { id: 7, nome: "PLATINUN", vencimento: 11, valores: { 
+                    jan: 570, fev: 570, mar: 333, abr: 333, mai: 333, jun: 333, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
+                }},
+                { id: 8, nome: "SIGNATURE", vencimento: 20, valores: { 
+                    jan: 953, fev: 567, mar: 567, abr: 567, mai: 516, jun: 333, jul: 309, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
+                }}
+            ]
+        };
+
+        const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+        function App() {
+            const [mesAtual, setMesAtual] = useState('jan');
+            const [telaAtiva, setTelaAtiva] = useState('dashboard');
+            const [modalAberto, setModalAberto] = useState(null);
+            
+            const [gastosFixos, setGastosFixos] = useState(() => {
+                const saved = localStorage.getItem('gastosFixos');
+                return saved ? JSON.parse(saved) : DADOS_INICIAIS.gastosFixos;
+            });
+
+            const [cartoes, setCartoes] = useState(() => {
+                const saved = localStorage.getItem('cartoes');
+                return saved ? JSON.parse(saved) : DADOS_INICIAIS.cartoes;
+            });
+
+            const [gastosVariaveis, setGastosVariaveis] = useState(() => {
+                const saved = localStorage.getItem('gastosVariaveis');
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            const [receitas, setReceitas] = useState(() => {
+                const saved = localStorage.getItem('receitas');
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            const [farol, setFarol] = useState(() => {
+                const saved = localStorage.getItem('farol');
+                return saved ? JSON.parse(saved) : {};
+            });
+
+            const [metas, setMetas] = useState(() => {
+                const saved = localStorage.getItem('metas');
+                return saved ? JSON.parse(saved) : { mensal: 20000 };
+            });
+
+            const [orcamento, setOrcamento] = useState(() => {
+                const saved = localStorage.getItem('orcamento');
+                return saved ? JSON.parse(saved) : {
+                    cartoes: 8000,
+                    fixos: 5500,
+                    variaveis: 2000
+                };
+            });
+
+            const [orcamentoAnual, setOrcamentoAnual] = useState(() => {
+                const saved = localStorage.getItem('orcamentoAnual');
+                return saved ? JSON.parse(saved) : {
+                    jan: 15000, fev: 15000, mar: 15000, abr: 15000, mai: 15000, jun: 15000,
+                    jul: 15000, ago: 15000, set: 15000, out: 15000, nov: 15000, dez: 15000
+                };
+            });
+
+            const [planejadosMes, setPlanejadosMes] = useState(() => {
+                const saved = localStorage.getItem('planejadosMes');
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            useEffect(() => { localStorage.setItem('gastosFixos', JSON.stringify(gastosFixos)); }, [gastosFixos]);
+            useEffect(() => { localStorage.setItem('cartoes', JSON.stringify(cartoes)); }, [cartoes]);
+            useEffect(() => { localStorage.setItem('gastosVariaveis', JSON.stringify(gastosVariaveis)); }, [gastosVariaveis]);
+            useEffect(() => { localStorage.setItem('receitas', JSON.stringify(receitas)); }, [receitas]);
+            useEffect(() => { localStorage.setItem('farol', JSON.stringify(farol)); }, [farol]);
+            useEffect(() => { localStorage.setItem('metas', JSON.stringify(metas)); }, [metas]);
+            useEffect(() => { localStorage.setItem('orcamento', JSON.stringify(orcamento)); }, [orcamento]);
+            useEffect(() => { localStorage.setItem('orcamentoAnual', JSON.stringify(orcamentoAnual)); }, [orcamentoAnual]);
+            useEffect(() => { localStorage.setItem('planejadosMes', JSON.stringify(planejadosMes)); }, [planejadosMes]);
+
+            const calcularTotais = (mes) => {
+                const totalCartoes = cartoes.reduce((sum, c) => sum + (c.valores[mes] || 0), 0);
+                const totalFixos = gastosFixos.reduce((sum, g) => sum + g.valor, 0);
+                const totalVariaveis = gastosVariaveis.filter(g => g.mes === mes).reduce((sum, g) => sum + g.valor, 0);
+                return { cartoes: totalCartoes, fixos: totalFixos, variaveis: totalVariaveis, total: totalCartoes + totalFixos + totalVariaveis };
+            };
+
+            const totais = calcularTotais(mesAtual);
+
+            // CÁLCULO DE RECEITAS E SALDO
+            const calcularSaldo = (mes) => {
+                const totalReceitas = receitas.filter(r => r.mes === mes).reduce((sum, r) => sum + r.valor, 0);
+                const totalDespesas = calcularTotais(mes).total;
+                const saldo = totalReceitas - totalDespesas;
+                
+                return {
+                    receitas: totalReceitas,
+                    despesas: totalDespesas,
+                    saldo: saldo,
+                    positivo: saldo >= 0
+                };
+            };
+
+            const saldo = calcularSaldo(mesAtual);
+
+            // COMPARAÇÃO ENTRE MESES
+            const compararMeses = () => {
+                const indiceMesAtual = MESES.indexOf(mesAtual);
+                const mesAnterior = indiceMesAtual > 0 ? MESES[indiceMesAtual - 1] : null;
+                
+                if (!mesAnterior) {
+                    return { temAnterior: false };
+                }
+
+                const totaisAtual = calcularTotais(mesAtual);
+                const totaisAnterior = calcularTotais(mesAnterior);
+
+                const diferenca = totaisAtual.total - totaisAnterior.total;
+                const variacao = totaisAnterior.total > 0 
+                    ? ((diferenca / totaisAnterior.total) * 100).toFixed(1)
+                    : 0;
+
+                // Calcular melhor e pior mês do ano
+                const todosMeses = MESES.map(mes => ({
+                    mes,
+                    total: calcularTotais(mes).total
+                })).filter(m => m.total > 0);
+
+                const melhorMes = todosMeses.length > 0 
+                    ? todosMeses.reduce((min, m) => m.total < min.total ? m : min)
+                    : null;
+                
+                const piorMes = todosMeses.length > 0
+                    ? todosMeses.reduce((max, m) => m.total > max.total ? m : max)
+                    : null;
+
+                return {
+                    temAnterior: true,
+                    mesAnterior,
+                    totaisAtual,
+                    totaisAnterior,
+                    diferenca,
+                    variacao,
+                    aumentou: diferenca > 0,
+                    melhorMes,
+                    piorMes
+                };
+            };
+
+            const comparacao = compararMeses();
+
+            // INSIGHTS AUTOMÁTICOS
+            const gerarInsights = () => {
+                const insights = [];
+
+                // Insight 1: Comparação com mês anterior
+                if (comparacao.temAnterior) {
+                    if (comparacao.aumentou && Math.abs(comparacao.variacao) > 10) {
+                        insights.push({
+                            tipo: 'alerta',
+                            icone: '⚠️',
+                            titulo: 'Gastos aumentaram significativamente',
+                            mensagem: `Seus gastos aumentaram ${comparacao.variacao}% comparado a ${comparacao.mesAnterior.toUpperCase()}. Isso representa +R$ ${Math.abs(comparacao.diferenca).toFixed(2)}.`,
+                            cor: 'red'
+                        });
+                    } else if (!comparacao.aumentou && Math.abs(comparacao.variacao) > 10) {
+                        insights.push({
+                            tipo: 'sucesso',
+                            icone: '✅',
+                            titulo: 'Parabéns! Você economizou',
+                            mensagem: `Seus gastos diminuíram ${Math.abs(comparacao.variacao)}% comparado a ${comparacao.mesAnterior.toUpperCase()}. Economia de R$ ${Math.abs(comparacao.diferenca).toFixed(2)}!`,
+                            cor: 'green'
+                        });
+                    }
+
+                    // Insight sobre categorias específicas
+                    const difCartoes = comparacao.totaisAtual.cartoes - comparacao.totaisAnterior.cartoes;
+                    const difVariaveis = comparacao.totaisAtual.variaveis - comparacao.totaisAnterior.variaveis;
+                    
+                    if (difCartoes > 500) {
+                        insights.push({
+                            tipo: 'info',
+                            icone: '💳',
+                            titulo: 'Gastos com cartões em alta',
+                            mensagem: `Seus gastos com cartões aumentaram R$ ${difCartoes.toFixed(2)} este mês. Revise suas faturas.`,
+                            cor: 'orange'
+                        });
+                    }
+
+                    if (difVariaveis > 500) {
+                        insights.push({
+                            tipo: 'info',
+                            icone: '📊',
+                            titulo: 'Gastos variáveis elevados',
+                            mensagem: `Seus gastos variáveis aumentaram R$ ${difVariaveis.toFixed(2)}. Considere revisar seus hábitos de consumo.`,
+                            cor: 'blue'
+                        });
+                    }
+                }
+
+                // Insight 2: Meta
+                if (metas.mensal > 0) {
+                    const percentualMeta = (totais.total / metas.mensal) * 100;
+                    
+                    if (percentualMeta > 100) {
+                        insights.push({
+                            tipo: 'alerta',
+                            icone: '🔴',
+                            titulo: 'Meta ultrapassada!',
+                            mensagem: `Você ultrapassou sua meta em ${(percentualMeta - 100).toFixed(1)}%. Total gasto: R$ ${totais.total.toFixed(2)} de R$ ${metas.mensal.toFixed(2)}.`,
+                            cor: 'red'
+                        });
+                    } else if (percentualMeta > 80) {
+                        insights.push({
+                            tipo: 'aviso',
+                            icone: '⚡',
+                            titulo: 'Atenção: Meta próxima do limite',
+                            mensagem: `Você já usou ${percentualMeta.toFixed(1)}% da sua meta mensal. Restam apenas R$ ${(metas.mensal - totais.total).toFixed(2)}.`,
+                            cor: 'yellow'
+                        });
+                    } else if (percentualMeta < 70) {
+                        insights.push({
+                            tipo: 'sucesso',
+                            icone: '🎉',
+                            titulo: 'Dentro da meta!',
+                            mensagem: `Você está usando apenas ${percentualMeta.toFixed(1)}% da sua meta. Continue assim!`,
+                            cor: 'green'
+                        });
+                    }
+                }
+
+                // Insight 3: Análise de categorias
+                if (gastosFixos.length > 0) {
+                    const categorias = gastosFixos.reduce((acc, g) => {
+                        acc[g.categoria] = (acc[g.categoria] || 0) + g.valor;
+                        return acc;
+                    }, {});
+
+                    const categoriaMaior = Object.entries(categorias).sort((a, b) => b[1] - a[1])[0];
+                    const percentualCategoria = (categoriaMaior[1] / totais.fixos) * 100;
+
+                    if (percentualCategoria > 40) {
+                        insights.push({
+                            tipo: 'info',
+                            icone: '📌',
+                            titulo: `Categoria ${categoriaMaior[0]} representa ${percentualCategoria.toFixed(0)}%`,
+                            mensagem: `A categoria ${categoriaMaior[0]} representa ${percentualCategoria.toFixed(0)}% dos seus gastos fixos (R$ ${categoriaMaior[1].toFixed(2)}).`,
+                            cor: 'purple'
+                        });
+                    }
+                }
+
+                // Insight 4: Sugestões
+                if (gastosVariaveis.filter(g => g.mes === mesAtual).length === 0) {
+                    insights.push({
+                        tipo: 'dica',
+                        icone: '💡',
+                        titulo: 'Registre seus gastos variáveis',
+                        mensagem: 'Você ainda não registrou gastos variáveis este mês. Adicione mercado, alimentação e outros gastos para ter controle total.',
+                        cor: 'blue'
+                    });
+                }
+
+                // Limitar a 5 insights mais relevantes
+                return insights.slice(0, 5);
+            };
+
+            const insights = gerarInsights();
+
+            // CRUD Functions
+            const adicionarCartao = (dados) => {
+                console.log('Adicionando cartão:', dados);
+                const novoCartao = {
+                    id: Date.now(),
+                    nome: dados.nome.toUpperCase(),
+                    vencimento: parseInt(dados.vencimento),
+                    valores: { jan: 0, fev: 0, mar: 0, abr: 0, mai: 0, jun: 0, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 }
+                };
+                setCartoes([...cartoes, novoCartao]);
+                setModalAberto(null);
+                alert('Cartão adicionado com sucesso!');
+            };
+
+            const adicionarGastoFixo = (dados) => {
+                console.log('Adicionando gasto fixo:', dados);
+                const novoGasto = {
+                    id: Date.now(),
+                    categoria: dados.categoria.toUpperCase(),
+                    descricao: dados.descricao.toUpperCase(),
+                    valor: parseFloat(dados.valor),
+                    vencimento: parseInt(dados.vencimento)
+                };
+                setGastosFixos([...gastosFixos, novoGasto]);
+                setModalAberto(null);
+                alert('Gasto fixo adicionado com sucesso!');
+            };
+
+            const adicionarGastoVariavel = (dados) => {
+                console.log('Adicionando gasto variável:', dados);
+                const novoGasto = {
+                    id: Date.now(),
+                    categoria: dados.categoria,
+                    descricao: dados.descricao || '',
+                    valor: parseFloat(dados.valor),
+                    mes: mesAtual,
+                    data: new Date().toLocaleDateString('pt-BR')
+                };
+                setGastosVariaveis([...gastosVariaveis, novoGasto]);
+                setModalAberto(null);
+                alert('Gasto variável adicionado com sucesso!');
+            };
+
+            const deletarCartao = (id) => {
+                if (confirm('Tem certeza?')) {
+                    setCartoes(cartoes.filter(c => c.id !== id));
+                }
+            };
+
+            const deletarGastoFixo = (id) => {
+                if (confirm('Tem certeza?')) {
+                    setGastosFixos(gastosFixos.filter(g => g.id !== id));
+                }
+            };
+
+            const deletarGastoVariavel = (id) => {
+                if (confirm('Tem certeza?')) {
+                    setGastosVariaveis(gastosVariaveis.filter(g => g.id !== id));
+                }
+            };
+
+            const adicionarReceita = (dados) => {
+                console.log('Adicionando receita:', dados);
+                const novaReceita = {
+                    id: Date.now(),
+                    categoria: dados.categoria,
+                    descricao: dados.descricao || '',
+                    valor: parseFloat(dados.valor),
+                    mes: mesAtual,
+                    data: new Date().toLocaleDateString('pt-BR')
+                };
+                setReceitas([...receitas, novaReceita]);
+                setModalAberto(null);
+                alert('Receita adicionada com sucesso!');
+            };
+
+            const deletarReceita = (id) => {
+                if (confirm('Tem certeza?')) {
+                    setReceitas(receitas.filter(r => r.id !== id));
+                }
+            };
+
+            const adicionarPlanejado = (dados) => {
+                const novoPlanejado = {
+                    id: Date.now(),
+                    mes: mesAtual,
+                    descricao: dados.descricao,
+                    valor: parseFloat(dados.valor),
+                    categoria: dados.categoria,
+                    executado: false
+                };
+                setPlanejadosMes([...planejadosMes, novoPlanejado]);
+                setModalAberto(null);
+            };
+
+            const togglePlanejado = (id) => {
+                setPlanejadosMes(planejadosMes.map(p => 
+                    p.id === id ? { ...p, executado: !p.executado } : p
+                ));
+            };
+
+            const deletarPlanejado = (id) => {
+                if (confirm('Tem certeza?')) {
+                    setPlanejadosMes(planejadosMes.filter(p => p.id !== id));
+                }
+            };
+
+            const editarValorCartao = (id, mes, valor) => {
+                setCartoes(cartoes.map(c => {
+                    if (c.id === id) {
+                        return { ...c, valores: { ...c.valores, [mes]: parseFloat(valor) || 0 } };
+                    }
+                    return c;
+                }));
+            };
+
+            const editarValorGastoFixo = (id, valor) => {
+                setGastosFixos(gastosFixos.map(g => {
+                    if (g.id === id) {
+                        return { ...g, valor: parseFloat(valor) || 0 };
+                    }
+                    return g;
+                }));
+            };
+
+            const toggleFarol = (item, mes) => {
+                const key = `${item}-${mes}`;
+                setFarol({ ...farol, [key]: farol[key] === 'PAGO' ? 'PENDENTE' : 'PAGO' });
+            };
+
+            const getStatusFarol = (item, mes) => {
+                return farol[`${item}-${mes}`] || 'PENDENTE';
+            };
+
+            const exportarPDF = () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.setFontSize(20);
+                doc.text('Relatorio Financeiro', 20, 20);
+                doc.setFontSize(12);
+                doc.text(`Mes: ${mesAtual}`, 20, 30);
+                let y = 45;
+                doc.text(`Cartoes: R$ ${totais.cartoes.toFixed(2)}`, 20, y);
+                y += 10;
+                doc.text(`Gastos Fixos: R$ ${totais.fixos.toFixed(2)}`, 20, y);
+                y += 10;
+                doc.text(`Gastos Variaveis: R$ ${totais.variaveis.toFixed(2)}`, 20, y);
+                y += 10;
+                doc.setFontSize(14);
+                doc.text(`TOTAL: R$ ${totais.total.toFixed(2)}`, 20, y);
+                doc.save(`relatorio-${mesAtual}.pdf`);
+            };
+
+            const exportarExcel = () => {
+                const dados = [
+                    ['Relatório Financeiro', mesAtual],
+                    [],
+                    ['Categoria', 'Valor'],
+                    ['Cartões', totais.cartoes],
+                    ['Gastos Fixos', totais.fixos],
+                    ['Gastos Variáveis', totais.variaveis],
+                    ['TOTAL', totais.total]
+                ];
+                const ws = XLSX.utils.aoa_to_sheet(dados);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
+                XLSX.writeFile(wb, `relatorio-${mesAtual}.xlsx`);
+            };
+
+            const fazerBackup = () => {
+                try {
+                    const dadosBackup = {
+                        versao: '1.0',
+                        dataBackup: new Date().toISOString(),
+                        dados: {
+                            cartoes: cartoes,
+                            gastosFixos: gastosFixos,
+                            gastosVariaveis: gastosVariaveis,
+                            receitas: receitas,
+                            farol: farol,
+                            metas: metas,
+                            orcamento: orcamento,
+                            orcamentoAnual: orcamentoAnual,
+                            planejadosMes: planejadosMes
+                        }
+                    };
+
+                    const json = JSON.stringify(dadosBackup, null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `backup-financeiro-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    alert('✅ Backup realizado com sucesso!\n\nArquivo salvo: backup-financeiro-' + new Date().toISOString().split('T')[0] + '.json');
+                } catch (error) {
+                    alert('❌ Erro ao fazer backup: ' + error.message);
+                }
+            };
+
+            const restaurarBackup = () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const dadosBackup = JSON.parse(event.target.result);
+                            
+                            if (!dadosBackup.versao || !dadosBackup.dados) {
+                                throw new Error('Arquivo de backup inválido');
+                            }
+
+                            if (confirm('⚠️ ATENÇÃO!\n\nIsso vai substituir TODOS os dados atuais pelos dados do backup.\n\nTem certeza que deseja continuar?')) {
+                                setCartoes(dadosBackup.dados.cartoes || []);
+                                setGastosFixos(dadosBackup.dados.gastosFixos || []);
+                                setGastosVariaveis(dadosBackup.dados.gastosVariaveis || []);
+                                setReceitas(dadosBackup.dados.receitas || []);
+                                setFarol(dadosBackup.dados.farol || {});
+                                setMetas(dadosBackup.dados.metas || { mensal: 20000 });
+                                setOrcamento(dadosBackup.dados.orcamento || { cartoes: 8000, fixos: 5500, variaveis: 2000 });
+                                setOrcamentoAnual(dadosBackup.dados.orcamentoAnual || {});
+                                setPlanejadosMes(dadosBackup.dados.planejadosMes || []);
+                                
+                                alert('✅ Backup restaurado com sucesso!\n\nData do backup: ' + new Date(dadosBackup.dataBackup).toLocaleString('pt-BR'));
+                            }
+                        } catch (error) {
+                            alert('❌ Erro ao restaurar backup: ' + error.message + '\n\nCertifique-se de que o arquivo é um backup válido.');
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                
+                input.click();
+            };
+
+            // Modal Component
+            const Modal = ({ titulo, children, onClose }) => (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-2xl font-bold text-gray-800">{titulo}</h3>
+                            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-3xl font-bold">×</button>
+                        </div>
+                        {children}
+                    </div>
+                </div>
+            );
+
+            // Forms
+            const FormNovoCartao = () => {
+                const [nome, setNome] = useState('');
+                const [vencimento, setVencimento] = useState(5);
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    console.log('Submit cartão:', { nome, vencimento });
+                    if (nome.trim()) {
+                        adicionarCartao({ nome, vencimento });
+                    } else {
+                        alert('Preencha o nome do cartão!');
+                    }
+                };
+
+                return (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Nome do Cartão</label>
+                            <input 
+                                type="text"
+                                value={nome}
+                                onChange={(e) => setNome(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="Ex: Nubank"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Dia do Vencimento</label>
+                            <input 
+                                type="number"
+                                min="1"
+                                max="31"
+                                value={vencimento}
+                                onChange={(e) => setVencimento(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                required
+                            />
+                        </div>
+                        <button type="submit" className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">
+                            ✅ Adicionar Cartão
+                        </button>
+                    </form>
+                );
+            };
+
+            const FormNovoGastoFixo = () => {
+                const [categoria, setCategoria] = useState('MORADIA');
+                const [descricao, setDescricao] = useState('');
+                const [valor, setValor] = useState('');
+                const [vencimento, setVencimento] = useState(10);
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    console.log('Submit gasto fixo:', { categoria, descricao, valor, vencimento });
+                    if (descricao.trim() && valor) {
+                        adicionarGastoFixo({ categoria, descricao, valor, vencimento });
+                    } else {
+                        alert('Preencha todos os campos!');
+                    }
+                };
+
+                return (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
+                            <select 
+                                value={categoria}
+                                onChange={(e) => setCategoria(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            >
+                                <option value="MORADIA">Moradia</option>
+                                <option value="ESTUDO">Estudo</option>
+                                <option value="TRANSPORTE">Transporte</option>
+                                <option value="SERVIÇOS">Serviços</option>
+                                <option value="SAÚDE">Saúde</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
+                            <input 
+                                type="text"
+                                value={descricao}
+                                onChange={(e) => setDescricao(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="Ex: Aluguel"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Valor</label>
+                            <input 
+                                type="number"
+                                step="0.01"
+                                value={valor}
+                                onChange={(e) => setValor(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="0.00"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Dia do Vencimento</label>
+                            <input 
+                                type="number"
+                                min="1"
+                                max="31"
+                                value={vencimento}
+                                onChange={(e) => setVencimento(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                required
+                            />
+                        </div>
+                        <button type="submit" className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700">
+                            ✅ Adicionar Gasto Fixo
+                        </button>
+                    </form>
+                );
+            };
+
+            const FormNovoGastoVariavel = () => {
+                const [categoria, setCategoria] = useState('MERCADO');
+                const [descricao, setDescricao] = useState('');
+                const [valor, setValor] = useState('');
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    console.log('Submit gasto variável:', { categoria, descricao, valor });
+                    if (valor) {
+                        adicionarGastoVariavel({ categoria, descricao, valor });
+                    } else {
+                        alert('Preencha o valor!');
+                    }
+                };
+
+                return (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
+                            <select 
+                                value={categoria}
+                                onChange={(e) => setCategoria(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            >
+                                <option value="MERCADO">🛒 Mercado</option>
+                                <option value="FARMÁCIA">💊 Farmácia</option>
+                                <option value="ALIMENTAÇÃO">🍽️ Alimentação</option>
+                                <option value="TRANSPORTE">🚕 Transporte</option>
+                                <option value="GASOLINA">⛽ Gasolina</option>
+                                <option value="LAZER">🎮 Lazer</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Descrição (Opcional)</label>
+                            <input 
+                                type="text"
+                                value={descricao}
+                                onChange={(e) => setDescricao(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="Ex: Supermercado Extra"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Valor</label>
+                            <input 
+                                type="number"
+                                step="0.01"
+                                value={valor}
+                                onChange={(e) => setValor(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="0.00"
+                                required
+                            />
+                        </div>
+                        <button type="submit" className="w-full px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700">
+                            ✅ Adicionar Gasto
+                        </button>
+                    </form>
+                );
+            };
+
+            const FormMetas = () => {
+                const [metaMensal, setMetaMensal] = useState(metas.mensal);
+
+                const handleSalvar = () => {
+                    setMetas({ ...metas, mensal: parseFloat(metaMensal) });
+                    setModalAberto(null);
+                    alert('Meta salva com sucesso!');
+                };
+
+                return (
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Meta de Gastos Mensal</label>
+                            <input 
+                                type="number"
+                                step="0.01"
+                                value={metaMensal}
+                                onChange={(e) => setMetaMensal(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="20000.00"
+                            />
+                            <p className="text-sm text-gray-500 mt-2">Valor máximo que você quer gastar por mês</p>
+                        </div>
+                        <button onClick={handleSalvar} className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
+                            ✅ Salvar Meta
+                        </button>
+                    </div>
+                );
+            };
+
+            const FormOrcamento = () => {
+                const [cartoes, setCartoes] = useState(orcamento.cartoes);
+                const [fixos, setFixos] = useState(orcamento.fixos);
+                const [variaveis, setVariaveis] = useState(orcamento.variaveis);
+
+                const handleSalvar = () => {
+                    setOrcamento({
+                        cartoes: parseFloat(cartoes) || 0,
+                        fixos: parseFloat(fixos) || 0,
+                        variaveis: parseFloat(variaveis) || 0
+                    });
+                    setModalAberto(null);
+                    alert('Orçamento salvo com sucesso!');
+                };
+
+                const total = (parseFloat(cartoes) || 0) + (parseFloat(fixos) || 0) + (parseFloat(variaveis) || 0);
+
+                return (
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">💳 Orçamento para Cartões</label>
+                            <input 
+                                type="number"
+                                step="0.01"
+                                value={cartoes}
+                                onChange={(e) => setCartoes(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="8000.00"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">🏠 Orçamento para Gastos Fixos</label>
+                            <input 
+                                type="number"
+                                step="0.01"
+                                value={fixos}
+                                onChange={(e) => setFixos(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="5500.00"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">📊 Orçamento para Gastos Variáveis</label>
+                            <input 
+                                type="number"
+                                step="0.01"
+                                value={variaveis}
+                                onChange={(e) => setVariaveis(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="2000.00"
+                            />
+                        </div>
+
+                        <div className="pt-4 border-t">
+                            <div className="text-sm text-gray-600 mb-3">
+                                <strong>Total Orçado:</strong> R$ {total.toFixed(2)}
+                            </div>
+                            <button onClick={handleSalvar} className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">
+                                ✅ Salvar Orçamento
+                            </button>
+                        </div>
+                    </div>
+                );
+            };
+
+            const FormPlanejado = () => {
+                const [descricao, setDescricao] = useState('');
+                const [valor, setValor] = useState('');
+                const [categoria, setCategoria] = useState('CARTÃO');
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    if (descricao && valor) {
+                        adicionarPlanejado({ descricao, valor, categoria });
+                    } else {
+                        alert('Preencha descrição e valor!');
+                    }
+                };
+
+                return (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
+                            <input 
+                                type="text"
+                                value={descricao}
+                                onChange={(e) => setDescricao(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="Ex: Aluguel, Mercado, Gasolina..."
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
+                            <select 
+                                value={categoria}
+                                onChange={(e) => setCategoria(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            >
+                                <option value="CARTÃO">💳 Cartão</option>
+                                <option value="FIXO">🏠 Fixo</option>
+                                <option value="VARIÁVEL">📊 Variável</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Valor Planejado</label>
+                            <input 
+                                type="number"
+                                step="0.01"
+                                value={valor}
+                                onChange={(e) => setValor(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="0.00"
+                                required
+                            />
+                        </div>
+
+                        <button type="submit" className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
+                            ✅ Adicionar Planejado
+                        </button>
+                    </form>
+                );
+            };
+
+            const FormNovaReceita = () => {
+                const [categoria, setCategoria] = useState('SALÁRIO');
+                const [descricao, setDescricao] = useState('');
+                const [valor, setValor] = useState('');
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    console.log('Submit receita:', { categoria, descricao, valor });
+                    if (valor) {
+                        adicionarReceita({ categoria, descricao, valor });
+                    } else {
+                        alert('Preencha o valor!');
+                    }
+                };
+
+                return (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
+                            <select 
+                                value={categoria}
+                                onChange={(e) => setCategoria(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            >
+                                <option value="SALÁRIO">💼 Salário</option>
+                                <option value="FREELANCE">💻 Freelance</option>
+                                <option value="INVESTIMENTOS">📈 Investimentos</option>
+                                <option value="ALUGUEL">🏠 Aluguel Recebido</option>
+                                <option value="BÔNUS">🎁 Bônus</option>
+                                <option value="OUTROS">💰 Outros</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Descrição (Opcional)</label>
+                            <input 
+                                type="text"
+                                value={descricao}
+                                onChange={(e) => setDescricao(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="Ex: Salário CLT"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Valor</label>
+                            <input 
+                                type="number"
+                                step="0.01"
+                                value={valor}
+                                onChange={(e) => setValor(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="0.00"
+                                required
+                            />
+                        </div>
+                        <button type="submit" className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
+                            ✅ Adicionar Receita
+                        </button>
+                    </form>
+                );
+            };
+
+            // Screens
+            const Dashboard = () => {
+                const progressoMeta = metas.mensal > 0 ? (totais.total / metas.mensal) * 100 : 0;
+                const economia = metas.mensal - totais.total;
+
+                return (
+                    <div className="space-y-6">
+                        {/* Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+                                <div className="text-sm opacity-90">CARTÕES</div>
+                                <div className="text-3xl font-bold mt-2">R$ {totais.cartoes.toFixed(2)}</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+                                <div className="text-sm opacity-90">FIXOS</div>
+                                <div className="text-3xl font-bold mt-2">R$ {totais.fixos.toFixed(2)}</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
+                                <div className="text-sm opacity-90">VARIÁVEIS</div>
+                                <div className="text-3xl font-bold mt-2">R$ {totais.variaveis.toFixed(2)}</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+                                <div className="text-sm opacity-90">TOTAL</div>
+                                <div className="text-3xl font-bold mt-2">R$ {totais.total.toFixed(2)}</div>
+                            </div>
+                        </div>
+
+                        {/* CARD DE SALDO REAL */}
+                        <div className={`rounded-xl shadow-lg p-6 text-white ${
+                            saldo.positivo 
+                                ? 'bg-gradient-to-r from-green-500 to-green-600' 
+                                : 'bg-gradient-to-r from-red-500 to-red-600'
+                        }`}>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <div className="text-sm opacity-90">💰 RECEITAS</div>
+                                    <div className="text-3xl font-bold mt-2">R$ {saldo.receitas.toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div className="text-sm opacity-90">💸 DESPESAS</div>
+                                    <div className="text-3xl font-bold mt-2">R$ {saldo.despesas.toFixed(2)}</div>
+                                </div>
+                                <div className="text-center border-l-2 border-white border-opacity-30">
+                                    <div className="text-sm opacity-90">
+                                        {saldo.positivo ? '✅ SALDO POSITIVO' : '⚠️ SALDO NEGATIVO'}
+                                    </div>
+                                    <div className="text-4xl font-bold mt-2">
+                                        R$ {Math.abs(saldo.saldo).toFixed(2)}
+                                    </div>
+                                    <div className="text-sm mt-2 opacity-90">
+                                        {saldo.positivo ? 'Você economizou!' : 'Você gastou mais que ganhou'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <button 
+                                    onClick={() => setModalAberto('novaReceita')} 
+                                    className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg font-semibold transition-colors"
+                                >
+                                    ➕ Adicionar Receita
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* COMPARAÇÃO ENTRE MESES */}
+                        {comparacao.temAnterior && (
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <h3 className="text-xl font-bold text-gray-800 mb-4">📊 Comparação com Mês Anterior</h3>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Comparação Direta */}
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                                            <div>
+                                                <div className="text-sm text-gray-600">Mês Anterior ({comparacao.mesAnterior.toUpperCase()})</div>
+                                                <div className="text-2xl font-bold text-gray-800">
+                                                    R$ {comparacao.totaisAnterior.total.toFixed(2)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
+                                            <div>
+                                                <div className="text-sm text-blue-600 font-semibold">Mês Atual ({mesAtual.toUpperCase()})</div>
+                                                <div className="text-2xl font-bold text-blue-800">
+                                                    R$ {comparacao.totaisAtual.total.toFixed(2)}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Variação */}
+                                        <div className={`p-6 rounded-xl text-center ${
+                                            comparacao.aumentou 
+                                                ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                                                : 'bg-gradient-to-r from-green-500 to-green-600'
+                                        } text-white`}>
+                                            <div className="text-sm opacity-90">Variação</div>
+                                            <div className="text-4xl font-bold mt-2">
+                                                {comparacao.aumentou ? '↗️' : '↘️'} {Math.abs(comparacao.variacao)}%
+                                            </div>
+                                            <div className="text-lg mt-2">
+                                                {comparacao.aumentou ? '+' : '-'} R$ {Math.abs(comparacao.diferenca).toFixed(2)}
+                                            </div>
+                                            <div className="text-sm mt-3 opacity-90">
+                                                {comparacao.aumentou 
+                                                    ? '⚠️ Você gastou MAIS este mês'
+                                                    : '✅ Você gastou MENOS este mês'
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Detalhamento por Categoria */}
+                                    <div className="space-y-3">
+                                        <h4 className="font-semibold text-gray-700">Comparativo Detalhado:</h4>
+                                        
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                                <span className="text-sm font-semibold text-gray-700">💳 Cartões</span>
+                                                <div className="text-right">
+                                                    <div className="font-bold text-gray-800">
+                                                        R$ {comparacao.totaisAtual.cartoes.toFixed(2)}
+                                                    </div>
+                                                    <div className={`text-xs ${
+                                                        comparacao.totaisAtual.cartoes > comparacao.totaisAnterior.cartoes 
+                                                            ? 'text-red-600' 
+                                                            : 'text-green-600'
+                                                    }`}>
+                                                        {comparacao.totaisAtual.cartoes > comparacao.totaisAnterior.cartoes ? '↗️' : '↘️'}
+                                                        {' '}R$ {Math.abs(comparacao.totaisAtual.cartoes - comparacao.totaisAnterior.cartoes).toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                                <span className="text-sm font-semibold text-gray-700">🏠 Fixos</span>
+                                                <div className="text-right">
+                                                    <div className="font-bold text-gray-800">
+                                                        R$ {comparacao.totaisAtual.fixos.toFixed(2)}
+                                                    </div>
+                                                    <div className={`text-xs ${
+                                                        comparacao.totaisAtual.fixos > comparacao.totaisAnterior.fixos 
+                                                            ? 'text-red-600' 
+                                                            : 'text-green-600'
+                                                    }`}>
+                                                        {comparacao.totaisAtual.fixos > comparacao.totaisAnterior.fixos ? '↗️' : '↘️'}
+                                                        {' '}R$ {Math.abs(comparacao.totaisAtual.fixos - comparacao.totaisAnterior.fixos).toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                                <span className="text-sm font-semibold text-gray-700">📊 Variáveis</span>
+                                                <div className="text-right">
+                                                    <div className="font-bold text-gray-800">
+                                                        R$ {comparacao.totaisAtual.variaveis.toFixed(2)}
+                                                    </div>
+                                                    <div className={`text-xs ${
+                                                        comparacao.totaisAtual.variaveis > comparacao.totaisAnterior.variaveis 
+                                                            ? 'text-red-600' 
+                                                            : 'text-green-600'
+                                                    }`}>
+                                                        {comparacao.totaisAtual.variaveis > comparacao.totaisAnterior.variaveis ? '↗️' : '↘️'}
+                                                        {' '}R$ {Math.abs(comparacao.totaisAtual.variaveis - comparacao.totaisAnterior.variaveis).toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Melhor e Pior Mês */}
+                                        {comparacao.melhorMes && comparacao.piorMes && (
+                                            <div className="mt-4 pt-4 border-t space-y-2">
+                                                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                                                    <div>
+                                                        <div className="text-xs text-green-600 font-semibold">🏆 MELHOR MÊS</div>
+                                                        <div className="font-bold text-green-700">
+                                                            {comparacao.melhorMes.mes.toUpperCase()}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-lg font-bold text-green-600">
+                                                        R$ {comparacao.melhorMes.total.toFixed(2)}
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
+                                                    <div>
+                                                        <div className="text-xs text-red-600 font-semibold">📉 PIOR MÊS</div>
+                                                        <div className="font-bold text-red-700">
+                                                            {comparacao.piorMes.mes.toUpperCase()}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-lg font-bold text-red-600">
+                                                        R$ {comparacao.piorMes.total.toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* INSIGHTS AUTOMÁTICOS */}
+                        {insights.length > 0 && (
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <h3 className="text-xl font-bold text-gray-800 mb-4">💡 Insights e Alertas Inteligentes</h3>
+                                
+                                <div className="space-y-3">
+                                    {insights.map((insight, idx) => {
+                                        const cores = {
+                                            red: 'bg-red-50 border-red-200 text-red-800',
+                                            green: 'bg-green-50 border-green-200 text-green-800',
+                                            yellow: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                                            blue: 'bg-blue-50 border-blue-200 text-blue-800',
+                                            orange: 'bg-orange-50 border-orange-200 text-orange-800',
+                                            purple: 'bg-purple-50 border-purple-200 text-purple-800'
+                                        };
+
+                                        return (
+                                            <div 
+                                                key={idx}
+                                                className={`p-4 rounded-lg border-l-4 ${cores[insight.cor]}`}
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    <div className="text-2xl">{insight.icone}</div>
+                                                    <div className="flex-1">
+                                                        <div className="font-bold mb-1">{insight.titulo}</div>
+                                                        <div className="text-sm">{insight.mensagem}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="mt-4 pt-4 border-t text-sm text-gray-600">
+                                    💡 <strong>Dica:</strong> Estes insights são gerados automaticamente com base nos seus gastos e metas.
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Meta */}
+                        {metas.mensal > 0 && (
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-lg font-bold text-gray-800">🎯 Meta Mensal</h3>
+                                    <button onClick={() => setModalAberto('metas')} className="text-blue-600 hover:text-blue-700 text-sm font-semibold">
+                                        Editar
+                                    </button>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between text-sm">
+                                        <span>Gasto Atual</span>
+                                        <span className="font-semibold">R$ {totais.total.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span>Meta</span>
+                                        <span className="font-semibold">R$ {metas.mensal.toFixed(2)}</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-4">
+                                        <div 
+                                            className={`h-4 rounded-full ${progressoMeta > 100 ? 'bg-red-500' : progressoMeta > 80 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                                            style={{ width: `${Math.min(progressoMeta, 100)}%` }}
+                                        ></div>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-2xl font-bold" style={{ color: progressoMeta > 100 ? '#ef4444' : progressoMeta > 80 ? '#f59e0b' : '#10b981' }}>
+                                            {progressoMeta.toFixed(1)}%
+                                        </span>
+                                        {economia > 0 ? (
+                                            <span className="text-green-600 font-semibold">✅ Economizou R$ {economia.toFixed(2)}</span>
+                                        ) : (
+                                            <span className="text-red-600 font-semibold">❌ Ultrapassou R$ {Math.abs(economia).toFixed(2)}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Botões */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <button onClick={() => setModalAberto('novoCartao')} className="px-6 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">
+                                ➕ Novo Cartão
+                            </button>
+                            <button onClick={() => setModalAberto('novoGastoFixo')} className="px-6 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700">
+                                ➕ Gasto Fixo
+                            </button>
+                            <button onClick={() => setModalAberto('novoGastoVariavel')} className="px-6 py-4 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700">
+                                ➕ Gasto Variável
+                            </button>
+                            <button onClick={() => setModalAberto('metas')} className="px-6 py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
+                                🎯 Definir Metas
+                            </button>
+                        </div>
+
+                        {/* Exportar */}
+                        <div className="bg-white rounded-xl shadow-lg p-6">
+                            <h3 className="text-lg font-bold text-gray-800 mb-4">📤 Exportar Dados</h3>
+                            <div className="flex gap-3">
+                                <button onClick={exportarPDF} className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700">
+                                    📄 Baixar PDF
+                                </button>
+                                <button onClick={exportarExcel} className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
+                                    📊 Baixar Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const TelaCartoes = () => (
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-bold text-gray-800">💳 Cartões</h2>
+                        <button onClick={() => setModalAberto('novoCartao')} className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">
+                            ➕ Novo Cartão
+                        </button>
+                    </div>
+                    {cartoes.map(cartao => (
+                        <div key={cartao.id} className="bg-white rounded-xl shadow-lg p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-800">{cartao.nome}</h3>
+                                    <p className="text-sm text-gray-500">Vencimento: dia {cartao.vencimento}</p>
+                                </div>
+                                <button onClick={() => deletarCartao(cartao.id)} className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm font-semibold">
+                                    🗑️ Deletar
+                                </button>
+                            </div>
+                            <div>
+                                <label className="text-sm font-semibold text-gray-700">Valor da Fatura {mesAtual.toUpperCase()}:</label>
+                                <input 
+                                    type="number"
+                                    step="0.01"
+                                    value={cartao.valores[mesAtual] || 0}
+                                    onChange={(e) => editarValorCartao(cartao.id, mesAtual, e.target.value)}
+                                    className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+
+            const TelaGastosFixos = () => (
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-bold text-gray-800">🏠 Gastos Fixos</h2>
+                        <button onClick={() => setModalAberto('novoGastoFixo')} className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700">
+                            ➕ Novo Gasto
+                        </button>
+                    </div>
+                    {gastosFixos.map(gasto => (
+                        <div key={gasto.id} className="bg-white rounded-xl shadow-lg p-6">
+                            <div className="flex justify-between items-center">
+                                <div className="flex-1">
+                                    <div className="font-semibold text-gray-800">{gasto.descricao}</div>
+                                    <div className="text-sm text-gray-500">{gasto.categoria} • Vencimento: dia {gasto.vencimento}</div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <input 
+                                        type="number"
+                                        step="0.01"
+                                        value={gasto.valor}
+                                        onChange={(e) => editarValorGastoFixo(gasto.id, e.target.value)}
+                                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-right"
+                                    />
+                                    <button onClick={() => deletarGastoFixo(gasto.id)} className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+
+            const TelaGastosVariaveis = () => {
+                const gastosDoMes = gastosVariaveis.filter(g => g.mes === mesAtual);
+                const totalMes = gastosDoMes.reduce((sum, g) => sum + g.valor, 0);
+
+                return (
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-2xl font-bold text-gray-800">📊 Gastos Variáveis</h2>
+                            <button onClick={() => setModalAberto('novoGastoVariavel')} className="px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700">
+                                ➕ Novo Gasto
+                            </button>
+                        </div>
+                        <div className="bg-white rounded-xl shadow-lg p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-lg font-bold text-gray-800">Total do Mês</h3>
+                                <div className="text-3xl font-bold text-orange-600">R$ {totalMes.toFixed(2)}</div>
+                            </div>
+                            <div className="space-y-2">
+                                {gastosDoMes.length === 0 ? (
+                                    <div className="text-center py-12 text-gray-500">
+                                        Nenhum gasto variável registrado neste mês.
+                                    </div>
+                                ) : (
+                                    gastosDoMes.map(gasto => (
+                                        <div key={gasto.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                                            <div className="flex-1">
+                                                <div className="font-semibold text-gray-800">{gasto.categoria}</div>
+                                                <div className="text-sm text-gray-500">{gasto.descricao} • {gasto.data}</div>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-xl font-bold text-orange-600">R$ {gasto.valor.toFixed(2)}</div>
+                                                <button onClick={() => deletarGastoVariavel(gasto.id)} className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm">
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const TelaReceitas = () => {
+                const receitasDoMes = receitas.filter(r => r.mes === mesAtual);
+                const totalMes = receitasDoMes.reduce((sum, r) => sum + r.valor, 0);
+
+                return (
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-2xl font-bold text-gray-800">💰 Receitas e Ganhos</h2>
+                            <button onClick={() => setModalAberto('novaReceita')} className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
+                                ➕ Nova Receita
+                            </button>
+                        </div>
+
+                        {/* Resumo do Saldo */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+                                <div className="text-sm opacity-90">RECEITAS</div>
+                                <div className="text-3xl font-bold mt-2">R$ {saldo.receitas.toFixed(2)}</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-6 text-white">
+                                <div className="text-sm opacity-90">DESPESAS</div>
+                                <div className="text-3xl font-bold mt-2">R$ {saldo.despesas.toFixed(2)}</div>
+                            </div>
+                            <div className={`rounded-xl shadow-lg p-6 text-white ${
+                                saldo.positivo ? 'bg-gradient-to-br from-blue-500 to-blue-600' : 'bg-gradient-to-br from-orange-500 to-orange-600'
+                            }`}>
+                                <div className="text-sm opacity-90">SALDO</div>
+                                <div className="text-3xl font-bold mt-2">
+                                    {saldo.positivo ? '+' : '-'} R$ {Math.abs(saldo.saldo).toFixed(2)}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Lista de Receitas */}
+                        <div className="bg-white rounded-xl shadow-lg p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-lg font-bold text-gray-800">Receitas de {mesAtual.toUpperCase()}</h3>
+                                <div className="text-2xl font-bold text-green-600">
+                                    R$ {totalMes.toFixed(2)}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                {receitasDoMes.length === 0 ? (
+                                    <div className="text-center py-12 text-gray-500">
+                                        Nenhuma receita registrada neste mês.
+                                        <br />
+                                        <button 
+                                            onClick={() => setModalAberto('novaReceita')}
+                                            className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
+                                        >
+                                            ➕ Adicionar Primeira Receita
+                                        </button>
+                                    </div>
+                                ) : (
+                                    receitasDoMes.map(receita => (
+                                        <div key={receita.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="font-semibold text-gray-800">{receita.categoria}</span>
+                                                    {receita.descricao && (
+                                                        <span className="text-sm text-gray-500">• {receita.descricao}</span>
+                                                    )}
+                                                </div>
+                                                <div className="text-sm text-gray-500 mt-1">{receita.data}</div>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-2xl font-bold text-green-600">
+                                                    R$ {receita.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                                                </div>
+                                                <button 
+                                                    onClick={() => deletarReceita(receita.id)}
+                                                    className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Gráfico Receitas vs Despesas */}
+                        <div className="bg-white rounded-xl shadow-lg p-6">
+                            <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Receitas vs Despesas</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <div className="flex justify-between mb-2">
+                                        <span className="text-sm font-semibold text-green-600">Receitas</span>
+                                        <span className="text-sm font-semibold">R$ {saldo.receitas.toFixed(2)}</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-6">
+                                        <div 
+                                            className="bg-green-500 h-6 rounded-full transition-all flex items-center justify-end pr-2"
+                                            style={{ width: saldo.receitas > 0 ? '100%' : '0%' }}
+                                        >
+                                            <span className="text-xs text-white font-bold">100%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="flex justify-between mb-2">
+                                        <span className="text-sm font-semibold text-red-600">Despesas</span>
+                                        <span className="text-sm font-semibold">R$ {saldo.despesas.toFixed(2)}</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-6">
+                                        <div 
+                                            className="bg-red-500 h-6 rounded-full transition-all flex items-center justify-end pr-2"
+                                            style={{ width: saldo.receitas > 0 ? `${(saldo.despesas / saldo.receitas) * 100}%` : '0%' }}
+                                        >
+                                            <span className="text-xs text-white font-bold">
+                                                {saldo.receitas > 0 ? ((saldo.despesas / saldo.receitas) * 100).toFixed(0) : 0}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const TelaPlanejamento = () => {
+                const [abaAtiva, setAbaAtiva] = useState('orcamento');
+                
+                const orcadoTotal = orcamento.cartoes + orcamento.fixos + orcamento.variaveis;
+                const gastadoTotal = totais.total;
+                const diferenca = orcadoTotal - gastadoTotal;
+                const dentroOrcamento = diferenca >= 0;
+
+                // Planejados do mês atual
+                const planejadosDoMes = planejadosMes.filter(p => p.mes === mesAtual);
+                const totalPlanejado = planejadosDoMes.reduce((sum, p) => sum + p.valor, 0);
+                const totalExecutado = planejadosDoMes.filter(p => p.executado).reduce((sum, p) => sum + p.valor, 0);
+                const totalPendente = totalPlanejado - totalExecutado;
+
+                return (
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-3xl font-bold text-gray-800">📋 Planejamento</h2>
+                        </div>
+
+                        {/* Abas */}
+                        <div className="flex gap-2 border-b">
+                            <button 
+                                onClick={() => setAbaAtiva('orcamento')}
+                                className={`px-6 py-3 font-semibold border-b-2 transition-colors ${
+                                    abaAtiva === 'orcamento' 
+                                        ? 'border-blue-600 text-blue-600' 
+                                        : 'border-transparent text-gray-600 hover:text-gray-800'
+                                }`}
+                            >
+                                📊 Orçamento Mensal
+                            </button>
+                            <button 
+                                onClick={() => setAbaAtiva('premes')}
+                                className={`px-6 py-3 font-semibold border-b-2 transition-colors ${
+                                    abaAtiva === 'premes' 
+                                        ? 'border-blue-600 text-blue-600' 
+                                        : 'border-transparent text-gray-600 hover:text-gray-800'
+                                }`}
+                            >
+                                📝 Pré-Mês
+                            </button>
+                        </div>
+
+                        {/* Conteúdo Aba Orçamento */}
+                        {abaAtiva === 'orcamento' && (
+                            <div className="space-y-6">
+                                <div className="flex justify-end">
+                                    <button 
+                                        onClick={() => setModalAberto('orcamento')}
+                                        className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                                    >
+                                        ⚙️ Definir Orçamento
+                                    </button>
+                                </div>
+
+                                {/* Resumo */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <div className="text-sm text-gray-600">Orçado</div>
+                                <div className="text-3xl font-bold text-blue-600">R$ {orcadoTotal.toFixed(2)}</div>
+                            </div>
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <div className="text-sm text-gray-600">Gasto</div>
+                                <div className="text-3xl font-bold text-purple-600">R$ {gastadoTotal.toFixed(2)}</div>
+                            </div>
+                            <div className={`rounded-xl shadow-lg p-6 ${dentroOrcamento ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-red-500 to-red-600'} text-white`}>
+                                <div className="text-sm opacity-90">{dentroOrcamento ? 'Sobrou' : 'Excedeu'}</div>
+                                <div className="text-3xl font-bold">R$ {Math.abs(diferenca).toFixed(2)}</div>
+                                <div className="text-sm mt-2">{dentroOrcamento ? '✅ Dentro do orçamento' : '⚠️ Acima do orçamento'}</div>
+                            </div>
+                        </div>
+
+                        {/* Por Categoria */}
+                        <div className="bg-white rounded-xl shadow-lg p-6">
+                            <h3 className="text-xl font-bold text-gray-800 mb-6">Por Categoria</h3>
+                            <div className="space-y-6">
+                                {/* Cartões */}
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <div>
+                                            <div className="font-bold text-gray-800">💳 Cartões</div>
+                                            <div className="text-sm text-gray-600">R$ {totais.cartoes.toFixed(2)} / R$ {orcamento.cartoes.toFixed(2)}</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className={`text-2xl font-bold ${totais.cartoes <= orcamento.cartoes ? 'text-green-600' : 'text-red-600'}`}>
+                                                {((totais.cartoes / orcamento.cartoes) * 100).toFixed(0)}%
+                                            </div>
+                                            <div className={`text-sm ${(orcamento.cartoes - totais.cartoes) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                {(orcamento.cartoes - totais.cartoes) >= 0 ? '✅' : '⚠️'} R$ {Math.abs(orcamento.cartoes - totais.cartoes).toFixed(2)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-4">
+                                        <div 
+                                            className={`h-4 rounded-full ${totais.cartoes <= orcamento.cartoes ? 'bg-green-500' : 'bg-red-500'}`}
+                                            style={{ width: `${Math.min((totais.cartoes / orcamento.cartoes) * 100, 100)}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+
+                                {/* Fixos */}
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <div>
+                                            <div className="font-bold text-gray-800">🏠 Gastos Fixos</div>
+                                            <div className="text-sm text-gray-600">R$ {totais.fixos.toFixed(2)} / R$ {orcamento.fixos.toFixed(2)}</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className={`text-2xl font-bold ${totais.fixos <= orcamento.fixos ? 'text-green-600' : 'text-red-600'}`}>
+                                                {((totais.fixos / orcamento.fixos) * 100).toFixed(0)}%
+                                            </div>
+                                            <div className={`text-sm ${(orcamento.fixos - totais.fixos) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                {(orcamento.fixos - totais.fixos) >= 0 ? '✅' : '⚠️'} R$ {Math.abs(orcamento.fixos - totais.fixos).toFixed(2)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-4">
+                                        <div 
+                                            className={`h-4 rounded-full ${totais.fixos <= orcamento.fixos ? 'bg-green-500' : 'bg-red-500'}`}
+                                            style={{ width: `${Math.min((totais.fixos / orcamento.fixos) * 100, 100)}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+
+                                {/* Variáveis */}
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <div>
+                                            <div className="font-bold text-gray-800">📊 Gastos Variáveis</div>
+                                            <div className="text-sm text-gray-600">R$ {totais.variaveis.toFixed(2)} / R$ {orcamento.variaveis.toFixed(2)}</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className={`text-2xl font-bold ${totais.variaveis <= orcamento.variaveis ? 'text-green-600' : 'text-red-600'}`}>
+                                                {orcamento.variaveis > 0 ? ((totais.variaveis / orcamento.variaveis) * 100).toFixed(0) : 0}%
+                                            </div>
+                                            <div className={`text-sm ${(orcamento.variaveis - totais.variaveis) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                {(orcamento.variaveis - totais.variaveis) >= 0 ? '✅' : '⚠️'} R$ {Math.abs(orcamento.variaveis - totais.variaveis).toFixed(2)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-4">
+                                        <div 
+                                            className={`h-4 rounded-full ${totais.variaveis <= orcamento.variaveis ? 'bg-green-500' : 'bg-red-500'}`}
+                                            style={{ width: orcamento.variaveis > 0 ? `${Math.min((totais.variaveis / orcamento.variaveis) * 100, 100)}%` : '0%' }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                            </div>
+                        )}
+
+                        {/* Conteúdo Aba Pré-Mês */}
+                        {abaAtiva === 'premes' && (
+                            <div className="space-y-6">
+                                <div className="flex justify-end">
+                                    <button 
+                                        onClick={() => setModalAberto('novoPlanejado')}
+                                        className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
+                                    >
+                                        ➕ Adicionar Planejado
+                                    </button>
+                                </div>
+
+                                {/* Cards de Resumo */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="bg-white rounded-xl shadow-lg p-6">
+                                        <div className="text-sm text-gray-600">Total Planejado</div>
+                                        <div className="text-3xl font-bold text-blue-600">R$ {totalPlanejado.toFixed(2)}</div>
+                                        <div className="text-sm text-gray-500 mt-2">{planejadosDoMes.length} itens</div>
+                                    </div>
+                                    <div className="bg-white rounded-xl shadow-lg p-6">
+                                        <div className="text-sm text-gray-600">Executado</div>
+                                        <div className="text-3xl font-bold text-green-600">R$ {totalExecutado.toFixed(2)}</div>
+                                        <div className="text-sm text-gray-500 mt-2">
+                                            {totalPlanejado > 0 ? ((totalExecutado / totalPlanejado) * 100).toFixed(0) : 0}%
+                                        </div>
+                                    </div>
+                                    <div className="bg-white rounded-xl shadow-lg p-6">
+                                        <div className="text-sm text-gray-600">Pendente</div>
+                                        <div className="text-3xl font-bold text-orange-600">R$ {totalPendente.toFixed(2)}</div>
+                                        <div className="text-sm text-gray-500 mt-2">
+                                            {planejadosDoMes.filter(p => !p.executado).length} itens
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Barra de Progresso */}
+                                {totalPlanejado > 0 && (
+                                    <div className="bg-white rounded-xl shadow-lg p-6">
+                                        <div className="flex justify-between mb-2">
+                                            <span className="text-sm font-semibold text-gray-700">Progresso de Execução</span>
+                                            <span className="text-sm font-semibold text-gray-700">
+                                                {((totalExecutado / totalPlanejado) * 100).toFixed(0)}%
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-4">
+                                            <div 
+                                                className="bg-gradient-to-r from-green-500 to-green-600 h-4 rounded-full transition-all"
+                                                style={{ width: `${(totalExecutado / totalPlanejado) * 100}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Lista de Planejados */}
+                                <div className="bg-white rounded-xl shadow-lg p-6">
+                                    <h3 className="text-xl font-bold text-gray-800 mb-4">Gastos Planejados - {mesAtual.toUpperCase()}</h3>
+                                    
+                                    {planejadosDoMes.length === 0 ? (
+                                        <div className="text-center py-12 text-gray-500">
+                                            Nenhum gasto planejado para este mês.
+                                            <br />
+                                            <button 
+                                                onClick={() => setModalAberto('novoPlanejado')}
+                                                className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
+                                            >
+                                                ➕ Adicionar Primeiro Planejado
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {planejadosDoMes.map(planejado => (
+                                                <div 
+                                                    key={planejado.id}
+                                                    className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                                                        planejado.executado 
+                                                            ? 'bg-green-50 border-green-300' 
+                                                            : 'bg-white border-gray-200 hover:border-gray-300'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-4 flex-1">
+                                                        <button
+                                                            onClick={() => togglePlanejado(planejado.id)}
+                                                            className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                                                                planejado.executado 
+                                                                    ? 'bg-green-500 border-green-500' 
+                                                                    : 'border-gray-300 hover:border-green-500'
+                                                            }`}
+                                                        >
+                                                            {planejado.executado && (
+                                                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                                                </svg>
+                                                            )}
+                                                        </button>
+                                                        
+                                                        <div className="flex-1">
+                                                            <div className={`font-semibold ${planejado.executado ? 'text-green-700 line-through' : 'text-gray-800'}`}>
+                                                                {planejado.descricao}
+                                                            </div>
+                                                            <div className="text-sm text-gray-500">
+                                                                {planejado.categoria}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className={`text-2xl font-bold ${planejado.executado ? 'text-green-600' : 'text-gray-800'}`}>
+                                                            R$ {planejado.valor.toFixed(2)}
+                                                        </div>
+
+                                                        <button
+                                                            onClick={() => deletarPlanejado(planejado.id)}
+                                                            className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
+                                                        >
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Comparação Planejado vs Real */}
+                                {planejadosDoMes.length > 0 && (
+                                    <div className="bg-white rounded-xl shadow-lg p-6">
+                                        <h3 className="text-xl font-bold text-gray-800 mb-4">📊 Planejado vs Real</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <div className="text-sm text-gray-600 mb-2">Planejado</div>
+                                                <div className="text-3xl font-bold text-blue-600">R$ {totalPlanejado.toFixed(2)}</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-sm text-gray-600 mb-2">Real (Gasto no Mês)</div>
+                                                <div className="text-3xl font-bold text-purple-600">R$ {totais.total.toFixed(2)}</div>
+                                            </div>
+                                        </div>
+                                        <div className={`mt-4 p-4 rounded-lg ${
+                                            totais.total <= totalPlanejado ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                                        }`}>
+                                            <div className={`text-center font-bold ${
+                                                totais.total <= totalPlanejado ? 'text-green-700' : 'text-red-700'
+                                            }`}>
+                                                {totais.total <= totalPlanejado ? '✅ Dentro do Planejado!' : '⚠️ Acima do Planejado'}
+                                            </div>
+                                            <div className="text-center text-sm mt-2">
+                                                Diferença: R$ {Math.abs(totalPlanejado - totais.total).toFixed(2)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            const TelaFarol = () => {
+                const itensTodos = [
+                    ...cartoes.map(c => ({ tipo: 'CARTÃO', nome: c.nome, vencimento: c.vencimento, valor: c.valores[mesAtual] || 0 })),
+                    ...gastosFixos.map(g => ({ tipo: 'FIXO', nome: g.descricao, vencimento: g.vencimento, valor: g.valor }))
+                ].sort((a, b) => a.vencimento - b.vencimento);
+
+                return (
+                    <div className="space-y-4">
+                        <div className="bg-white rounded-xl shadow-lg p-6">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-6">🚦 Farol de Pagamentos</h2>
+                            <div className="space-y-2">
+                                {itensTodos.map((item, idx) => {
+                                    const status = getStatusFarol(item.nome, mesAtual);
+                                    return (
+                                        <div 
+                                            key={idx}
+                                            onClick={() => toggleFarol(item.nome, mesAtual)}
+                                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-5 h-5 rounded-full ${status === 'PAGO' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                                                <div>
+                                                    <div className="font-semibold text-gray-800">{item.nome}</div>
+                                                    <div className="text-sm text-gray-500">{item.tipo} • Dia {item.vencimento}</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-xl font-bold text-blue-600">R$ {item.valor.toFixed(2)}</div>
+                                                <span className={`px-4 py-2 rounded-full text-sm font-semibold ${status === 'PAGO' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                                    {status}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+                    {/* Header */}
+                    <div className="bg-white shadow-lg sticky top-0 z-20">
+                        <div className="max-w-7xl mx-auto px-4 py-6">
+                            <div className="flex justify-between items-center">
+                                <h1 className="text-3xl font-bold text-gray-800">💰 Sistema Financeiro Completo</h1>
+                                <div className="flex gap-2">
+                                    <button 
+                                        onClick={fazerBackup}
+                                        className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700"
+                                        title="Baixar backup de todos os dados"
+                                    >
+                                        💾 Backup
+                                    </button>
+                                    <button 
+                                        onClick={restaurarBackup}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700"
+                                        title="Restaurar dados de um backup"
+                                    >
+                                        📥 Restaurar
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            if (confirm('⚠️ ATENÇÃO: Isso vai APAGAR todos os dados salvos e recarregar os dados iniciais da planilha. Confirma?')) {
+                                                localStorage.clear();
+                                                window.location.reload();
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700"
+                                    >
+                                        🔄 Resetar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Meses */}
+                    <div className="bg-white border-b shadow-sm sticky top-20 z-10">
+                        <div className="max-w-7xl mx-auto px-4 py-3">
+                            <div className="flex gap-2 overflow-x-auto">
+                                {MESES.map(mes => (
+                                    <button key={mes} onClick={() => setMesAtual(mes)} className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap ${mesAtual === mes ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                                        {mes.toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* DASHBOARD RESUMO FIXO - SEMPRE VISÍVEL */}
+                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg sticky top-40 z-10">
+                        <div className="max-w-7xl mx-auto px-4 py-4">
+                            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                                {/* Receitas */}
+                                <div className="bg-white bg-opacity-20 rounded-lg p-3 backdrop-blur-sm">
+                                    <div className="text-xs opacity-90">💰 Receitas</div>
+                                    <div className="text-xl font-bold">R$ {saldo.receitas.toFixed(0)}</div>
+                                </div>
+
+                                {/* Despesas */}
+                                <div className="bg-white bg-opacity-20 rounded-lg p-3 backdrop-blur-sm">
+                                    <div className="text-xs opacity-90">💸 Despesas</div>
+                                    <div className="text-xl font-bold">R$ {totais.total.toFixed(0)}</div>
+                                </div>
+
+                                {/* Saldo */}
+                                <div className={`rounded-lg p-3 ${
+                                    saldo.positivo ? 'bg-green-500 bg-opacity-30' : 'bg-red-500 bg-opacity-30'
+                                } backdrop-blur-sm`}>
+                                    <div className="text-xs opacity-90">
+                                        {saldo.positivo ? '✅ Saldo' : '⚠️ Déficit'}
+                                    </div>
+                                    <div className="text-xl font-bold">
+                                        {saldo.positivo ? '+' : '-'}R$ {Math.abs(saldo.saldo).toFixed(0)}
+                                    </div>
+                                </div>
+
+                                {/* Cartões */}
+                                <div className="bg-white bg-opacity-20 rounded-lg p-3 backdrop-blur-sm">
+                                    <div className="text-xs opacity-90">💳 Cartões</div>
+                                    <div className="text-xl font-bold">R$ {totais.cartoes.toFixed(0)}</div>
+                                </div>
+
+                                {/* Fixos */}
+                                <div className="bg-white bg-opacity-20 rounded-lg p-3 backdrop-blur-sm">
+                                    <div className="text-xs opacity-90">🏠 Fixos</div>
+                                    <div className="text-xl font-bold">R$ {totais.fixos.toFixed(0)}</div>
+                                </div>
+
+                                {/* Meta */}
+                                {metas.mensal > 0 && (
+                                    <div className={`rounded-lg p-3 backdrop-blur-sm ${
+                                        (totais.total / metas.mensal * 100) > 100 ? 'bg-red-500 bg-opacity-30' :
+                                        (totais.total / metas.mensal * 100) > 80 ? 'bg-yellow-500 bg-opacity-30' :
+                                        'bg-green-500 bg-opacity-30'
+                                    }`}>
+                                        <div className="text-xs opacity-90">🎯 Meta</div>
+                                        <div className="text-xl font-bold">
+                                            {((totais.total / metas.mensal) * 100).toFixed(0)}%
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Barra de progresso da meta */}
+                            {metas.mensal > 0 && (
+                                <div className="mt-3">
+                                    <div className="flex justify-between text-xs mb-1 opacity-90">
+                                        <span>Meta: R$ {metas.mensal.toFixed(0)}</span>
+                                        <span>Faltam: R$ {Math.max(0, metas.mensal - totais.total).toFixed(0)}</span>
+                                    </div>
+                                    <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div 
+                                            className={`h-2 rounded-full transition-all ${
+                                                (totais.total / metas.mensal * 100) > 100 ? 'bg-red-400' :
+                                                (totais.total / metas.mensal * 100) > 80 ? 'bg-yellow-400' :
+                                                'bg-green-400'
+                                            }`}
+                                            style={{ width: `${Math.min((totais.total / metas.mensal) * 100, 100)}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Indicadores rápidos */}
+                            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                                {comparacao.temAnterior && (
+                                    <div className={`px-3 py-1 rounded-full ${
+                                        comparacao.aumentou ? 'bg-red-500 bg-opacity-30' : 'bg-green-500 bg-opacity-30'
+                                    }`}>
+                                        {comparacao.aumentou ? '📈' : '📉'} {comparacao.aumentou ? '+' : ''}{comparacao.variacao}% vs {comparacao.mesAnterior.toUpperCase()}
+                                    </div>
+                                )}
+                                
+                                {insights.length > 0 && (
+                                    <div className="px-3 py-1 rounded-full bg-orange-500 bg-opacity-30">
+                                        💡 {insights.length} insight{insights.length > 1 ? 's' : ''}
+                                    </div>
+                                )}
+
+                                {(() => {
+                                    const hoje = new Date().getDate();
+                                    const pendentes = [
+                                        ...cartoes.map(c => ({ nome: c.nome, vencimento: c.vencimento, status: getStatusFarol(c.nome, mesAtual) })),
+                                        ...gastosFixos.map(g => ({ nome: g.descricao, vencimento: g.vencimento, status: getStatusFarol(g.descricao, mesAtual) }))
+                                    ].filter(v => v.vencimento >= hoje && v.status === 'PENDENTE').length;
+
+                                    if (pendentes > 0) {
+                                        return (
+                                            <div className="px-3 py-1 rounded-full bg-yellow-500 bg-opacity-30">
+                                                ⏳ {pendentes} pendente{pendentes > 1 ? 's' : ''}
+                                            </div>
+                                        );
+                                    }
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Nav */}
+                    <div className="bg-white border-b shadow-sm">
+                        <div className="max-w-7xl mx-auto px-4">
+                            <div className="flex gap-2 overflow-x-auto py-4">
+                                {[
+                                    { id: 'dashboard', nome: '📊 Dashboard' },
+                                    { id: 'planejamento', nome: '📋 Planejamento' },
+                                    { id: 'receitas', nome: '💰 Receitas' },
+                                    { id: 'cartoes', nome: '💳 Cartões' },
+                                    { id: 'fixos', nome: '🏠 Fixos' },
+                                    { id: 'variaveis', nome: '📊 Variáveis' },
+                                    { id: 'farol', nome: '🚦 Farol' }
+                                ].map(tela => (
+                                    <button key={tela.id} onClick={() => setTelaAtiva(tela.id)} className={`px-6 py-3 rounded-lg font-semibold whitespace-nowrap ${telaAtiva === tela.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                                        {tela.nome}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="max-w-7xl mx-auto px-4 py-8">
+                        {telaAtiva === 'dashboard' && <Dashboard />}
+                        {telaAtiva === 'planejamento' && <TelaPlanejamento />}
+                        {telaAtiva === 'receitas' && <TelaReceitas />}
+                        {telaAtiva === 'cartoes' && <TelaCartoes />}
+                        {telaAtiva === 'fixos' && <TelaGastosFixos />}
+                        {telaAtiva === 'variaveis' && <TelaGastosVariaveis />}
+                        {telaAtiva === 'farol' && <TelaFarol />}
+                    </div>
+
+                    {/* Modals */}
+                    {modalAberto === 'novoCartao' && (
+                        <Modal titulo="➕ Novo Cartão" onClose={() => setModalAberto(null)}>
+                            <FormNovoCartao />
+                        </Modal>
+                    )}
+                    {modalAberto === 'novoGastoFixo' && (
+                        <Modal titulo="➕ Novo Gasto Fixo" onClose={() => setModalAberto(null)}>
+                            <FormNovoGastoFixo />
+                        </Modal>
+                    )}
+                    {modalAberto === 'novoGastoVariavel' && (
+                        <Modal titulo="➕ Novo Gasto Variável" onClose={() => setModalAberto(null)}>
+                            <FormNovoGastoVariavel />
+                        </Modal>
+                    )}
+                    {modalAberto === 'metas' && (
+                        <Modal titulo="🎯 Definir Metas" onClose={() => setModalAberto(null)}>
+                            <FormMetas />
+                        </Modal>
+                    )}
+                    {modalAberto === 'orcamento' && (
+                        <Modal titulo="⚙️ Definir Orçamento" onClose={() => setModalAberto(null)}>
+                            <FormOrcamento />
+                        </Modal>
+                    )}
+                    {modalAberto === 'novoPlanejado' && (
+                        <Modal titulo="➕ Adicionar Planejado" onClose={() => setModalAberto(null)}>
+                            <FormPlanejado />
+                        </Modal>
+                    )}
+                    {modalAberto === 'novaReceita' && (
+                        <Modal titulo="➕ Nova Receita" onClose={() => setModalAberto(null)}>
+                            <FormNovaReceita />
+                        </Modal>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
