@@ -2443,8 +2443,21 @@
                         const umDiaAtras = new Date(agora - 24 * 60 * 60 * 1000);
                         const seteDiasAtras = new Date(agora - 7 * 24 * 60 * 60 * 1000);
 
-                        const ativos = usersList.filter(u => u.ultimoAcesso && u.ultimoAcesso.toDate() > umDiaAtras).length;
-                        const novos = usersList.filter(u => u.criadoEm && u.criadoEm.toDate() > seteDiasAtras).length;
+                        const ativos = usersList.filter(u => {
+                            try {
+                                return u.ultimoAcesso && u.ultimoAcesso.toDate && u.ultimoAcesso.toDate() > umDiaAtras;
+                            } catch {
+                                return false;
+                            }
+                        }).length;
+                        
+                        const novos = usersList.filter(u => {
+                            try {
+                                return u.criadoEm && u.criadoEm.toDate && u.criadoEm.toDate() > seteDiasAtras;
+                            } catch {
+                                return false;
+                            }
+                        }).length;
 
                         setStats({
                             total: usersList.length,
@@ -2455,7 +2468,7 @@
                         setUsuarios(usersList);
                     } catch (error) {
                         console.error('Erro ao carregar usuários:', error);
-                        alert('Erro ao carregar usuários: ' + error.message);
+                        // Não mostrar alert, apenas log
                     } finally {
                         setLoading(false);
                     }
@@ -2554,7 +2567,15 @@
                                                 </td>
                                                 <td className="px-4 py-3 text-sm text-gray-600">{usuario.email}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-600">
-                                                    {usuario.criadoEm ? new Date(usuario.criadoEm.toDate()).toLocaleDateString('pt-BR') : 'N/A'}
+                                                    {(() => {
+                                                        try {
+                                                            return usuario.criadoEm && usuario.criadoEm.toDate 
+                                                                ? new Date(usuario.criadoEm.toDate()).toLocaleDateString('pt-BR') 
+                                                                : 'N/A';
+                                                        } catch {
+                                                            return 'N/A';
+                                                        }
+                                                    })()}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
