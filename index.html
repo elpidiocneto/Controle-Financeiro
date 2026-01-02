@@ -175,6 +175,7 @@
         function AuthWrapper() {
             const [user, setUser] = useState(null);
             const [loading, setLoading] = useState(true);
+            const [registering, setRegistering] = useState(false);
             const [authMode, setAuthMode] = useState('login');
             const [email, setEmail] = useState('');
             const [password, setPassword] = useState('');
@@ -183,6 +184,11 @@
 
             useEffect(() => {
                 const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+                    // Se está cadastrando, ignorar este evento
+                    if (registering) {
+                        return;
+                    }
+                    
                     if (user && db) {
                         // Verificar se email foi verificado
                         if (!user.emailVerified) {
@@ -230,7 +236,7 @@
                     setLoading(false);
                 });
                 return () => unsubscribe();
-            }, []);
+            }, [registering]);
 
             const handleLogin = async (e) => {
                 e.preventDefault();
@@ -264,40 +270,61 @@
             const handleRegister = async (e) => {
                 e.preventDefault();
                 setError('');
+                setRegistering(true); // Bloquear onAuthStateChanged
+                
                 try {
+                    // 1. Criar usuário
                     const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
                     await userCredential.user.updateProfile({ displayName: nome });
                     
-                    // Enviar email de verificação
-                    await userCredential.user.sendEmailVerification({
-                        url: window.location.href,
-                        handleCodeInApp: false
-                    });
-                    
-                    // Criar documento do usuário no Firestore
+                    // 2. Criar documento no Firestore PRIMEIRO
                     await db.collection('usuarios').doc(userCredential.user.uid).set({
                         nome: nome,
                         email: email,
                         isAdmin: false,
-                        status: 'PENDENTE', // Aguardando aprovação do admin
+                        status: 'PENDENTE',
                         emailVerificado: false,
                         criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
                         ultimoAcesso: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
-                    // Fazer logout automático após cadastro
+                    console.log('✅ Usuário salvo no Firestore');
+                    
+                    // 3. Enviar email de verificação
+                    await userCredential.user.sendEmailVerification({
+                        url: window.location.href,
+                        handleCodeInApp: false
+                    });
+                    
+                    console.log('✅ Email de verificação enviado');
+                    
+                    // 4. Aguardar um pouco para garantir que tudo foi processado
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // 5. Fazer logout
                     await firebase.auth().signOut();
                     
-                    // Mostrar mensagem de sucesso
+                    console.log('✅ Logout realizado');
+                    
+                    // 6. Resetar estados
+                    setRegistering(false);
+                    setEmail('');
+                    setPassword('');
+                    setNome('');
+                    setAuthMode('login');
+                    
+                    // 7. Mostrar mensagem de sucesso
                     alert('✅ Cadastro realizado com sucesso!\n\n📧 Enviamos um email de verificação para: ' + email + '\n\n⚠️ IMPORTANTE:\n1. Verifique sua caixa de entrada (e spam)\n2. Clique no link do email para confirmar\n3. Depois aguarde aprovação do administrador\n\nSem a verificação do email, você não poderá fazer login!');
                     
                 } catch (error) {
+                    setRegistering(false);
                     const messages = {
                         'auth/email-already-in-use': 'Email já cadastrado',
                         'auth/weak-password': 'Senha muito fraca (mínimo 6 caracteres)',
                         'auth/invalid-email': 'Email inválido'
                     };
-                    setError(messages[error.code] || 'Erro ao cadastrar');
+                    setError(messages[error.code] || 'Erro ao cadastrar: ' + error.message);
+                    console.error('Erro no cadastro:', error);
                 }
             };
 
@@ -305,6 +332,17 @@
                 return (
                     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
                         <div className="text-white text-2xl font-bold">Carregando...</div>
+                    </div>
+                );
+            }
+            
+            if (registering) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+                        <div className="text-white text-center">
+                            <div className="text-2xl font-bold mb-4">📝 Criando sua conta...</div>
+                            <div className="text-lg">Aguarde alguns segundos</div>
+                        </div>
                     </div>
                 );
             }
