@@ -184,11 +184,27 @@
             useEffect(() => {
                 const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
                     if (user && db) {
+                        // Verificar se email foi verificado
+                        if (!user.emailVerified) {
+                            await firebase.auth().signOut();
+                            alert('📧 Email não verificado!\n\n⚠️ Você precisa confirmar seu email antes de fazer login.\n\nVerifique sua caixa de entrada (e spam) e clique no link de verificação.\n\n💡 Não recebeu? Tente fazer login novamente para reenviar o email.');
+                            setUser(null);
+                            setLoading(false);
+                            return;
+                        }
+                        
                         // Verificar status do usuário
                         try {
                             const userDoc = await db.collection('usuarios').doc(user.uid).get();
                             if (userDoc.exists) {
                                 const userData = userDoc.data();
+                                
+                                // Atualizar status de email verificado no Firestore
+                                if (user.emailVerified && !userData.emailVerificado) {
+                                    await db.collection('usuarios').doc(user.uid).update({
+                                        emailVerificado: true
+                                    });
+                                }
                                 
                                 // Se pendente ou rejeitado, fazer logout
                                 if (userData.status === 'PENDENTE') {
@@ -252,12 +268,19 @@
                     const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
                     await userCredential.user.updateProfile({ displayName: nome });
                     
+                    // Enviar email de verificação
+                    await userCredential.user.sendEmailVerification({
+                        url: window.location.href,
+                        handleCodeInApp: false
+                    });
+                    
                     // Criar documento do usuário no Firestore
                     await db.collection('usuarios').doc(userCredential.user.uid).set({
                         nome: nome,
                         email: email,
                         isAdmin: false,
                         status: 'PENDENTE', // Aguardando aprovação do admin
+                        emailVerificado: false,
                         criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
                         ultimoAcesso: firebase.firestore.FieldValue.serverTimestamp()
                     });
@@ -266,7 +289,7 @@
                     await firebase.auth().signOut();
                     
                     // Mostrar mensagem de sucesso
-                    alert('✅ Cadastro realizado com sucesso!\n\n⏳ Sua conta está aguardando aprovação do administrador.\n\nVocê será notificado quando tiver acesso liberado.');
+                    alert('✅ Cadastro realizado com sucesso!\n\n📧 Enviamos um email de verificação para: ' + email + '\n\n⚠️ IMPORTANTE:\n1. Verifique sua caixa de entrada (e spam)\n2. Clique no link do email para confirmar\n3. Depois aguarde aprovação do administrador\n\nSem a verificação do email, você não poderá fazer login!');
                     
                 } catch (error) {
                     const messages = {
@@ -357,7 +380,38 @@
                                 </button>
                             </form>
 
-                            <div className="mt-6 text-center">
+                            <div className="mt-6 text-center space-y-3">
+                                {authMode === 'login' && (
+                                    <div>
+                                        <button
+                                            onClick={async () => {
+                                                const emailInput = prompt('📧 Digite seu email para reenviar a verificação:');
+                                                if (emailInput) {
+                                                    const passwordInput = prompt('🔒 Digite sua senha:');
+                                                    if (passwordInput) {
+                                                        try {
+                                                            const userCredential = await firebase.auth().signInWithEmailAndPassword(emailInput, passwordInput);
+                                                            if (!userCredential.user.emailVerified) {
+                                                                await userCredential.user.sendEmailVerification();
+                                                                await firebase.auth().signOut();
+                                                                alert('✅ Email de verificação reenviado!\n\nVerifique sua caixa de entrada (e spam).');
+                                                            } else {
+                                                                await firebase.auth().signOut();
+                                                                alert('✅ Seu email já está verificado!\n\nTente fazer login normalmente.');
+                                                            }
+                                                        } catch (error) {
+                                                            alert('❌ Erro: ' + (error.message || 'Email ou senha incorretos'));
+                                                        }
+                                                    }
+                                                }
+                                            }}
+                                            className="text-orange-600 hover:text-orange-800 font-semibold text-sm"
+                                        >
+                                            📧 Não recebeu o email de verificação? Clique aqui
+                                        </button>
+                                    </div>
+                                )}
+                                
                                 <button
                                     onClick={() => {
                                         setAuthMode(authMode === 'login' ? 'register' : 'login');
@@ -550,9 +604,10 @@
                             // Se não tem status, é usuário antigo - aprovar automaticamente
                             if (!userData.status) {
                                 await db.collection('usuarios').doc(user.uid).update({
-                                    status: 'APROVADO'
+                                    status: 'APROVADO',
+                                    emailVerificado: true // Usuários antigos são considerados verificados
                                 });
-                                console.log('✅ Usuário antigo aprovado automaticamente');
+                                console.log('✅ Usuário antigo aprovado e verificado automaticamente');
                             }
                         } else {
                             setIsUserAdmin(false);
@@ -2609,9 +2664,20 @@
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <span className="text-2xl">👤</span>
-                                                            <div>
+                                                            <div className="flex-1">
                                                                 <div className="font-bold text-lg text-gray-800">{usuario.nome}</div>
-                                                                <div className="text-sm text-gray-600">{usuario.email}</div>
+                                                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                                    <span>{usuario.email}</span>
+                                                                    {usuario.emailVerificado ? (
+                                                                        <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold">
+                                                                            ✅ Verificado
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-semibold">
+                                                                            ⚠️ Não verificado
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div className="text-xs text-gray-500">
@@ -2698,7 +2764,20 @@
                                                         <span className="font-semibold">{usuario.nome || 'Sem nome'}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">{usuario.email}</td>
+                                                <td className="px-4 py-3 text-sm text-gray-600">
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{usuario.email}</span>
+                                                        {usuario.emailVerificado ? (
+                                                            <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold" title="Email verificado">
+                                                                ✅
+                                                            </span>
+                                                        ) : (
+                                                            <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs font-semibold" title="Email não verificado">
+                                                                ⚠️
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </td>
                                                 <td className="px-4 py-3 text-sm text-gray-600">
                                                     {(() => {
                                                         try {
