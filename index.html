@@ -190,8 +190,20 @@
                     }
                     
                     if (user && db) {
-                        // Verificar se email foi verificado
-                        if (!user.emailVerified) {
+                        // Primeiro verificar se é admin ANTES de bloquear por email
+                        let isUserAdmin = false;
+                        try {
+                            const userDoc = await db.collection('usuarios').doc(user.uid).get();
+                            if (userDoc.exists) {
+                                const userData = userDoc.data();
+                                isUserAdmin = userData.isAdmin === true;
+                            }
+                        } catch (error) {
+                            console.error('Erro ao verificar admin:', error);
+                        }
+                        
+                        // Verificar se email foi verificado (MAS NÃO BLOQUEAR ADMINS!)
+                        if (!user.emailVerified && !isUserAdmin) {
                             await firebase.auth().signOut();
                             alert('📧 Email não verificado!\n\n⚠️ Você precisa confirmar seu email antes de fazer login.\n\nVerifique sua caixa de entrada (e spam) e clique no link de verificação.\n\n💡 Não recebeu? Tente fazer login novamente para reenviar o email.');
                             setUser(null);
@@ -212,14 +224,14 @@
                                     });
                                 }
                                 
-                                // Se pendente ou rejeitado, fazer logout
-                                if (userData.status === 'PENDENTE') {
+                                // Se pendente ou rejeitado, fazer logout (MAS NÃO BLOQUEAR ADMINS!)
+                                if (userData.status === 'PENDENTE' && !userData.isAdmin) {
                                     await firebase.auth().signOut();
                                     alert('⏳ Sua conta ainda está aguardando aprovação do administrador.\n\nPor favor, aguarde a liberação do seu acesso.');
                                     setUser(null);
                                     setLoading(false);
                                     return;
-                                } else if (userData.status === 'REJEITADO') {
+                                } else if (userData.status === 'REJEITADO' && !userData.isAdmin) {
                                     await firebase.auth().signOut();
                                     alert('❌ Sua solicitação de cadastro foi rejeitada.\n\nEntre em contato com o administrador para mais informações.');
                                     setUser(null);
