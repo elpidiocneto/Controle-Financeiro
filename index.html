@@ -2413,7 +2413,7 @@
             };
 
             // 👑 PAINEL DE ADMINISTRAÇÃO
-            const TelaAdmin = () => {
+            const TelaAdmin = ({ isUserAdmin: isUserAdminProp }) => {
                 const [usuarios, setUsuarios] = useState([]);
                 const [loading, setLoading] = useState(true);
                 const [stats, setStats] = useState({ total: 0, ativos: 0, novos: 0 });
@@ -2478,23 +2478,15 @@
                     }
                 };
 
-                // Verificar se usuário atual é admin
-                const usuarioAtual = usuarios.find(u => u.uid === user.uid);
-                
-                // REGRA: Primeiro usuário cadastrado é sempre admin
-                // OU: Usuário com campo isAdmin = true
-                const isPrimeiroUsuario = usuarios.length > 0 && usuarios.every(u => 
-                    new Date(u.criadoEm?.toDate() || 0) >= new Date(usuarioAtual?.criadoEm?.toDate() || 0)
-                );
-                const isAdmin = usuarioAtual?.isAdmin === true || isPrimeiroUsuario;
-
-                if (!isAdmin) {
+                // Usar o isUserAdmin que já foi verificado no componente pai
+                if (!isUserAdminProp) {
                     return (
                         <div className="max-w-4xl mx-auto p-8">
                             <div className="bg-red-50 border-2 border-red-200 rounded-xl p-8 text-center">
                                 <div className="text-6xl mb-4">🚫</div>
                                 <h2 className="text-2xl font-bold text-red-800 mb-2">Acesso Negado</h2>
                                 <p className="text-red-600">Você não tem permissões de administrador.</p>
+                                <p className="text-sm text-red-500 mt-4">DEBUG: isUserAdminProp = {String(isUserAdminProp)}</p>
                             </div>
                         </div>
                     );
@@ -3939,7 +3931,7 @@
                     {/* Content */}
                     <div className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-8 main-content">
                         {telaAtiva === 'dashboard' && <Dashboard />}
-                        {telaAtiva === 'admin' && <TelaAdmin />}
+                        {telaAtiva === 'admin' && <TelaAdmin isUserAdmin={isUserAdmin} />}
                         {telaAtiva === 'planejamento' && <TelaPlanejamento />}
                         {telaAtiva === 'receitas' && <TelaReceitas />}
                         {telaAtiva === 'cartoes' && <TelaCartoes />}
