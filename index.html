@@ -480,6 +480,132 @@
             return <App user={user} />;
         }
 
+        // Componente de Formulário de Edição Universal
+        function FormEdicao({ item, tipo, onSalvar }) {
+            const [formData, setFormData] = useState({...item});
+            
+            const handleChange = (campo, valor) => {
+                setFormData(prev => ({...prev, [campo]: valor}));
+            };
+            
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSalvar(formData);
+            };
+            
+            return (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Descrição/Nome */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            {tipo === 'cartao' ? 'Nome do Cartão' : 'Descrição'}
+                        </label>
+                        <input
+                            type="text"
+                            value={formData[tipo === 'cartao' ? 'nome' : 'descricao'] || ''}
+                            onChange={(e) => handleChange(tipo === 'cartao' ? 'nome' : 'descricao', e.target.value)}
+                            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                            required
+                        />
+                    </div>
+                    
+                    {/* Valor */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Valor (R$)
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={formData.valor || ''}
+                            onChange={(e) => handleChange('valor', parseFloat(e.target.value))}
+                            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                            required
+                        />
+                    </div>
+                    
+                    {/* Ano */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Ano
+                        </label>
+                        <select
+                            value={formData.ano || new Date().getFullYear()}
+                            onChange={(e) => handleChange('ano', parseInt(e.target.value))}
+                            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                        >
+                            {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(ano => (
+                                <option key={ano} value={ano}>{ano}</option>
+                            ))}
+                        </select>
+                    </div>
+                    
+                    {/* Vencimento (se for cartão ou fixo) */}
+                    {(tipo === 'cartao' || tipo === 'fixo') && (
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Dia do Vencimento
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                max="31"
+                                value={formData.vencimento || ''}
+                                onChange={(e) => handleChange('vencimento', parseInt(e.target.value))}
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                                required
+                            />
+                        </div>
+                    )}
+                    
+                    {/* Categoria (se for receita) */}
+                    {tipo === 'receita' && (
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Categoria
+                            </label>
+                            <select
+                                value={formData.categoria || 'Salário'}
+                                onChange={(e) => handleChange('categoria', e.target.value)}
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                            >
+                                <option>Salário</option>
+                                <option>Freelance</option>
+                                <option>Investimentos</option>
+                                <option>Outros</option>
+                            </select>
+                        </div>
+                    )}
+                    
+                    {/* Mês (se for variável ou receita) */}
+                    {(tipo === 'variavel' || tipo === 'receita') && (
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Mês
+                            </label>
+                            <select
+                                value={formData.mes || 'Janeiro'}
+                                onChange={(e) => handleChange('mes', e.target.value)}
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                            >
+                                {['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                                  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].map(mes => (
+                                    <option key={mes} value={mes}>{mes}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                    
+                    <button
+                        type="submit"
+                        className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                    >
+                        💾 Salvar Alterações
+                    </button>
+                </form>
+            );
+        }
+
         function App({ user }) {
             const [salvando, setSalvando] = useState(false);
             const [ultimoSave, setUltimoSave] = useState(null);
@@ -492,6 +618,8 @@
             const [mesAtual, setMesAtual] = useState('jan');
             const [telaAtiva, setTelaAtiva] = useState('dashboard');
             const [modalAberto, setModalAberto] = useState(null);
+            const [itemEditando, setItemEditando] = useState(null);
+            const [tipoEditando, setTipoEditando] = useState(null);
             
             const [gastosFixos, setGastosFixos] = useState(() => {
                 const saved = localStorage.getItem('gastosFixos');
@@ -1077,17 +1205,77 @@
                     setCartoes(cartoes.filter(c => c.id !== id));
                 }
             };
+            
+            const editarCartao = (id, dadosAtualizados) => {
+                setCartoes(cartoes.map(c => 
+                    c.id === id ? { ...c, ...dadosAtualizados } : c
+                ));
+                setItemEditando(null);
+                setTipoEditando(null);
+                setModalAberto(null);
+                alert('✅ Cartão atualizado com sucesso!');
+            };
+            
+            const duplicarCartao = (cartao) => {
+                const novoCartao = {
+                    ...cartao,
+                    id: Date.now(),
+                    nome: cartao.nome + ' (Cópia)'
+                };
+                setCartoes([...cartoes, novoCartao]);
+                alert('✅ Cartão duplicado com sucesso!');
+            };
 
             const deletarGastoFixo = (id) => {
                 if (confirm('Tem certeza?')) {
                     setGastosFixos(gastosFixos.filter(g => g.id !== id));
                 }
             };
+            
+            const editarGastoFixo = (id, dadosAtualizados) => {
+                setGastosFixos(gastosFixos.map(g => 
+                    g.id === id ? { ...g, ...dadosAtualizados } : g
+                ));
+                setItemEditando(null);
+                setTipoEditando(null);
+                setModalAberto(null);
+                alert('✅ Gasto fixo atualizado com sucesso!');
+            };
+            
+            const duplicarGastoFixo = (gasto) => {
+                const novoGasto = {
+                    ...gasto,
+                    id: Date.now(),
+                    descricao: gasto.descricao + ' (Cópia)'
+                };
+                setGastosFixos([...gastosFixos, novoGasto]);
+                alert('✅ Gasto fixo duplicado com sucesso!');
+            };
 
             const deletarGastoVariavel = (id) => {
                 if (confirm('Tem certeza?')) {
                     setGastosVariaveis(gastosVariaveis.filter(g => g.id !== id));
                 }
+            };
+            
+            const editarGastoVariavel = (id, dadosAtualizados) => {
+                setGastosVariaveis(gastosVariaveis.map(g => 
+                    g.id === id ? { ...g, ...dadosAtualizados } : g
+                ));
+                setItemEditando(null);
+                setTipoEditando(null);
+                setModalAberto(null);
+                alert('✅ Gasto variável atualizado com sucesso!');
+            };
+            
+            const duplicarGastoVariavel = (gasto) => {
+                const novoGasto = {
+                    ...gasto,
+                    id: Date.now(),
+                    descricao: gasto.descricao + ' (Cópia)'
+                };
+                setGastosVariaveis([...gastosVariaveis, novoGasto]);
+                alert('✅ Gasto variável duplicado com sucesso!');
             };
 
             const adicionarReceita = (dados) => {
@@ -1110,6 +1298,26 @@
                 if (confirm('Tem certeza?')) {
                     setReceitas(receitas.filter(r => r.id !== id));
                 }
+            };
+            
+            const editarReceita = (id, dadosAtualizados) => {
+                setReceitas(receitas.map(r => 
+                    r.id === id ? { ...r, ...dadosAtualizados } : r
+                ));
+                setItemEditando(null);
+                setTipoEditando(null);
+                setModalAberto(null);
+                alert('✅ Receita atualizada com sucesso!');
+            };
+            
+            const duplicarReceita = (receita) => {
+                const novaReceita = {
+                    ...receita,
+                    id: Date.now(),
+                    descricao: receita.descricao + ' (Cópia)'
+                };
+                setReceitas([...receitas, novaReceita]);
+                alert('✅ Receita duplicada com sucesso!');
             };
 
             const adicionarPlanejado = (dados) => {
@@ -2940,15 +3148,45 @@
                             <div key={cartao.id} className="bg-white rounded-xl shadow-lg p-6">
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
-                                        <h3 className="text-xl font-bold text-gray-800">{cartao.nome}</h3>
+                                        <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                            {cartao.nome}
+                                            <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                                cartao.ano === 2026 ? 'bg-blue-100 text-blue-700' : 
+                                                cartao.ano === 2025 ? 'bg-yellow-100 text-yellow-700' : 
+                                                'bg-gray-100 text-gray-700'
+                                            }`}>
+                                                {cartao.ano || anoAtual}
+                                            </span>
+                                        </h3>
                                         <p className="text-sm text-gray-500">Vencimento: dia {cartao.vencimento}</p>
                                     </div>
-                                    <button 
-                                        onClick={() => deletarCartao(cartao.id)} 
-                                        className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm font-semibold"
-                                    >
-                                        🗑️ Deletar
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button 
+                                            onClick={() => {
+                                                setItemEditando(cartao);
+                                                setTipoEditando('cartao');
+                                                setModalAberto('editar');
+                                            }}
+                                            className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm font-semibold"
+                                            title="Editar cartão"
+                                        >
+                                            ✏️
+                                        </button>
+                                        <button 
+                                            onClick={() => duplicarCartao(cartao)}
+                                            className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm font-semibold"
+                                            title="Duplicar cartão"
+                                        >
+                                            📋
+                                        </button>
+                                        <button 
+                                            onClick={() => deletarCartao(cartao.id)} 
+                                            className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm font-semibold"
+                                            title="Excluir cartão"
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <div className="mb-4">
@@ -3025,10 +3263,19 @@
                         <div key={gasto.id} className="bg-white rounded-xl shadow-lg p-6">
                             <div className="flex justify-between items-center">
                                 <div className="flex-1">
-                                    <div className="font-semibold text-gray-800">{gasto.descricao}</div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-semibold text-gray-800">{gasto.descricao}</span>
+                                        <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                            gasto.ano === 2026 ? 'bg-blue-100 text-blue-700' : 
+                                            gasto.ano === 2025 ? 'bg-yellow-100 text-yellow-700' : 
+                                            'bg-gray-100 text-gray-700'
+                                        }`}>
+                                            {gasto.ano || anoAtual}
+                                        </span>
+                                    </div>
                                     <div className="text-sm text-gray-500">{gasto.categoria} • Vencimento: dia {gasto.vencimento}</div>
                                 </div>
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
                                     <input 
                                         type="number"
                                         step="0.01"
@@ -3036,7 +3283,29 @@
                                         onChange={(e) => editarValorGastoFixo(gasto.id, e.target.value)}
                                         className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-right"
                                     />
-                                    <button onClick={() => deletarGastoFixo(gasto.id)} className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm">
+                                    <button 
+                                        onClick={() => {
+                                            setItemEditando(gasto);
+                                            setTipoEditando('fixo');
+                                            setModalAberto('editar');
+                                        }}
+                                        className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm font-semibold"
+                                        title="Editar gasto fixo"
+                                    >
+                                        ✏️
+                                    </button>
+                                    <button 
+                                        onClick={() => duplicarGastoFixo(gasto)}
+                                        className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm font-semibold"
+                                        title="Duplicar gasto fixo"
+                                    >
+                                        📋
+                                    </button>
+                                    <button 
+                                        onClick={() => deletarGastoFixo(gasto.id)} 
+                                        className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
+                                        title="Excluir gasto fixo"
+                                    >
                                         🗑️
                                     </button>
                                 </div>
@@ -3072,12 +3341,43 @@
                                     gastosDoMes.map(gasto => (
                                         <div key={gasto.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                                             <div className="flex-1">
-                                                <div className="font-semibold text-gray-800">{gasto.categoria}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-semibold text-gray-800">{gasto.categoria}</span>
+                                                    <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                                        gasto.ano === 2026 ? 'bg-blue-100 text-blue-700' : 
+                                                        gasto.ano === 2025 ? 'bg-yellow-100 text-yellow-700' : 
+                                                        'bg-gray-100 text-gray-700'
+                                                    }`}>
+                                                        {gasto.ano || anoAtual}
+                                                    </span>
+                                                </div>
                                                 <div className="text-sm text-gray-500">{gasto.descricao} • {gasto.data}</div>
                                             </div>
-                                            <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2">
                                                 <div className="text-xl font-bold text-orange-600">R$ {gasto.valor.toFixed(2)}</div>
-                                                <button onClick={() => deletarGastoVariavel(gasto.id)} className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm">
+                                                <button 
+                                                    onClick={() => {
+                                                        setItemEditando(gasto);
+                                                        setTipoEditando('variavel');
+                                                        setModalAberto('editar');
+                                                    }}
+                                                    className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm font-semibold"
+                                                    title="Editar gasto variável"
+                                                >
+                                                    ✏️
+                                                </button>
+                                                <button 
+                                                    onClick={() => duplicarGastoVariavel(gasto)}
+                                                    className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm font-semibold"
+                                                    title="Duplicar gasto variável"
+                                                >
+                                                    📋
+                                                </button>
+                                                <button 
+                                                    onClick={() => deletarGastoVariavel(gasto.id)} 
+                                                    className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
+                                                    title="Excluir gasto variável"
+                                                >
                                                     🗑️
                                                 </button>
                                             </div>
@@ -3153,16 +3453,42 @@
                                                     {receita.descricao && (
                                                         <span className="text-sm text-gray-500">• {receita.descricao}</span>
                                                     )}
+                                                    <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                                        receita.ano === 2026 ? 'bg-blue-100 text-blue-700' : 
+                                                        receita.ano === 2025 ? 'bg-yellow-100 text-yellow-700' : 
+                                                        'bg-gray-100 text-gray-700'
+                                                    }`}>
+                                                        {receita.ano}
+                                                    </span>
                                                 </div>
                                                 <div className="text-sm text-gray-500 mt-1">{receita.data}</div>
                                             </div>
-                                            <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2">
                                                 <div className="text-2xl font-bold text-green-600">
                                                     R$ {receita.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                                                 </div>
                                                 <button 
+                                                    onClick={() => {
+                                                        setItemEditando(receita);
+                                                        setTipoEditando('receita');
+                                                        setModalAberto('editar');
+                                                    }}
+                                                    className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm font-semibold"
+                                                    title="Editar receita"
+                                                >
+                                                    ✏️
+                                                </button>
+                                                <button 
+                                                    onClick={() => duplicarReceita(receita)}
+                                                    className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm font-semibold"
+                                                    title="Duplicar receita"
+                                                >
+                                                    📋
+                                                </button>
+                                                <button 
                                                     onClick={() => deletarReceita(receita.id)}
                                                     className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
+                                                    title="Excluir receita"
                                                 >
                                                     🗑️
                                                 </button>
@@ -4235,6 +4561,39 @@
                         {telaAtiva === 'variaveis' && <TelaGastosVariaveis />}
                         {telaAtiva === 'farol' && <TelaFarol />}
                     </div>
+
+                    {/* Modal de Edição Universal */}
+                    {modalAberto === 'editar' && itemEditando && (
+                        <Modal 
+                            titulo={`✏️ Editar ${
+                                tipoEditando === 'receita' ? 'Receita' :
+                                tipoEditando === 'cartao' ? 'Cartão' :
+                                tipoEditando === 'fixo' ? 'Gasto Fixo' :
+                                'Gasto Variável'
+                            }`} 
+                            onClose={() => {
+                                setModalAberto(null);
+                                setItemEditando(null);
+                                setTipoEditando(null);
+                            }}
+                        >
+                            <FormEdicao 
+                                item={itemEditando}
+                                tipo={tipoEditando}
+                                onSalvar={(dadosAtualizados) => {
+                                    if (tipoEditando === 'receita') {
+                                        editarReceita(itemEditando.id, dadosAtualizados);
+                                    } else if (tipoEditando === 'cartao') {
+                                        editarCartao(itemEditando.id, dadosAtualizados);
+                                    } else if (tipoEditando === 'fixo') {
+                                        editarGastoFixo(itemEditando.id, dadosAtualizados);
+                                    } else if (tipoEditando === 'variavel') {
+                                        editarGastoVariavel(itemEditando.id, dadosAtualizados);
+                                    }
+                                }}
+                            />
+                        </Modal>
+                    )}
 
                     {/* Modals */}
                     {modalAberto === 'novoCartao' && (
