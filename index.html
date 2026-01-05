@@ -1416,6 +1416,141 @@
                 alert('✅ Gasto variável duplicado com sucesso!');
             };
 
+            // 🔍 DIAGNÓSTICO DE ANOS
+            const diagnosticarAnos = () => {
+                const diagnostico = {
+                    receitas: receitas.map(r => ({
+                        descricao: r.descricao || r.categoria,
+                        ano: r.ano,
+                        tipo: typeof r.ano,
+                        mes: r.mes
+                    })),
+                    cartoes: cartoes.map(c => ({
+                        nome: c.nome,
+                        ano: c.ano,
+                        tipo: typeof c.ano
+                    })),
+                    fixos: gastosFixos.map(g => ({
+                        descricao: g.descricao,
+                        ano: g.ano,
+                        tipo: typeof g.ano
+                    })),
+                    variaveis: gastosVariaveis.map(g => ({
+                        descricao: g.descricao,
+                        ano: g.ano,
+                        tipo: typeof g.ano,
+                        mes: g.mes
+                    }))
+                };
+                
+                console.log('📊 DIAGNÓSTICO COMPLETO:', diagnostico);
+                
+                // Contar por ano
+                const anos = {
+                    receitas: {},
+                    cartoes: {},
+                    fixos: {},
+                    variaveis: {}
+                };
+                
+                receitas.forEach(r => {
+                    const ano = r.ano || 'undefined';
+                    anos.receitas[ano] = (anos.receitas[ano] || 0) + 1;
+                });
+                
+                cartoes.forEach(c => {
+                    const ano = c.ano || 'undefined';
+                    anos.cartoes[ano] = (anos.cartoes[ano] || 0) + 1;
+                });
+                
+                gastosFixos.forEach(g => {
+                    const ano = g.ano || 'undefined';
+                    anos.fixos[ano] = (anos.fixos[ano] || 0) + 1;
+                });
+                
+                gastosVariaveis.forEach(g => {
+                    const ano = g.ano || 'undefined';
+                    anos.variaveis[ano] = (anos.variaveis[ano] || 0) + 1;
+                });
+                
+                console.log('📊 CONTAGEM POR ANO:', anos);
+                
+                alert(`📊 DIAGNÓSTICO DE ANOS\n\n` +
+                    `📈 RECEITAS:\n${Object.entries(anos.receitas).map(([ano, qtd]) => `  ${ano}: ${qtd}`).join('\n')}\n\n` +
+                    `💳 CARTÕES:\n${Object.entries(anos.cartoes).map(([ano, qtd]) => `  ${ano}: ${qtd}`).join('\n')}\n\n` +
+                    `🏠 FIXOS:\n${Object.entries(anos.fixos).map(([ano, qtd]) => `  ${ano}: ${qtd}`).join('\n')}\n\n` +
+                    `🛒 VARIÁVEIS:\n${Object.entries(anos.variaveis).map(([ano, qtd]) => `  ${ano}: ${qtd}`).join('\n')}\n\n` +
+                    `Veja o console (F12) para mais detalhes!`
+                );
+            };
+            
+            // 🔧 CORRIGIR ANOS UNDEFINED → 2025
+            const corrigirAnosUndefined = async () => {
+                if (!confirm(`🔧 CORRIGIR ANOS\n\nIsso vai adicionar ano = 2025 em todos os lançamentos que não têm ano definido.\n\nDeseja continuar?`)) {
+                    return;
+                }
+                
+                const novasReceitas = receitas.map(r => 
+                    !r.ano ? {...r, ano: 2025} : r
+                );
+                
+                const novosCartoes = cartoes.map(c => 
+                    !c.ano ? {...c, ano: 2025} : c
+                );
+                
+                const novosFixos = gastosFixos.map(g => 
+                    !g.ano ? {...g, ano: 2025} : g
+                );
+                
+                const novosVariaveis = gastosVariaveis.map(g => 
+                    !g.ano ? {...g, ano: 2025} : g
+                );
+                
+                const count = {
+                    receitas: novasReceitas.filter(r => !receitas.find(old => old.id === r.id && old.ano)).length,
+                    cartoes: novosCartoes.filter(c => !cartoes.find(old => old.id === c.id && old.ano)).length,
+                    fixos: novosFixos.filter(g => !gastosFixos.find(old => old.id === g.id && old.ano)).length,
+                    variaveis: novosVariaveis.filter(g => !gastosVariaveis.find(old => old.id === g.id && old.ano)).length
+                };
+                
+                setReceitas(novasReceitas);
+                setCartoes(novosCartoes);
+                setGastosFixos(novosFixos);
+                setGastosVariaveis(novosVariaveis);
+                
+                // Salvar no Firestore
+                if (db && user) {
+                    await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').set({
+                        versao: '3.0',
+                        dataBackup: firebase.firestore.FieldValue.serverTimestamp(),
+                        email: user.email,
+                        nome: user.displayName,
+                        dados: {
+                            cartoes: novosCartoes,
+                            gastosFixos: novosFixos, 
+                            gastosVariaveis: novosVariaveis, 
+                            receitas: novasReceitas,
+                            farol, 
+                            metas, 
+                            orcamento, 
+                            orcamentosMensais,
+                            orcamentoAnual, 
+                            planejadosMes, 
+                            comprasParceladas
+                        }
+                    });
+                }
+                
+                alert(`✅ Anos corrigidos!\n\n` +
+                    `📊 Receitas: ${count.receitas}\n` +
+                    `💳 Cartões: ${count.cartoes}\n` +
+                    `🏠 Fixos: ${count.fixos}\n` +
+                    `🛒 Variáveis: ${count.variaveis}\n\n` +
+                    `Total: ${count.receitas + count.cartoes + count.fixos + count.variaveis} corrigidos!\n\n` +
+                    `Agora você pode migrar para 2026!`
+                );
+            };
+
             // 🔄 MIGRAÇÃO EM MASSA 2025 → 2026
             const migrarAno = async (de, para) => {
                 if (!confirm(`⚠️ ATENÇÃO!\n\nVocê vai MIGRAR todos os lançamentos de ${de} para ${para}.\n\nIsso vai:\n✅ Mudar o ano de ${de} → ${para}\n✅ Manter o mesmo mês\n✅ Salvar no Firestore\n\nDeseja continuar?`)) {
@@ -4625,6 +4760,20 @@
                                         )}
                                     </div>
                                     <div className="flex gap-1 mobile-stack md:flex-row">
+                                    <button 
+                                        onClick={diagnosticarAnos}
+                                        className="px-2 md:px-4 py-1 md:py-2 bg-yellow-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-yellow-700"
+                                        title="Ver anos dos lançamentos"
+                                    >
+                                        🔍 <span className="hide-mobile">Diagnosticar</span>
+                                    </button>
+                                    <button 
+                                        onClick={corrigirAnosUndefined}
+                                        className="px-2 md:px-4 py-1 md:py-2 bg-orange-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-orange-700"
+                                        title="Adicionar ano=2025 nos itens sem ano"
+                                    >
+                                        🔧 <span className="hide-mobile">Corrigir</span>
+                                    </button>
                                     <button 
                                         onClick={() => migrarAno(2025, 2026)}
                                         className="px-2 md:px-4 py-1 md:py-2 bg-purple-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-purple-700"
