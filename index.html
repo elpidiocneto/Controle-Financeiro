@@ -484,13 +484,28 @@
         function FormEdicao({ item, tipo, onSalvar }) {
             const [formData, setFormData] = useState({...item});
             
+            // Debug: ver dados iniciais
+            console.log('🔍 FormEdicao - item recebido:', item);
+            console.log('🔍 FormEdicao - formData inicial:', formData);
+            
             const handleChange = (campo, valor) => {
+                console.log(`🔄 Mudando ${campo} para:`, valor);
                 setFormData(prev => ({...prev, [campo]: valor}));
             };
             
             const handleSubmit = (e) => {
                 e.preventDefault();
-                onSalvar(formData);
+                console.log('💾 Salvando formData:', formData);
+                
+                // Garantir que ano seja número
+                const dadosParaSalvar = {
+                    ...formData,
+                    ano: parseInt(formData.ano) || new Date().getFullYear(),
+                    valor: parseFloat(formData.valor)
+                };
+                
+                console.log('💾 Dados após processamento:', dadosParaSalvar);
+                onSalvar(dadosParaSalvar);
             };
             
             return (
@@ -1301,9 +1316,20 @@
             };
             
             const editarReceita = (id, dadosAtualizados) => {
-                setReceitas(receitas.map(r => 
-                    r.id === id ? { ...r, ...dadosAtualizados } : r
-                ));
+                console.log('📝 editarReceita - ID:', id);
+                console.log('📝 editarReceita - dadosAtualizados:', dadosAtualizados);
+                
+                const novasReceitas = receitas.map(r => {
+                    if (r.id === id) {
+                        const atualizado = { ...r, ...dadosAtualizados };
+                        console.log('✅ Receita atualizada:', atualizado);
+                        return atualizado;
+                    }
+                    return r;
+                });
+                
+                console.log('📋 Lista completa após atualização:', novasReceitas);
+                setReceitas(novasReceitas);
                 setItemEditando(null);
                 setTipoEditando(null);
                 setModalAberto(null);
