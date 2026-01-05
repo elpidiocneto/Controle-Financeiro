@@ -1416,34 +1416,47 @@
                 alert('✅ Gasto variável duplicado com sucesso!');
             };
 
-            // 🔍 DIAGNÓSTICO DE ANOS
+            // 🔍 DIAGNÓSTICO DE ANOS E MESES
             const diagnosticarAnos = () => {
+                console.log('📊 RECEITAS:', receitas);
+                console.log('💳 CARTÕES:', cartoes);
+                console.log('🏠 FIXOS:', gastosFixos);
+                console.log('🛒 VARIÁVEIS:', gastosVariaveis);
+                
                 const diagnostico = {
                     receitas: receitas.map(r => ({
                         descricao: r.descricao || r.categoria,
                         ano: r.ano,
-                        tipo: typeof r.ano,
-                        mes: r.mes
+                        mes: r.mes,
+                        valor: r.valor
                     })),
                     cartoes: cartoes.map(c => ({
                         nome: c.nome,
                         ano: c.ano,
-                        tipo: typeof c.ano
+                        valor: c.valor
                     })),
                     fixos: gastosFixos.map(g => ({
                         descricao: g.descricao,
                         ano: g.ano,
-                        tipo: typeof g.ano
+                        valor: g.valor
                     })),
                     variaveis: gastosVariaveis.map(g => ({
                         descricao: g.descricao,
                         ano: g.ano,
-                        tipo: typeof g.ano,
-                        mes: g.mes
+                        mes: g.mes,
+                        valor: g.valor
                     }))
                 };
                 
                 console.log('📊 DIAGNÓSTICO COMPLETO:', diagnostico);
+                
+                // Contar totais
+                const totais = {
+                    receitas: receitas.length,
+                    cartoes: cartoes.length,
+                    fixos: gastosFixos.length,
+                    variaveis: gastosVariaveis.length
+                };
                 
                 // Contar por ano
                 const anos = {
@@ -1475,12 +1488,27 @@
                 
                 console.log('📊 CONTAGEM POR ANO:', anos);
                 
-                alert(`📊 DIAGNÓSTICO DE ANOS\n\n` +
-                    `📈 RECEITAS:\n${Object.entries(anos.receitas).map(([ano, qtd]) => `  ${ano}: ${qtd}`).join('\n')}\n\n` +
-                    `💳 CARTÕES:\n${Object.entries(anos.cartoes).map(([ano, qtd]) => `  ${ano}: ${qtd}`).join('\n')}\n\n` +
-                    `🏠 FIXOS:\n${Object.entries(anos.fixos).map(([ano, qtd]) => `  ${ano}: ${qtd}`).join('\n')}\n\n` +
-                    `🛒 VARIÁVEIS:\n${Object.entries(anos.variaveis).map(([ano, qtd]) => `  ${ano}: ${qtd}`).join('\n')}\n\n` +
-                    `Veja o console (F12) para mais detalhes!`
+                // Verificar mês atual
+                const janeiroAtual = {
+                    receitas: receitas.filter(r => r.mes === 'Janeiro' && r.ano === 2026).length,
+                    variaveis: gastosVariaveis.filter(g => g.mes === 'Janeiro' && g.ano === 2026).length
+                };
+                
+                alert(`📊 DIAGNÓSTICO COMPLETO\n\n` +
+                    `📈 TOTAL DE LANÇAMENTOS:\n` +
+                    `  Receitas: ${totais.receitas}\n` +
+                    `  Cartões: ${totais.cartoes}\n` +
+                    `  Fixos: ${totais.fixos}\n` +
+                    `  Variáveis: ${totais.variaveis}\n\n` +
+                    `📅 EM JANEIRO/2026:\n` +
+                    `  Receitas: ${janeiroAtual.receitas}\n` +
+                    `  Variáveis: ${janeiroAtual.variaveis}\n\n` +
+                    `📊 DISTRIBUIÇÃO POR ANO:\n` +
+                    `RECEITAS: ${Object.entries(anos.receitas).map(([ano, qtd]) => `${ano}=${qtd}`).join(', ')}\n` +
+                    `CARTÕES: ${Object.entries(anos.cartoes).map(([ano, qtd]) => `${ano}=${qtd}`).join(', ')}\n` +
+                    `FIXOS: ${Object.entries(anos.fixos).map(([ano, qtd]) => `${ano}=${qtd}`).join(', ')}\n` +
+                    `VARIÁVEIS: ${Object.entries(anos.variaveis).map(([ano, qtd]) => `${ano}=${qtd}`).join(', ')}\n\n` +
+                    `Veja o console (F12) para LISTA COMPLETA!`
                 );
             };
             
