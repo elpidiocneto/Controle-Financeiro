@@ -1416,6 +1416,185 @@
                 alert('✅ Gasto variável duplicado com sucesso!');
             };
 
+            // 💳 MIGRAÇÃO DE VALORES DE CARTÕES 2025 → 2026 (MOVE, NÃO COPIA)
+            const migrarValoresCartoes = async (anoOrigem, anoDestino) => {
+                if (!confirm(`💳 MOVER VALORES DE CARTÕES\n\nIsso vai MOVER todos os valores de ${anoOrigem} para ${anoDestino}.\n\n⚠️ ATENÇÃO:\n✅ Valores vão para ${anoDestino}\n❌ Valores de ${anoOrigem} serão APAGADOS\n\nExemplo:\nNubank ${anoOrigem}: R$ 1.500\n  ↓\nNubank ${anoDestino}: R$ 1.500\nNubank ${anoOrigem}: R$ 0 (zerado!)\n\nDeseja continuar?`)) {
+                    return;
+                }
+                
+                try {
+                    console.log('💳 Iniciando migração de cartões...');
+                    console.log('📋 Cartões antes:', cartoes);
+                    
+                    let cartoesAtualizados = 0;
+                    let valoresMigrados = 0;
+                    
+                    const novosCartoes = cartoes.map(cartao => {
+                        // Verificar se tem valores no ano de origem
+                        const valoresOrigem = cartao.valores?.[anoOrigem];
+                        
+                        if (valoresOrigem && Object.keys(valoresOrigem).length > 0) {
+                            console.log(`💳 Movendo cartão: ${cartao.nome}`);
+                            console.log(`  Valores ${anoOrigem} (antes):`, valoresOrigem);
+                            
+                            // Criar objeto de valores zerados para o ano de origem
+                            const valoresZerados = {};
+                            Object.keys(valoresOrigem).forEach(mes => {
+                                valoresZerados[mes] = 0;
+                            });
+                            
+                            // Criar novo cartão com valores movidos
+                            const novoCartao = {
+                                ...cartao,
+                                valores: {
+                                    ...cartao.valores,
+                                    [anoDestino]: {...valoresOrigem},  // Copia para destino
+                                    [anoOrigem]: valoresZerados         // Zera origem
+                                }
+                            };
+                            
+                            console.log(`  Valores ${anoDestino} (depois):`, novoCartao.valores[anoDestino]);
+                            console.log(`  Valores ${anoOrigem} (depois):`, novoCartao.valores[anoOrigem]);
+                            
+                            cartoesAtualizados++;
+                            valoresMigrados += Object.keys(valoresOrigem).length;
+                            
+                            return novoCartao;
+                        }
+                        
+                        return cartao;
+                    });
+                    
+                    console.log('📋 Cartões depois:', novosCartoes);
+                    
+                    if (cartoesAtualizados === 0) {
+                        alert(`⚠️ Nenhum cartão tinha valores em ${anoOrigem}!\n\nVerifique se os cartões estão cadastrados.`);
+                        return;
+                    }
+                    
+                    // Atualizar estado
+                    setCartoes(novosCartoes);
+                    
+                    // Salvar no Firestore
+                    if (db && user) {
+                        console.log('💾 Salvando no Firestore...');
+                        await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').set({
+                            versao: '3.0',
+                            dataBackup: firebase.firestore.FieldValue.serverTimestamp(),
+                            email: user.email,
+                            nome: user.displayName,
+                            dados: {
+                                cartoes: novosCartoes,
+                                gastosFixos, 
+                                gastosVariaveis, 
+                                receitas,
+                                farol, 
+                                metas, 
+                                orcamento, 
+                                orcamentosMensais,
+                                orcamentoAnual, 
+                                planejadosMes, 
+                                comprasParceladas
+                            }
+                        });
+                        console.log('✅ Salvo no Firestore!');
+                    }
+                    
+                    alert(`✅ Migração de cartões concluída!\n\n` +
+                        `💳 Cartões movidos: ${cartoesAtualizados}\n` +
+                        `📅 Valores mensais migrados: ${valoresMigrados}\n\n` +
+                        `✅ Valores copiados para ${anoDestino}\n` +
+                        `❌ Valores de ${anoOrigem} foram ZERADOS\n\n` +
+                        `Veja o console (F12) para detalhes.`
+                    );
+                    
+                } catch (error) {
+                    console.error('❌ Erro na migração:', error);
+                    alert('❌ Erro na migração: ' + error.message);
+                }
+            };
+
+            // 🔍 DIAGNÓSTICO COMPLETO - LOCALSTORAGE + FIRESTORE
+            const diagnosticarStorage = async () => {
+                console.log('🔍 INICIANDO DIAGNÓSTICO COMPLETO...');
+                
+                // 1. Ver o que tem no localStorage
+                const localReceitas = JSON.parse(localStorage.getItem('receitas') || '[]');
+                const localCartoes = JSON.parse(localStorage.getItem('cartoes') || '[]');
+                const localFixos = JSON.parse(localStorage.getItem('gastosFixos') || '[]');
+                const localVariaveis = JSON.parse(localStorage.getItem('gastosVariaveis') || '[]');
+                
+                console.log('💾 LOCALSTORAGE:');
+                console.log('  Receitas:', localReceitas);
+                console.log('  Cartões:', localCartoes);
+                console.log('  Fixos:', localFixos);
+                console.log('  Variáveis:', localVariaveis);
+                
+                // 2. Ver o que tem no Firestore
+                let firestoreData = null;
+                if (db && user) {
+                    try {
+                        const doc = await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').get();
+                        if (doc.exists) {
+                            firestoreData = doc.data();
+                            console.log('☁️ FIRESTORE:', firestoreData.dados);
+                        }
+                    } catch (error) {
+                        console.error('Erro ao buscar Firestore:', error);
+                    }
+                }
+                
+                // 3. Ver o que tem nos estados React
+                console.log('⚛️ REACT STATES:');
+                console.log('  Receitas:', receitas);
+                console.log('  Cartões:', cartoes);
+                console.log('  Fixos:', gastosFixos);
+                console.log('  Variáveis:', gastosVariaveis);
+                
+                // 4. Contar por fonte
+                const contagem = {
+                    localStorage: {
+                        receitas: localReceitas.length,
+                        cartoes: localCartoes.length,
+                        fixos: localFixos.length,
+                        variaveis: localVariaveis.length
+                    },
+                    firestore: firestoreData ? {
+                        receitas: firestoreData.dados.receitas?.length || 0,
+                        cartoes: firestoreData.dados.cartoes?.length || 0,
+                        fixos: firestoreData.dados.gastosFixos?.length || 0,
+                        variaveis: firestoreData.dados.gastosVariaveis?.length || 0
+                    } : null,
+                    react: {
+                        receitas: receitas.length,
+                        cartoes: cartoes.length,
+                        fixos: gastosFixos.length,
+                        variaveis: gastosVariaveis.length
+                    }
+                };
+                
+                console.log('📊 CONTAGEM:', contagem);
+                
+                alert(`🔍 DIAGNÓSTICO COMPLETO\n\n` +
+                    `💾 LOCALSTORAGE:\n` +
+                    `  Receitas: ${contagem.localStorage.receitas}\n` +
+                    `  Cartões: ${contagem.localStorage.cartoes}\n` +
+                    `  Fixos: ${contagem.localStorage.fixos}\n` +
+                    `  Variáveis: ${contagem.localStorage.variaveis}\n\n` +
+                    `☁️ FIRESTORE:\n` +
+                    `  Receitas: ${contagem.firestore?.receitas || 0}\n` +
+                    `  Cartões: ${contagem.firestore?.cartoes || 0}\n` +
+                    `  Fixos: ${contagem.firestore?.fixos || 0}\n` +
+                    `  Variáveis: ${contagem.firestore?.variaveis || 0}\n\n` +
+                    `⚛️ REACT (sendo usado agora):\n` +
+                    `  Receitas: ${contagem.react.receitas}\n` +
+                    `  Cartões: ${contagem.react.cartoes}\n` +
+                    `  Fixos: ${contagem.react.fixos}\n` +
+                    `  Variáveis: ${contagem.react.variaveis}\n\n` +
+                    `Veja o CONSOLE (F12) para detalhes completos!`
+                );
+            };
+
             // 🔍 DIAGNÓSTICO DE ANOS E MESES
             const diagnosticarAnos = () => {
                 console.log('📊 RECEITAS:', receitas);
@@ -4788,6 +4967,20 @@
                                         )}
                                     </div>
                                     <div className="flex gap-1 mobile-stack md:flex-row">
+                                    <button 
+                                        onClick={() => migrarValoresCartoes(2025, 2026)}
+                                        className="px-2 md:px-4 py-1 md:py-2 bg-indigo-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-indigo-700"
+                                        title="Migrar valores mensais dos cartões de 2025 para 2026"
+                                    >
+                                        💳 <span className="hide-mobile">Cartões 2025→2026</span>
+                                    </button>
+                                    <button 
+                                        onClick={diagnosticarStorage}
+                                        className="px-2 md:px-4 py-1 md:py-2 bg-cyan-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-cyan-700"
+                                        title="Ver dados no localStorage, Firestore e React"
+                                    >
+                                        💾 <span className="hide-mobile">Storage</span>
+                                    </button>
                                     <button 
                                         onClick={diagnosticarAnos}
                                         className="px-2 md:px-4 py-1 md:py-2 bg-yellow-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-yellow-700"
