@@ -1155,7 +1155,7 @@
                 }
 
                 // Insight 4: Sugestões
-                if (gastosVariaveis.filter(g => g.mes === mesAtual).length === 0) {
+                if (gastosVariaveis.filter(g => g.mes === mesAtual && g.ano === anoAtual).length === 0) {
                     insights.push({
                         tipo: 'dica',
                         icone: '💡',
@@ -1414,6 +1414,83 @@
                 };
                 setGastosVariaveis([...gastosVariaveis, novoGasto]);
                 alert('✅ Gasto variável duplicado com sucesso!');
+            };
+
+            // 🔄 MIGRAÇÃO EM MASSA 2025 → 2026
+            const migrarAno = async (de, para) => {
+                if (!confirm(`⚠️ ATENÇÃO!\n\nVocê vai MIGRAR todos os lançamentos de ${de} para ${para}.\n\nIsso vai:\n✅ Mudar o ano de ${de} → ${para}\n✅ Manter o mesmo mês\n✅ Salvar no Firestore\n\nDeseja continuar?`)) {
+                    return;
+                }
+                
+                try {
+                    // Migrar receitas
+                    const novasReceitas = receitas.map(r => 
+                        r.ano === de ? {...r, ano: para} : r
+                    );
+                    
+                    // Migrar cartões
+                    const novosCartoes = cartoes.map(c => 
+                        c.ano === de ? {...c, ano: para} : c
+                    );
+                    
+                    // Migrar fixos
+                    const novosFixos = gastosFixos.map(g => 
+                        g.ano === de ? {...g, ano: para} : g
+                    );
+                    
+                    // Migrar variáveis
+                    const novosVariaveis = gastosVariaveis.map(g => 
+                        g.ano === de ? {...g, ano: para} : g
+                    );
+                    
+                    // Contar quantos foram migrados
+                    const count = {
+                        receitas: novasReceitas.filter(r => r.ano === para).length - receitas.filter(r => r.ano === para).length,
+                        cartoes: novosCartoes.filter(c => c.ano === para).length - cartoes.filter(c => c.ano === para).length,
+                        fixos: novosFixos.filter(g => g.ano === para).length - gastosFixos.filter(g => g.ano === para).length,
+                        variaveis: novosVariaveis.filter(g => g.ano === para).length - gastosVariaveis.filter(g => g.ano === para).length
+                    };
+                    
+                    // Atualizar estados
+                    setReceitas(novasReceitas);
+                    setCartoes(novosCartoes);
+                    setGastosFixos(novosFixos);
+                    setGastosVariaveis(novosVariaveis);
+                    
+                    // Salvar no Firestore
+                    if (db && user) {
+                        await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').set({
+                            versao: '3.0',
+                            dataBackup: firebase.firestore.FieldValue.serverTimestamp(),
+                            email: user.email,
+                            nome: user.displayName,
+                            dados: {
+                                cartoes: novosCartoes,
+                                gastosFixos: novosFixos, 
+                                gastosVariaveis: novosVariaveis, 
+                                receitas: novasReceitas,
+                                farol, 
+                                metas, 
+                                orcamento, 
+                                orcamentosMensais,
+                                orcamentoAnual, 
+                                planejadosMes, 
+                                comprasParceladas
+                            }
+                        });
+                    }
+                    
+                    alert(`✅ Migração concluída!\n\n` +
+                        `📊 Receitas: ${count.receitas}\n` +
+                        `💳 Cartões: ${count.cartoes}\n` +
+                        `🏠 Fixos: ${count.fixos}\n` +
+                        `🛒 Variáveis: ${count.variaveis}\n\n` +
+                        `Total: ${count.receitas + count.cartoes + count.fixos + count.variaveis} lançamentos migrados!`
+                    );
+                } catch (error) {
+                    alert('❌ Erro na migração: ' + error.message);
+                    console.error(error);
+                }
             };
 
             const adicionarReceita = (dados) => {
@@ -3513,7 +3590,7 @@
             );
 
             const TelaGastosVariaveis = () => {
-                const gastosDoMes = gastosVariaveis.filter(g => g.mes === mesAtual);
+                const gastosDoMes = gastosVariaveis.filter(g => g.mes === mesAtual && g.ano === anoAtual);
                 const totalMes = gastosDoMes.reduce((sum, g) => sum + g.valor, 0);
 
                 return (
@@ -3588,7 +3665,7 @@
             };
 
             const TelaReceitas = () => {
-                const receitasDoMes = receitas.filter(r => r.mes === mesAtual);
+                const receitasDoMes = receitas.filter(r => r.mes === mesAtual && r.ano === anoAtual);
                 const totalMes = receitasDoMes.reduce((sum, r) => sum + r.valor, 0);
 
                 return (
@@ -4548,6 +4625,13 @@
                                         )}
                                     </div>
                                     <div className="flex gap-1 mobile-stack md:flex-row">
+                                    <button 
+                                        onClick={() => migrarAno(2025, 2026)}
+                                        className="px-2 md:px-4 py-1 md:py-2 bg-purple-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-purple-700"
+                                        title="Migrar todos os lançamentos de 2025 para 2026"
+                                    >
+                                        🔄 <span className="hide-mobile">2025→2026</span>
+                                    </button>
                                     <button 
                                         onClick={fazerBackup}
                                         className="px-2 md:px-4 py-1 md:py-2 bg-green-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-green-700"
