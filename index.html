@@ -3736,7 +3736,7 @@
             const TelaCartoes = () => (
                 <div className="space-y-4">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-2xl font-bold text-gray-800">💳 Cartões - {anoAtual}</h2>
+                        <h2 className="text-2xl font-bold text-gray-800">💳 Cartões - {mesAtual} / {anoAtual}</h2>
                         <div className="flex gap-2">
                             <button 
                                 onClick={() => setModalAberto('compraParcelada')} 
@@ -3754,7 +3754,6 @@
                     </div>
                     {cartoes.map(cartao => {
                         const parcelasCartao = calcularParcelasCartao(cartao.nome, mesAtual);
-                        // CORRIGIDO: Acessa valores do ano atual
                         const valoresAno = cartao.valores?.[anoAtual] || {};
                         const valorBase = valoresAno[mesAtual] || 0;
                         const valorParcelas = parcelasCartao.reduce((sum, c) => sum + c.valorParcela, 0);
@@ -3762,10 +3761,10 @@
                         
                         return (
                             <div key={cartao.id} className="bg-white rounded-xl shadow-lg p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                                            {cartao.nome}
+                                <div className="flex justify-between items-center">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-800">{cartao.nome}</span>
                                             <span className={`px-2 py-1 rounded text-xs font-bold ${
                                                 cartao.ano === 2026 ? 'bg-blue-100 text-blue-700' : 
                                                 cartao.ano === 2025 ? 'bg-yellow-100 text-yellow-700' : 
@@ -3773,10 +3772,24 @@
                                             }`}>
                                                 {cartao.ano || anoAtual}
                                             </span>
-                                        </h3>
-                                        <p className="text-sm text-gray-500">Vencimento: dia {cartao.vencimento}</p>
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            Vencimento: dia {cartao.vencimento}
+                                            {valorParcelas > 0 && ` • ${parcelasCartao.length} parcela(s): R$ ${valorParcelas.toFixed(2)}`}
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <input 
+                                            type="number"
+                                            step="0.01"
+                                            value={valorBase}
+                                            onChange={(e) => editarValorCartao(cartao.id, mesAtual, e.target.value)}
+                                            className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-right"
+                                            placeholder="Valor base"
+                                        />
+                                        <div className="text-xl font-bold text-blue-600 w-32 text-right">
+                                            R$ {valorTotal.toFixed(2)}
+                                        </div>
                                         <button 
                                             onClick={() => {
                                                 setItemEditando(cartao);
@@ -3797,68 +3810,11 @@
                                         </button>
                                         <button 
                                             onClick={() => deletarCartao(cartao.id)} 
-                                            className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm font-semibold"
+                                            className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
                                             title="Excluir cartão"
                                         >
                                             🗑️
                                         </button>
-                                    </div>
-                                </div>
-                                
-                                <div className="mb-4">
-                                    <label className="text-sm font-semibold text-gray-700">Valor Base {mesAtual.toUpperCase()} / {anoAtual}:</label>
-                                    <input 
-                                        type="number"
-                                        step="0.01"
-                                        value={valorBase}
-                                        onChange={(e) => editarValorCartao(cartao.id, mesAtual, e.target.value)}
-                                        className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                    />
-                                </div>
-
-                                {parcelasCartao.length > 0 && (
-                                    <div className="border-t pt-4">
-                                        <div className="text-sm font-semibold text-gray-700 mb-3">
-                                            🛒 Compras Parceladas ({parcelasCartao.length})
-                                        </div>
-                                        <div className="space-y-2">
-                                            {parcelasCartao.map(compra => (
-                                                <div key={compra.id} className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                                                    <div className="flex-1">
-                                                        <div className="font-semibold text-gray-800">{compra.descricao}</div>
-                                                        <div className="text-sm text-gray-600">
-                                                            Parcela {compra.parcelaAtual}/{compra.parcelas} • 
-                                                            {compra.parcelas}x de R$ {compra.valorParcela.toFixed(2)}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="font-bold text-blue-600">
-                                                            R$ {compra.valorParcela.toFixed(2)}
-                                                        </span>
-                                                        <button 
-                                                            onClick={() => excluirCompraParcelada(compra.id)}
-                                                            className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs hover:bg-red-200"
-                                                        >
-                                                            🗑️
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="border-t pt-4 mt-4">
-                                    <div className="flex justify-between items-center text-lg font-bold">
-                                        <span className="text-gray-700">Total da Fatura:</span>
-                                        <div className="text-right">
-                                            <div className="text-2xl text-blue-600">R$ {valorTotal.toFixed(2)}</div>
-                                            {valorParcelas > 0 && (
-                                                <div className="text-xs text-gray-500 font-normal">
-                                                    Base: R$ {valorBase.toFixed(2)} + Parcelas: R$ {valorParcelas.toFixed(2)}
-                                                </div>
-                                            )}
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -4967,41 +4923,6 @@
                                         )}
                                     </div>
                                     <div className="flex gap-1 mobile-stack md:flex-row">
-                                    <button 
-                                        onClick={() => migrarValoresCartoes(2025, 2026)}
-                                        className="px-2 md:px-4 py-1 md:py-2 bg-indigo-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-indigo-700"
-                                        title="Migrar valores mensais dos cartões de 2025 para 2026"
-                                    >
-                                        💳 <span className="hide-mobile">Cartões 2025→2026</span>
-                                    </button>
-                                    <button 
-                                        onClick={diagnosticarStorage}
-                                        className="px-2 md:px-4 py-1 md:py-2 bg-cyan-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-cyan-700"
-                                        title="Ver dados no localStorage, Firestore e React"
-                                    >
-                                        💾 <span className="hide-mobile">Storage</span>
-                                    </button>
-                                    <button 
-                                        onClick={diagnosticarAnos}
-                                        className="px-2 md:px-4 py-1 md:py-2 bg-yellow-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-yellow-700"
-                                        title="Ver anos dos lançamentos"
-                                    >
-                                        🔍 <span className="hide-mobile">Diagnosticar</span>
-                                    </button>
-                                    <button 
-                                        onClick={corrigirAnosUndefined}
-                                        className="px-2 md:px-4 py-1 md:py-2 bg-orange-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-orange-700"
-                                        title="Adicionar ano=2025 nos itens sem ano"
-                                    >
-                                        🔧 <span className="hide-mobile">Corrigir</span>
-                                    </button>
-                                    <button 
-                                        onClick={() => migrarAno(2025, 2026)}
-                                        className="px-2 md:px-4 py-1 md:py-2 bg-purple-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-purple-700"
-                                        title="Migrar todos os lançamentos de 2025 para 2026"
-                                    >
-                                        🔄 <span className="hide-mobile">2025→2026</span>
-                                    </button>
                                     <button 
                                         onClick={fazerBackup}
                                         className="px-2 md:px-4 py-1 md:py-2 bg-green-600 text-white rounded-lg text-xs md:text-sm font-semibold hover:bg-green-700"
