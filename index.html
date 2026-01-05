@@ -1221,14 +1221,55 @@
                 }
             };
             
-            const editarCartao = (id, dadosAtualizados) => {
-                setCartoes(cartoes.map(c => 
-                    c.id === id ? { ...c, ...dadosAtualizados } : c
-                ));
+            const editarCartao = async (id, dadosAtualizados) => {
+                const novosCartoes = [];
+                cartoes.forEach(c => {
+                    if (c.id === id) {
+                        novosCartoes.push({
+                            ...c,
+                            ...dadosAtualizados,
+                            ano: parseInt(dadosAtualizados.ano) || c.ano || 2026,
+                            valor: parseFloat(dadosAtualizados.valor) || c.valor
+                        });
+                    } else {
+                        novosCartoes.push(c);
+                    }
+                });
+                
+                setCartoes([]);
+                setTimeout(() => setCartoes(novosCartoes), 10);
+                
+                // Salvar no Firestore
+                if (db && user) {
+                    try {
+                        await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').set({
+                            versao: '3.0',
+                            dataBackup: firebase.firestore.FieldValue.serverTimestamp(),
+                            email: user.email,
+                            nome: user.displayName,
+                            dados: {
+                                cartoes: novosCartoes,
+                                gastosFixos, 
+                                gastosVariaveis, 
+                                receitas,
+                                farol, 
+                                metas, 
+                                orcamento, 
+                                orcamentosMensais,
+                                orcamentoAnual, 
+                                planejadosMes, 
+                                comprasParceladas
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Erro ao salvar:', error);
+                    }
+                }
+                
                 setItemEditando(null);
                 setTipoEditando(null);
                 setModalAberto(null);
-                alert('✅ Cartão atualizado com sucesso!');
+                alert('✅ Cartão atualizado!');
             };
             
             const duplicarCartao = (cartao) => {
@@ -1247,14 +1288,55 @@
                 }
             };
             
-            const editarGastoFixo = (id, dadosAtualizados) => {
-                setGastosFixos(gastosFixos.map(g => 
-                    g.id === id ? { ...g, ...dadosAtualizados } : g
-                ));
+            const editarGastoFixo = async (id, dadosAtualizados) => {
+                const novosGastos = [];
+                gastosFixos.forEach(g => {
+                    if (g.id === id) {
+                        novosGastos.push({
+                            ...g,
+                            ...dadosAtualizados,
+                            ano: parseInt(dadosAtualizados.ano) || g.ano || 2026,
+                            valor: parseFloat(dadosAtualizados.valor) || g.valor
+                        });
+                    } else {
+                        novosGastos.push(g);
+                    }
+                });
+                
+                setGastosFixos([]);
+                setTimeout(() => setGastosFixos(novosGastos), 10);
+                
+                // Salvar no Firestore
+                if (db && user) {
+                    try {
+                        await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').set({
+                            versao: '3.0',
+                            dataBackup: firebase.firestore.FieldValue.serverTimestamp(),
+                            email: user.email,
+                            nome: user.displayName,
+                            dados: {
+                                cartoes,
+                                gastosFixos: novosGastos, 
+                                gastosVariaveis, 
+                                receitas,
+                                farol, 
+                                metas, 
+                                orcamento, 
+                                orcamentosMensais,
+                                orcamentoAnual, 
+                                planejadosMes, 
+                                comprasParceladas
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Erro ao salvar:', error);
+                    }
+                }
+                
                 setItemEditando(null);
                 setTipoEditando(null);
                 setModalAberto(null);
-                alert('✅ Gasto fixo atualizado com sucesso!');
+                alert('✅ Gasto fixo atualizado!');
             };
             
             const duplicarGastoFixo = (gasto) => {
@@ -1273,10 +1355,51 @@
                 }
             };
             
-            const editarGastoVariavel = (id, dadosAtualizados) => {
-                setGastosVariaveis(gastosVariaveis.map(g => 
-                    g.id === id ? { ...g, ...dadosAtualizados } : g
-                ));
+            const editarGastoVariavel = async (id, dadosAtualizados) => {
+                const novosGastos = [];
+                gastosVariaveis.forEach(g => {
+                    if (g.id === id) {
+                        novosGastos.push({
+                            ...g,
+                            ...dadosAtualizados,
+                            ano: parseInt(dadosAtualizados.ano) || g.ano || 2026,
+                            valor: parseFloat(dadosAtualizados.valor) || g.valor
+                        });
+                    } else {
+                        novosGastos.push(g);
+                    }
+                });
+                
+                setGastosVariaveis([]);
+                setTimeout(() => setGastosVariaveis(novosGastos), 10);
+                
+                // Salvar no Firestore
+                if (db && user) {
+                    try {
+                        await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').set({
+                            versao: '3.0',
+                            dataBackup: firebase.firestore.FieldValue.serverTimestamp(),
+                            email: user.email,
+                            nome: user.displayName,
+                            dados: {
+                                cartoes,
+                                gastosFixos, 
+                                gastosVariaveis: novosGastos, 
+                                receitas,
+                                farol, 
+                                metas, 
+                                orcamento, 
+                                orcamentosMensais,
+                                orcamentoAnual, 
+                                planejadosMes, 
+                                comprasParceladas
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Erro ao salvar:', error);
+                    }
+                }
+                
                 setItemEditando(null);
                 setTipoEditando(null);
                 setModalAberto(null);
@@ -1315,25 +1438,73 @@
                 }
             };
             
-            const editarReceita = (id, dadosAtualizados) => {
+            const editarReceita = async (id, dadosAtualizados) => {
                 console.log('📝 editarReceita - ID:', id);
                 console.log('📝 editarReceita - dadosAtualizados:', dadosAtualizados);
+                console.log('📝 receitas atuais:', receitas);
                 
-                const novasReceitas = receitas.map(r => {
+                // Criar NOVA array para forçar re-render
+                const novasReceitas = [];
+                receitas.forEach(r => {
                     if (r.id === id) {
-                        const atualizado = { ...r, ...dadosAtualizados };
-                        console.log('✅ Receita atualizada:', atualizado);
-                        return atualizado;
+                        const receitaAtualizada = {
+                            ...r,
+                            ...dadosAtualizados,
+                            ano: parseInt(dadosAtualizados.ano) || r.ano || 2026,
+                            valor: parseFloat(dadosAtualizados.valor) || r.valor
+                        };
+                        console.log('✅ Receita ANTES:', r);
+                        console.log('✅ Receita DEPOIS:', receitaAtualizada);
+                        novasReceitas.push(receitaAtualizada);
+                    } else {
+                        novasReceitas.push(r);
                     }
-                    return r;
                 });
                 
-                console.log('📋 Lista completa após atualização:', novasReceitas);
-                setReceitas(novasReceitas);
+                console.log('📋 NOVA lista de receitas:', novasReceitas);
+                
+                // Forçar atualização
+                setReceitas([]);
+                setTimeout(() => {
+                    setReceitas(novasReceitas);
+                }, 10);
+                
+                // 🔥 SALVAR IMEDIATAMENTE NO FIRESTORE
+                if (db && user) {
+                    try {
+                        const dadosBackup = {
+                            versao: '3.0',
+                            dataBackup: firebase.firestore.FieldValue.serverTimestamp(),
+                            email: user.email,
+                            nome: user.displayName,
+                            dados: {
+                                cartoes, 
+                                gastosFixos, 
+                                gastosVariaveis, 
+                                receitas: novasReceitas,  // <- USA A NOVA LISTA!
+                                farol, 
+                                metas, 
+                                orcamento, 
+                                orcamentosMensais,
+                                orcamentoAnual, 
+                                planejadosMes, 
+                                comprasParceladas
+                            }
+                        };
+                        
+                        console.log('💾 Salvando no Firestore...');
+                        await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').set(dadosBackup);
+                        console.log('✅ Salvo no Firestore com sucesso!');
+                    } catch (error) {
+                        console.error('❌ Erro ao salvar no Firestore:', error);
+                        alert('⚠️ Dados atualizados localmente mas erro ao salvar na nuvem: ' + error.message);
+                    }
+                }
+                
                 setItemEditando(null);
                 setTipoEditando(null);
                 setModalAberto(null);
-                alert('✅ Receita atualizada com sucesso!');
+                alert('✅ Receita atualizada! Verifique o badge.');
             };
             
             const duplicarReceita = (receita) => {
