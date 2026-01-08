@@ -80,21 +80,6 @@
             }
 
             /* Ocultar elementos desnecessários no mobile */
-            .hide-mobile {
-                display: none !important;
-            }
-
-            /* Empilhar botões verticalmente no mobile */
-            .mobile-stack {
-                flex-direction: column !important;
-                gap: 0.5rem !important;
-            }
-
-            /* Inputs maiores no mobile */
-            input, select, textarea {
-                font-size: 16px !important; /* Evita zoom no iOS */
-                min-height: 44px !important;
-            }
         }
         /* Responsividade Mobile */
         @media (max-width: 768px) {
@@ -191,7 +176,7 @@
         }
         .menu-button {
             padding: 0.5rem 1rem;
-            background: #F3F4F6;
+            background: rgba(255, 255, 255, 0.2);
             border: none;
             border-radius: 0.5rem;
             font-weight: 600;
@@ -201,13 +186,14 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            color: white;
         }
         .menu-button:hover {
-            background: #E5E7EB;
+            background: rgba(255, 255, 255, 0.3);
         }
         .menu-button.active {
-            background: #3B82F6;
-            color: white;
+            background: white;
+            color: #3B82F6;
         }
         .submenu {
             position: absolute;
@@ -215,9 +201,9 @@
             left: 0;
             margin-top: 0.5rem;
             background: white;
-            border: 1px solid #E5E7EB;
+            border: 2px solid #3B82F6;
             border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
             min-width: 200px;
             display: none;
             z-index: 50;
@@ -228,26 +214,43 @@
         .submenu-item {
             padding: 0.75rem 1rem;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
             font-size: 0.875rem;
+            color: #111827;
+            font-weight: 600;
+            background: white;
         }
         .submenu-item:hover {
-            background: #F3F4F6;
+            background: #DBEAFE;
+            color: #1E40AF;
         }
         .submenu-item.active {
-            background: #EFF6FF;
-            color: #3B82F6;
-            font-weight: 600;
+            background: #3B82F6;
+            color: white;
+            font-weight: 700;
         }
         .submenu-item:first-child {
-            border-radius: 0.5rem 0.5rem 0 0;
+            border-radius: 0.4rem 0.4rem 0 0;
         }
         .submenu-item:last-child {
-            border-radius: 0 0 0.5rem 0.5rem;
+            border-radius: 0 0 0.4rem 0.4rem;
         }
         
         /* Mobile */
         @media (max-width: 768px) {
+            /* Esconder texto nos botões, mostrar só ícone */
+            .hide-mobile {
+                display: none !important;
+            }
+
+            /* Botões em linha horizontal compacta */
+            .mobile-stack {
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 0.25rem !important;
+                flex-wrap: wrap;
+            }
+            
             .menu-bar {
                 flex-direction: column;
                 width: 100%;
@@ -258,6 +261,8 @@
             .menu-button {
                 width: 100%;
                 justify-content: space-between;
+                font-size: 0.875rem;
+                padding: 0.625rem 1rem;
             }
             .submenu {
                 position: static;
@@ -265,6 +270,64 @@
                 box-shadow: none;
                 border: none;
                 background: #F9FAFB;
+            }
+            .submenu-item {
+                padding: 0.625rem 1rem;
+                font-size: 0.875rem;
+            }
+            
+            /* Cards responsivos */
+            .compact-card {
+                padding: 0.75rem !important;
+                font-size: 0.875rem;
+            }
+            
+            /* Títulos menores no mobile */
+            h2 {
+                font-size: 1rem !important;
+            }
+            
+            /* Botões mobile - só ícones */
+            button {
+                font-size: 1.25rem; /* Ícones maiores */
+                padding: 0.5rem 0.5rem;
+                min-width: 44px; /* Touch target mínimo */
+            }
+            
+            /* Inputs mobile */
+            input, select {
+                font-size: 1rem; /* Evita zoom no iOS */
+            }
+            
+            /* Cards do Dashboard mobile - 2 colunas */
+            .grid-cols-2 {
+                gap: 0.5rem;
+            }
+            
+            /* Projeção futura - scroll horizontal no mobile */
+            .grid.grid-cols-6 {
+                display: flex;
+                overflow-x: auto;
+                gap: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+            .grid.grid-cols-6 > div {
+                min-width: 80px;
+                flex-shrink: 0;
+            }
+        }
+        
+        /* Mobile pequeno (< 400px) */
+        @media (max-width: 400px) {
+            .compact-card {
+                padding: 0.5rem !important;
+                font-size: 0.75rem;
+            }
+            .text-xl {
+                font-size: 1rem !important;
+            }
+            .text-lg {
+                font-size: 0.875rem !important;
             }
         }
     </style>
@@ -745,6 +808,42 @@
                         </div>
                     )}
                     
+                    {/* Campos específicos de Cartão */}
+                    {tipo === 'cartao' && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    Dia de Fechamento
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="31"
+                                    value={formData.diaFechamento || ''}
+                                    onChange={(e) => handleChange('diaFechamento', parseInt(e.target.value))}
+                                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                                    placeholder={`Padrão: ${(formData.vencimento || 15) - 7}`}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Deixe vazio para 7 dias antes do vencimento</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    Limite do Cartão (R$)
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={formData.limite || ''}
+                                    onChange={(e) => handleChange('limite', parseFloat(e.target.value) || 0)}
+                                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                                    placeholder="Ex: 10000.00"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Deixe 0 para não controlar limite</p>
+                            </div>
+                        </>
+                    )}
+                    
                     {/* Categoria (se for receita) */}
                     {tipo === 'receita' && (
                         <div>
@@ -808,6 +907,21 @@
             const [itemEditando, setItemEditando] = useState(null);
             const [tipoEditando, setTipoEditando] = useState(null);
             const [submenuAberto, setSubmenuAberto] = useState(null);
+            const [timeoutId, setTimeoutId] = useState(null);
+
+            // Função para abrir submenu
+            const abrirSubmenu = (menu) => {
+                if (timeoutId) clearTimeout(timeoutId);
+                setSubmenuAberto(menu);
+            };
+
+            // Função para fechar submenu com delay
+            const fecharSubmenu = () => {
+                const id = setTimeout(() => {
+                    setSubmenuAberto(null);
+                }, 300); // 300ms de delay
+                setTimeoutId(id);
+            };
             
             const [gastosFixos, setGastosFixos] = useState(() => {
                 const saved = localStorage.getItem('gastosFixos');
@@ -1372,6 +1486,8 @@
                     id: Date.now(),
                     nome: dados.nome.toUpperCase(),
                     vencimento: parseInt(dados.vencimento),
+                    diaFechamento: parseInt(dados.diaFechamento || dados.vencimento - 7), // 7 dias antes do vencimento por padrão
+                    limite: parseFloat(dados.limite || 0),
                     valores: { jan: 0, fev: 0, mar: 0, abr: 0, mai: 0, jun: 0, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 }
                 };
                 setCartoes([...cartoes, novoCartao]);
@@ -2520,12 +2636,19 @@
             const FormNovoCartao = () => {
                 const [nome, setNome] = useState('');
                 const [vencimento, setVencimento] = useState(5);
+                const [diaFechamento, setDiaFechamento] = useState('');
+                const [limite, setLimite] = useState('');
 
                 const handleSubmit = (e) => {
                     e.preventDefault();
-                    console.log('Submit cartão:', { nome, vencimento });
+                    console.log('Submit cartão:', { nome, vencimento, diaFechamento, limite });
                     if (nome.trim()) {
-                        adicionarCartao({ nome, vencimento });
+                        adicionarCartao({ 
+                            nome, 
+                            vencimento,
+                            diaFechamento: diaFechamento || (parseInt(vencimento) - 7),
+                            limite: limite || 0
+                        });
                     } else {
                         alert('Preencha o nome do cartão!');
                     }
@@ -2544,17 +2667,45 @@
                                 required
                             />
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Dia de Fechamento</label>
+                                <input 
+                                    type="number"
+                                    min="1"
+                                    max="31"
+                                    value={diaFechamento}
+                                    onChange={(e) => setDiaFechamento(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                    placeholder={`Ex: ${parseInt(vencimento) - 7}`}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Deixe vazio para 7 dias antes do vencimento</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Dia do Vencimento</label>
+                                <input 
+                                    type="number"
+                                    min="1"
+                                    max="31"
+                                    value={vencimento}
+                                    onChange={(e) => setVencimento(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                    required
+                                />
+                            </div>
+                        </div>
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Dia do Vencimento</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Limite do Cartão (Opcional)</label>
                             <input 
                                 type="number"
-                                min="1"
-                                max="31"
-                                value={vencimento}
-                                onChange={(e) => setVencimento(e.target.value)}
+                                step="0.01"
+                                min="0"
+                                value={limite}
+                                onChange={(e) => setLimite(e.target.value)}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                required
+                                placeholder="Ex: 10000.00"
                             />
+                            <p className="text-xs text-gray-500 mt-1">Deixe vazio se não quiser controlar limite</p>
                         </div>
                         <button type="submit" className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">
                             ✅ Adicionar Cartão
@@ -3090,23 +3241,68 @@
 
                 return (
                     <div className="space-y-3">
-                        {/* Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        {/* CARDS DE RESUMO UNIFICADOS - LINHA ÚNICA */}
+                        <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
+                            {/* Pagamentos */}
                             <div style={{ background: 'white', border: '1px solid #E5E7EB' }} className="rounded-xl shadow-sm compact-card">
-                                <div className="text-xs text-gray-500">CARTÕES</div>
-                                <div className="text-xl font-bold mt-1 text-gray-900">R$ {totais.cartoes.toFixed(2)}</div>
+                                <div className="text-xs text-gray-500">✔️ PAGOS</div>
+                                <div className="text-xl font-bold mt-1 text-gray-900">{pagamentos.percentual.toFixed(0)}%</div>
+                                <div className="text-xs text-gray-500 mt-1">{pagamentos.qtdPago}/{pagamentos.qtdTotal}</div>
                             </div>
+
+                            {/* Meta Mensal */}
+                            {metaMensal > 0 ? (
+                                <div style={{ background: 'white', border: '1px solid #E5E7EB' }} className="rounded-xl shadow-sm compact-card">
+                                    <div className="text-xs text-gray-500">🎯 META {mesAtual.toUpperCase()}</div>
+                                    <div className="text-xl font-bold mt-1 text-gray-900">{((totais.total / metaMensal) * 100).toFixed(0)}%</div>
+                                    <div className="text-xs text-gray-500 mt-1">R$ {metaMensal.toFixed(0)}</div>
+                                </div>
+                            ) : (
+                                <div style={{ background: 'white', border: '1px solid #E5E7EB' }} className="rounded-xl shadow-sm compact-card">
+                                    <div className="text-xs text-gray-500">🎯 META</div>
+                                    <div className="text-xl font-bold mt-1 text-gray-900">-</div>
+                                    <div className="text-xs text-gray-500 mt-1">Não definida</div>
+                                </div>
+                            )}
+
+                            {/* Pendentes */}
                             <div style={{ background: 'white', border: '1px solid #E5E7EB' }} className="rounded-xl shadow-sm compact-card">
-                                <div className="text-xs text-gray-500">FIXOS</div>
-                                <div className="text-xl font-bold mt-1 text-gray-900">R$ {totais.fixos.toFixed(2)}</div>
+                                <div className="text-xs text-gray-500">⏳ PENDENTES</div>
+                                <div className="text-xl font-bold mt-1 text-gray-900">
+                                    {(() => {
+                                        const hoje = new Date().getDate();
+                                        const pendentes = [
+                                            ...cartoes.map(c => ({ nome: c.nome, vencimento: c.vencimento, status: getStatusFarol(c.nome, mesAtual) })),
+                                            ...gastosFixos.map(g => ({ nome: g.descricao, vencimento: g.vencimento, status: getStatusFarol(g.descricao, mesAtual) }))
+                                        ].filter(v => v.vencimento >= hoje && v.status === 'PENDENTE').length;
+                                        return pendentes;
+                                    })()}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">A pagar</div>
                             </div>
+
+                            {/* Cartões */}
                             <div style={{ background: 'white', border: '1px solid #E5E7EB' }} className="rounded-xl shadow-sm compact-card">
-                                <div className="text-xs text-gray-500">VARIÁVEIS</div>
-                                <div className="text-xl font-bold mt-1 text-gray-900">R$ {totais.variaveis.toFixed(2)}</div>
+                                <div className="text-xs text-gray-500">💳 CARTÕES</div>
+                                <div className="text-xl font-bold mt-1 text-gray-900">R$ {totais.cartoes.toFixed(0)}</div>
                             </div>
+
+                            {/* Fixos */}
                             <div style={{ background: 'white', border: '1px solid #E5E7EB' }} className="rounded-xl shadow-sm compact-card">
-                                <div className="text-xs text-gray-500">TOTAL</div>
-                                <div className="text-xl font-bold mt-1 text-gray-900">R$ {totais.total.toFixed(2)}</div>
+                                <div className="text-xs text-gray-500">🏠 FIXOS</div>
+                                <div className="text-xl font-bold mt-1 text-gray-900">R$ {totais.fixos.toFixed(0)}</div>
+                            </div>
+
+                            {/* Variáveis */}
+                            <div style={{ background: 'white', border: '1px solid #E5E7EB' }} className="rounded-xl shadow-sm compact-card">
+                                <div className="text-xs text-gray-500">📊 VARIÁVEIS</div>
+                                <div className="text-xl font-bold mt-1 text-gray-900">R$ {totais.variaveis.toFixed(0)}</div>
+                            </div>
+
+                            {/* Total */}
+                            <div style={{ background: 'white', border: '1px solid #E5E7EB' }} className="rounded-xl shadow-sm compact-card">
+                                <div className="text-xs text-gray-500">💰 TOTAL</div>
+                                <div className="text-xl font-bold mt-1 text-gray-900">R$ {totais.total.toFixed(0)}</div>
                             </div>
                         </div>
 
@@ -4020,95 +4216,274 @@
                 );
             };
 
-            const TelaCartoes = () => (
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-bold text-gray-800">💳 Cartões - {mesAtual} / {anoAtual}</h2>
-                        <div className="flex gap-2">
-                            <button 
-                                onClick={() => setModalAberto('compraParcelada')} 
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
-                            >
-                                🛒 Nova Compra Parcelada
-                            </button>
-                            <button 
-                                onClick={() => setModalAberto('novoCartao')} 
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
-                            >
-                                ➕ Novo Cartão
-                            </button>
-                        </div>
-                    </div>
-                    {cartoes.map(cartao => {
-                        const parcelasCartao = calcularParcelasCartao(cartao.nome, mesAtual);
+            const TelaCartoes = () => {
+                // Calcular status da fatura para cada cartão
+                const calcularStatusFatura = (cartao, mes) => {
+                    const hoje = new Date().getDate();
+                    const diaFechamento = cartao.diaFechamento || cartao.vencimento - 7;
+                    
+                    if (hoje <= diaFechamento) {
+                        return 'ABERTA';
+                    } else if (hoje > diaFechamento && hoje <= cartao.vencimento) {
+                        return 'FECHADA';
+                    } else {
+                        return 'VENCIDA';
+                    }
+                };
+
+                // Calcular projeção de 6 meses
+                const calcularProjecao = (cartao) => {
+                    const mesesOrdem = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+                    const mesAtualIndex = mesesOrdem.indexOf(mesAtual);
+                    const projecao = [];
+                    
+                    for (let i = 0; i < 6; i++) {
+                        const mesIndex = (mesAtualIndex + i) % 12;
+                        const mes = mesesOrdem[mesIndex];
+                        const parcelasDoMes = calcularParcelasCartao(cartao.nome, mes);
                         const valoresAno = cartao.valores?.[anoAtual] || {};
-                        const valorBase = valoresAno[mesAtual] || 0;
-                        const valorParcelas = parcelasCartao.reduce((sum, c) => sum + c.valorParcela, 0);
-                        const valorTotal = valorBase + valorParcelas;
+                        const valorBase = valoresAno[mes] || 0;
+                        const valorParcelas = parcelasDoMes.reduce((sum, c) => sum + c.valorParcela, 0);
+                        const total = valorBase + valorParcelas;
                         
-                        return (
-                            <div key={cartao.id} className="bg-white rounded-xl shadow-lg p-6">
-                                <div className="flex justify-between items-center">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-semibold text-gray-800">{cartao.nome}</span>
-                                            <span className={`px-2 py-1 rounded text-xs font-bold ${
-                                                cartao.ano === 2026 ? 'bg-blue-100 text-blue-700' : 
-                                                cartao.ano === 2025 ? 'bg-yellow-100 text-yellow-700' : 
-                                                'bg-gray-100 text-gray-700'
-                                            }`}>
-                                                {cartao.ano || anoAtual}
-                                            </span>
+                        projecao.push({
+                            mes: mes.toUpperCase(),
+                            valor: total
+                        });
+                    }
+                    
+                    return projecao;
+                };
+
+                return (
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold text-gray-800">💳 Cartões de Crédito - {mesAtual.toUpperCase()} / {anoAtual}</h2>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => setModalAberto('compraParcelada')} 
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 text-sm"
+                                >
+                                    🛒 Nova Compra Parcelada
+                                </button>
+                                <button 
+                                    onClick={() => setModalAberto('novoCartao')} 
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 text-sm"
+                                >
+                                    ➕ Novo Cartão
+                                </button>
+                            </div>
+                        </div>
+
+                        {cartoes.map(cartao => {
+                            const parcelasCartao = calcularParcelasCartao(cartao.nome, mesAtual);
+                            const valoresAno = cartao.valores?.[anoAtual] || {};
+                            const valorBase = valoresAno[mesAtual] || 0;
+                            const valorParcelas = parcelasCartao.reduce((sum, c) => sum + c.valorParcela, 0);
+                            const valorTotal = valorBase + valorParcelas;
+                            const statusFatura = calcularStatusFatura(cartao, mesAtual);
+                            const limite = cartao.limite || 0;
+                            
+                            // Calcular limite disponível real
+                            const calcularLimiteDisponivel = () => {
+                                const mesesOrdem = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+                                
+                                // 1. Somar TODOS os valores cadastrados nos meses
+                                let totalUsado = 0;
+                                mesesOrdem.forEach(mes => {
+                                    const valorMes = valoresAno[mes] || 0;
+                                    totalUsado += valorMes;
+                                });
+                                
+                                // 2. Subtrair valores já pagos (libera o limite)
+                                let totalPago = 0;
+                                mesesOrdem.forEach(mes => {
+                                    const status = getStatusFarol(cartao.nome, mes);
+                                    const valorMes = valoresAno[mes] || 0;
+                                    
+                                    if (status === 'PAGO') {
+                                        // Pagamento integral
+                                        totalPago += valorMes;
+                                    } else if (typeof status === 'number') {
+                                        // Pagamento parcial
+                                        totalPago += status;
+                                    }
+                                });
+                                
+                                // 3. Calcular disponível
+                                const usado = totalUsado - totalPago;
+                                const disponivel = limite > 0 ? limite - usado : 0;
+                                const percentualUsado = limite > 0 ? (usado / limite) * 100 : 0;
+                                
+                                console.log(`💳 Cartão ${cartao.nome}:`);
+                                console.log(`  Limite: R$ ${limite.toFixed(2)}`);
+                                console.log(`  Total cadastrado: R$ ${totalUsado.toFixed(2)}`);
+                                console.log(`  Total pago: R$ ${totalPago.toFixed(2)}`);
+                                console.log(`  Usado (cadastrado - pago): R$ ${usado.toFixed(2)}`);
+                                console.log(`  Disponível: R$ ${disponivel.toFixed(2)}`);
+                                
+                                return {
+                                    totalCadastrado: totalUsado,
+                                    totalPago: totalPago,
+                                    usado: usado,
+                                    disponivel: disponivel,
+                                    percentual: percentualUsado
+                                };
+                            };
+                            
+                            const limiteInfo = calcularLimiteDisponivel();
+                            const projecao = calcularProjecao(cartao);
+                            
+                            return (
+                                <div key={cartao.id} className="bg-white rounded-xl shadow-lg p-4">
+                                    {/* Header do Cartão */}
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="text-lg font-bold text-gray-800">{cartao.nome}</span>
+                                                <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                                    statusFatura === 'ABERTA' ? 'bg-blue-100 text-blue-700' :
+                                                    statusFatura === 'FECHADA' ? 'bg-green-100 text-green-700' :
+                                                    'bg-red-100 text-red-700'
+                                                }`}>
+                                                    {statusFatura === 'ABERTA' ? '⏳ FATURA ABERTA' :
+                                                     statusFatura === 'FECHADA' ? '✅ FATURA FECHADA' :
+                                                     '⚠️ VENCIDA'}
+                                                </span>
+                                            </div>
+                                            <div className="text-sm text-gray-500 space-y-1">
+                                                <div>📅 Fecha dia {cartao.diaFechamento || cartao.vencimento - 7} • Vence dia {cartao.vencimento}</div>
+                                                {valorParcelas > 0 && <div>📦 {parcelasCartao.length} parcela(s) ativas: R$ {valorParcelas.toFixed(2)}</div>}
+                                            </div>
                                         </div>
-                                        <div className="text-sm text-gray-500">
-                                            Vencimento: dia {cartao.vencimento}
-                                            {valorParcelas > 0 && ` • ${parcelasCartao.length} parcela(s): R$ ${valorParcelas.toFixed(2)}`}
+                                        <div className="flex items-center gap-2">
+                                            <button 
+                                                onClick={() => {
+                                                    setItemEditando(cartao);
+                                                    setTipoEditando('cartao');
+                                                    setModalAberto('editar');
+                                                }}
+                                                className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm"
+                                            >
+                                                ✏️
+                                            </button>
+                                            <button 
+                                                onClick={() => duplicarCartao(cartao)}
+                                                className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm"
+                                            >
+                                                📋
+                                            </button>
+                                            <button 
+                                                onClick={() => deletarCartao(cartao.id)} 
+                                                className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
+                                            >
+                                                🗑️
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <input 
-                                            type="number"
-                                            step="0.01"
-                                            value={valorBase}
-                                            onChange={(e) => editarValorCartao(cartao.id, mesAtual, e.target.value)}
-                                            className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-right"
-                                            placeholder="Valor base"
-                                        />
-                                        <div className="text-xl font-bold text-blue-600 w-32 text-right">
-                                            R$ {valorTotal.toFixed(2)}
+
+                                    {/* Grid de Informações */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                        {/* Fatura do Mês */}
+                                        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                                            <div className="text-xs text-gray-600 mb-1">💳 FATURA {mesAtual.toUpperCase()}</div>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <input 
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={valorBase}
+                                                    onChange={(e) => editarValorCartao(cartao.id, mesAtual, e.target.value)}
+                                                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm text-right"
+                                                    placeholder="Base"
+                                                />
+                                                <span className="text-xs text-gray-500">+</span>
+                                                <span className="text-sm text-gray-600">{valorParcelas.toFixed(2)}</span>
+                                            </div>
+                                            <div className="text-xl font-bold text-blue-600">R$ {valorTotal.toFixed(2)}</div>
                                         </div>
-                                        <button 
-                                            onClick={() => {
-                                                setItemEditando(cartao);
-                                                setTipoEditando('cartao');
-                                                setModalAberto('editar');
-                                            }}
-                                            className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm font-semibold"
-                                            title="Editar cartão"
-                                        >
-                                            ✏️
-                                        </button>
-                                        <button 
-                                            onClick={() => duplicarCartao(cartao)}
-                                            className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm font-semibold"
-                                            title="Duplicar cartão"
-                                        >
-                                            📋
-                                        </button>
-                                        <button 
-                                            onClick={() => deletarCartao(cartao.id)} 
-                                            className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
-                                            title="Excluir cartão"
-                                        >
-                                            🗑️
-                                        </button>
+
+                                        {/* Limite */}
+                                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                            <div className="text-xs text-gray-600 mb-3">🎯 LIMITE</div>
+                                            {limite > 0 ? (
+                                                <>
+                                                    <div className="space-y-2 mb-3">
+                                                        <div className="flex justify-between text-sm">
+                                                            <span className="text-gray-600">Limite Total:</span>
+                                                            <span className="font-semibold text-gray-800">R$ {limite.toFixed(2)}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-sm">
+                                                            <span className="text-gray-600">Limite Utilizado:</span>
+                                                            <span className="font-semibold text-red-600">R$ {limiteInfo.usado.toFixed(2)}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-sm border-t pt-2">
+                                                            <span className="text-gray-600 font-semibold">Limite Disponível:</span>
+                                                            <span className="font-bold text-green-600">R$ {limiteInfo.disponivel.toFixed(2)}</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                                        <div 
+                                                            className={`h-3 rounded-full transition-all ${limiteInfo.percentual > 80 ? 'bg-red-500' : limiteInfo.percentual > 50 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                                                            style={{ width: `${Math.min(limiteInfo.percentual, 100)}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="text-sm text-gray-500 mb-1">Não definido</div>
+                                                    <div className="text-sm text-blue-600 font-semibold">Gasto atual: R$ {valorTotal.toFixed(2)}</div>
+                                                    <button 
+                                                        onClick={() => {
+                                                            const novoLimite = prompt('Defina o limite do cartão:', '10000');
+                                                            if (novoLimite && !isNaN(novoLimite)) {
+                                                                const cartoesAtualizados = cartoes.map(c => 
+                                                                    c.id === cartao.id ? {...c, limite: parseFloat(novoLimite)} : c
+                                                                );
+                                                                setCartoes(cartoesAtualizados);
+                                                            }
+                                                        }}
+                                                        className="mt-2 text-xs px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                                    >
+                                                        ➕ Definir Limite
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        {/* Parcelas Detalhadas */}
+                                        {parcelasCartao.length > 0 && (
+                                            <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                                                <div className="text-xs text-gray-600 mb-2">📦 PARCELAS ATIVAS</div>
+                                                <div className="space-y-1 max-h-20 overflow-y-auto">
+                                                    {parcelasCartao.map((p, idx) => (
+                                                        <div key={idx} className="text-xs text-gray-700">
+                                                            {p.descricao}: {p.parcelaAtual}/{p.totalParcelas} • R$ {p.valorParcela.toFixed(2)}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Projeção Futura */}
+                                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-3 border border-purple-200">
+                                        <div className="text-xs text-gray-600 mb-2">📈 PROJEÇÃO PRÓXIMOS 6 MESES</div>
+                                        <div className="grid grid-cols-6 gap-2">
+                                            {projecao.map((p, idx) => (
+                                                <div key={idx} className="text-center">
+                                                    <div className="text-xs font-semibold text-gray-700">{p.mes}</div>
+                                                    <div className="text-sm font-bold text-purple-600">R$ {p.valor.toFixed(0)}</div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            );
+                            );
+                        })}
+                    </div>
+                );
+            };
 
             const TelaGastosFixos = () => (
                 <div className="space-y-4">
@@ -6750,129 +7125,8 @@
                         </div>
                     </div>
 
-                    {/* DASHBOARD RESUMO FIXO - SEMPRE VISÍVEL */}
+                    {/* MENU PRINCIPAL - NO LUGAR DO HEADER */}
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg sticky top-[105px] md:top-[115px] z-10">
-                        <div className="max-w-7xl mx-auto px-2 md:px-4 py-2 md:py-2">
-                            <div className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-3">
-                                {/* Receitas */}
-                                <div className="bg-white bg-opacity-20 rounded-lg p-2 md:p-3 backdrop-blur-sm">
-                                    <div className="text-xs opacity-90">💰 Receitas</div>
-                                    <div className="text-sm md:text-xl font-bold">R$ {saldo.receitas.toFixed(0)}</div>
-                                </div>
-
-                                {/* Despesas */}
-                                <div className="bg-white bg-opacity-20 rounded-lg p-2 md:p-3 backdrop-blur-sm">
-                                    <div className="text-xs opacity-90">💸 Despesas</div>
-                                    <div className="text-sm md:text-xl font-bold">R$ {totais.total.toFixed(0)}</div>
-                                </div>
-
-                                {/* Saldo */}
-                                <div className={`rounded-lg p-2 md:p-3 ${
-                                    saldo.positivo ? 'bg-green-500 bg-opacity-30' : 'bg-red-500 bg-opacity-30'
-                                } backdrop-blur-sm`}>
-                                    <div className="text-xs opacity-90">
-                                        {saldo.positivo ? '✅ Saldo' : '⚠️ Déficit'}
-                                    </div>
-                                    <div className="text-sm md:text-xl font-bold">
-                                        {saldo.positivo ? '+' : '-'}R$ {Math.abs(saldo.saldo).toFixed(0)}
-                                    </div>
-                                </div>
-
-                                {/* Pagamentos */}
-                                <div className={`rounded-lg p-2 md:p-3 backdrop-blur-sm ${
-                                    pagamentos.percentual >= 100 ? 'bg-green-500 bg-opacity-30' :
-                                    pagamentos.percentual >= 50 ? 'bg-yellow-500 bg-opacity-30' :
-                                    'bg-red-500 bg-opacity-30'
-                                }`}>
-                                    <div className="text-xs opacity-90">✔️ Pagos</div>
-                                    <div className="text-sm md:text-xl font-bold">{pagamentos.percentual.toFixed(0)}%</div>
-                                    <div className="text-xs opacity-75">{pagamentos.qtdPago}/{pagamentos.qtdTotal}</div>
-                                </div>
-
-                                {/* Cartões */}
-                                <div className="bg-white bg-opacity-20 rounded-lg p-2 md:p-3 backdrop-blur-sm">
-                                    <div className="text-xs opacity-90">💳 Cartões</div>
-                                    <div className="text-sm md:text-xl font-bold">R$ {totais.cartoes.toFixed(0)}</div>
-                                </div>
-
-                                {/* Fixos */}
-                                <div className="bg-white bg-opacity-20 rounded-lg p-2 md:p-3 backdrop-blur-sm">
-                                    <div className="text-xs opacity-90">🏠 Fixos</div>
-                                    <div className="text-sm md:text-xl font-bold">R$ {totais.fixos.toFixed(0)}</div>
-                                </div>
-
-                                {/* Meta */}
-                                {metaMensal > 0 && (
-                                    <div className={`rounded-lg p-2 md:p-3 backdrop-blur-sm ${
-                                        (totais.total / metaMensal * 100) > 100 ? 'bg-red-500 bg-opacity-30' :
-                                        (totais.total / metaMensal * 100) > 80 ? 'bg-yellow-500 bg-opacity-30' :
-                                        'bg-green-500 bg-opacity-30'
-                                    }`}>
-                                        <div className="text-xs opacity-90">🎯 Meta <span className="hide-mobile">{mesAtual.toUpperCase()}</span></div>
-                                        <div className="text-sm md:text-xl font-bold">
-                                            {((totais.total / metaMensal) * 100).toFixed(0)}%
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Barra de progresso da meta */}
-                            {metaMensal > 0 && (
-                                <div className="mt-2 md:mt-3">
-                                    <div className="flex justify-between text-xs mb-1 opacity-90">
-                                        <span className="truncate">Meta: R$ {metaMensal.toFixed(0)}</span>
-                                        <span className="ml-2 whitespace-nowrap">{totais.total <= metaMensal ? `Falta: R$ ${(metaMensal - totais.total).toFixed(0)}` : `Excesso: R$ ${(totais.total - metaMensal).toFixed(0)}`}</span>
-                                    </div>
-                                    <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
-                                        <div 
-                                            className={`h-2 rounded-full transition-all ${
-                                                (totais.total / metaMensal * 100) > 100 ? 'bg-red-400' :
-                                                (totais.total / metaMensal * 100) > 80 ? 'bg-yellow-400' :
-                                                'bg-green-400'
-                                            }`}
-                                            style={{ width: `${Math.min((totais.total / metaMensal) * 100, 100)}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Indicadores rápidos */}
-                            <div className="mt-2 md:mt-3 flex flex-wrap gap-1 md:gap-2 text-xs">
-                                {comparacao.temAnterior && (
-                                    <div className={`px-2 md:px-3 py-1 rounded-full ${
-                                        comparacao.aumentou ? 'bg-red-500 bg-opacity-30' : 'bg-green-500 bg-opacity-30'
-                                    }`}>
-                                        {comparacao.aumentou ? '📈' : '📉'} {comparacao.aumentou ? '+' : ''}{comparacao.variacao}% <span className="hide-mobile">vs {comparacao.mesAnterior.toUpperCase()}</span>
-                                    </div>
-                                )}
-                                
-                                {insights.length > 0 && (
-                                    <div className="px-2 md:px-3 py-1 rounded-full bg-orange-500 bg-opacity-30">
-                                        💡 {insights.length} insight{insights.length > 1 ? 's' : ''}
-                                    </div>
-                                )}
-
-                                {(() => {
-                                    const hoje = new Date().getDate();
-                                    const pendentes = [
-                                        ...cartoes.map(c => ({ nome: c.nome, vencimento: c.vencimento, status: getStatusFarol(c.nome, mesAtual) })),
-                                        ...gastosFixos.map(g => ({ nome: g.descricao, vencimento: g.vencimento, status: getStatusFarol(g.descricao, mesAtual) }))
-                                    ].filter(v => v.vencimento >= hoje && v.status === 'PENDENTE').length;
-
-                                    if (pendentes > 0) {
-                                        return (
-                                            <div className="px-3 py-1 rounded-full bg-yellow-500 bg-opacity-30">
-                                                ⏳ {pendentes} pendente{pendentes > 1 ? 's' : ''}
-                                            </div>
-                                        );
-                                    }
-                                })()}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Nav com Submenus */}
-                    <div className="bg-white border-b shadow-sm">
                         <div className="max-w-7xl mx-auto px-2 md:px-4 py-3">
                             <div className="menu-bar">
                                 {/* Dashboard */}
@@ -6894,14 +7148,21 @@
                                 )}
 
                                 {/* Planejamento com Submenu */}
-                                <div className="menu-item">
+                                <div 
+                                    className="menu-item"
+                                    onMouseEnter={() => abrirSubmenu('planejamento')}
+                                    onMouseLeave={fecharSubmenu}
+                                >
                                     <button 
-                                        onClick={() => setSubmenuAberto(submenuAberto === 'planejamento' ? null : 'planejamento')}
                                         className={`menu-button ${telaAtiva.startsWith('planejamento') ? 'active' : ''}`}
                                     >
                                         📋 Planejamento <span style={{ fontSize: '0.6rem' }}>▼</span>
                                     </button>
-                                    <div className={`submenu ${submenuAberto === 'planejamento' ? 'open' : ''}`}>
+                                    <div 
+                                        className={`submenu ${submenuAberto === 'planejamento' ? 'open' : ''}`}
+                                        onMouseEnter={() => abrirSubmenu('planejamento')}
+                                        onMouseLeave={fecharSubmenu}
+                                    >
                                         <div onClick={() => { setTelaAtiva('planejamento'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento' ? 'active' : ''}`}>
                                             🏥 Diagnóstico
                                         </div>
@@ -6926,7 +7187,7 @@
                                     </div>
                                 </div>
 
-                                {/* Outros Menus Simples */}
+                                {/* Receitas */}
                                 <button 
                                     onClick={() => setTelaAtiva('receitas')}
                                     className={`menu-button ${telaAtiva === 'receitas' ? 'active' : ''}`}
@@ -6934,27 +7195,35 @@
                                     💰 Receitas
                                 </button>
 
-                                <button 
-                                    onClick={() => setTelaAtiva('cartoes')}
-                                    className={`menu-button ${telaAtiva === 'cartoes' ? 'active' : ''}`}
+                                {/* Despesas com Submenu */}
+                                <div 
+                                    className="menu-item"
+                                    onMouseEnter={() => abrirSubmenu('despesas')}
+                                    onMouseLeave={fecharSubmenu}
                                 >
-                                    💳 Cartões
-                                </button>
+                                    <button 
+                                        className={`menu-button ${['cartoes', 'fixos', 'variaveis'].includes(telaAtiva) ? 'active' : ''}`}
+                                    >
+                                        💸 Despesas <span style={{ fontSize: '0.6rem' }}>▼</span>
+                                    </button>
+                                    <div 
+                                        className={`submenu ${submenuAberto === 'despesas' ? 'open' : ''}`}
+                                        onMouseEnter={() => abrirSubmenu('despesas')}
+                                        onMouseLeave={fecharSubmenu}
+                                    >
+                                        <div onClick={() => { setTelaAtiva('cartoes'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'cartoes' ? 'active' : ''}`}>
+                                            💳 Cartões
+                                        </div>
+                                        <div onClick={() => { setTelaAtiva('fixos'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'fixos' ? 'active' : ''}`}>
+                                            🏠 Gastos Fixos
+                                        </div>
+                                        <div onClick={() => { setTelaAtiva('variaveis'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'variaveis' ? 'active' : ''}`}>
+                                            📊 Gastos Variáveis
+                                        </div>
+                                    </div>
+                                </div>
 
-                                <button 
-                                    onClick={() => setTelaAtiva('fixos')}
-                                    className={`menu-button ${telaAtiva === 'fixos' ? 'active' : ''}`}
-                                >
-                                    🏠 Fixos
-                                </button>
-
-                                <button 
-                                    onClick={() => setTelaAtiva('variaveis')}
-                                    className={`menu-button ${telaAtiva === 'variaveis' ? 'active' : ''}`}
-                                >
-                                    📊 Variáveis
-                                </button>
-
+                                {/* Farol */}
                                 <button 
                                     onClick={() => setTelaAtiva('farol')}
                                     className={`menu-button ${telaAtiva === 'farol' ? 'active' : ''}`}
