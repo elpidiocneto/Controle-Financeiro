@@ -5704,7 +5704,6 @@
                                     </div>
                                     <button 
                                         onClick={() => {
-                                            setAbaAtiva('metas');
                                             setModalAberto('novaMeta');
                                         }}
                                         className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
@@ -5760,7 +5759,6 @@
                                         <p className="text-gray-600 mb-3">Comece definindo seus objetivos financeiros!</p>
                                         <button 
                                             onClick={() => {
-                                                setAbaAtiva('metas');
                                                 setModalAberto('novaMeta');
                                             }}
                                             className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
@@ -7299,7 +7297,10 @@
 
                     {/* Content */}
                     <div className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-8 main-content">
-                        {telaAtiva === 'dashboard' && <Dashboard />}
+                        {React.useMemo(() => {
+                            if (telaAtiva !== 'dashboard') return null;
+                            return <Dashboard />;
+                        }, [telaAtiva === 'dashboard'])}
                         {telaAtiva === 'admin' && <TelaAdmin isUserAdmin={isUserAdmin} />}
                         {telaAtiva.startsWith('planejamento') && <TelaPlanejamento />}
                         {telaAtiva === 'receitas' && <TelaReceitas />}
