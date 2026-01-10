@@ -110,6 +110,27 @@
             font-size: 0.875rem !important;
         }
         
+        /* Scroll suave para meses */
+        #meses-container {
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: #CBD5E1 #F1F5F9;
+        }
+        #meses-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        #meses-container::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 3px;
+        }
+        #meses-container::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+        #meses-container::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+        
         /* Reduzir espaçamentos */
         .space-y-3 > * + * {
             margin-top: 1rem !important;
@@ -174,7 +195,24 @@
         .menu-item {
             position: relative;
         }
+        .submenu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 0.5rem;
+            background: white;
+            border: 2px solid #3B82F6;
+            border-radius: 0.5rem;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            min-width: 200px;
+            display: none;
+            z-index: 50;
+        }
+        .submenu.open {
+            display: block;
+        }
         .menu-button {
+
             padding: 0.5rem 1rem;
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -207,9 +245,16 @@
             min-width: 200px;
             display: none;
             z-index: 50;
+            will-change: transform, opacity;
+            transform: translateZ(0);
         }
         .submenu.open {
             display: block;
+            animation: fadeIn 0.15s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .submenu-item {
             padding: 0.75rem 1rem;
@@ -234,6 +279,17 @@
         }
         .submenu-item:last-child {
             border-radius: 0 0 0.4rem 0.4rem;
+        }
+        
+        /* Sticky apenas em desktop */
+        .sticky-desktop {
+            position: sticky;
+        }
+        
+        @media (max-width: 768px) {
+            .sticky-desktop {
+                position: relative !important;
+            }
         }
         
         /* Mobile */
@@ -907,20 +963,21 @@
             const [itemEditando, setItemEditando] = useState(null);
             const [tipoEditando, setTipoEditando] = useState(null);
             const [submenuAberto, setSubmenuAberto] = useState(null);
-            const [timeoutId, setTimeoutId] = useState(null);
+            const submenuTimeoutRef = React.useRef(null);
 
             // Função para abrir submenu
             const abrirSubmenu = (menu) => {
-                if (timeoutId) clearTimeout(timeoutId);
+                if (submenuTimeoutRef.current) {
+                    clearTimeout(submenuTimeoutRef.current);
+                }
                 setSubmenuAberto(menu);
             };
 
-            // Função para fechar submenu com delay
+            // Função para fechar submenu com delay GRANDE (1 segundo!)
             const fecharSubmenu = () => {
-                const id = setTimeout(() => {
+                submenuTimeoutRef.current = setTimeout(() => {
                     setSubmenuAberto(null);
-                }, 300); // 300ms de delay
-                setTimeoutId(id);
+                }, 1000); // 1 SEGUNDO de delay - tempo de sobra!
             };
             
             const [gastosFixos, setGastosFixos] = useState(() => {
@@ -3235,7 +3292,7 @@
             };
 
             // Screens
-            const Dashboard = () => {
+            const Dashboard = React.memo(() => {
                 const progressoMeta = metas.mensal > 0 ? (totais.total / metas.mensal) * 100 : 0;
                 const economia = metas.mensal - totais.total;
 
@@ -3865,7 +3922,7 @@
                         </div>
                     </div>
                 );
-            };
+            });
 
             // 👑 PAINEL DE ADMINISTRAÇÃO
             const TelaAdmin = ({ isUserAdmin: isUserAdminProp }) => {
@@ -7023,7 +7080,7 @@
             return (
                 <div className="min-h-screen" style={{ background: '#F9FAFB' }}>
                     {/* Header */}
-                    <div className="bg-white shadow-lg sticky top-0 z-20">
+                    <div className="bg-white shadow-lg sticky-desktop top-0 z-20">
                         <div className="max-w-7xl mx-auto px-2 md:px-4 py-1 md:py-2">
                             <div className="flex flex-col md:flex-row justify-between items-center gap-2">
                                 {/* Seletor de ano - esquerda no desktop */}
@@ -7113,7 +7170,7 @@
                     </div>
 
                     {/* Meses */}
-                    <div className="bg-white border-b shadow-sm sticky top-[60px] md:top-[70px] z-10">
+                    <div className="bg-white border-b shadow-sm sticky-desktop top-[60px] md:top-[70px] z-10">
                         <div className="max-w-7xl mx-auto px-2 md:px-4 py-2">
                             <div className="flex gap-1 md:gap-2 overflow-x-auto">
                                 {MESES.map(mes => (
@@ -7126,7 +7183,7 @@
                     </div>
 
                     {/* MENU PRINCIPAL - NO LUGAR DO HEADER */}
-                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg sticky top-[105px] md:top-[115px] z-10">
+                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg sticky-desktop top-[105px] md:top-[115px] z-10">
                         <div className="max-w-7xl mx-auto px-2 md:px-4 py-3">
                             <div className="menu-bar">
                                 {/* Dashboard */}
