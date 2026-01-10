@@ -962,23 +962,6 @@
             const [modalAberto, setModalAberto] = useState(null);
             const [itemEditando, setItemEditando] = useState(null);
             const [tipoEditando, setTipoEditando] = useState(null);
-            const [submenuAberto, setSubmenuAberto] = useState(null);
-            const submenuTimeoutRef = React.useRef(null);
-
-            // Função para abrir submenu
-            const abrirSubmenu = (menu) => {
-                if (submenuTimeoutRef.current) {
-                    clearTimeout(submenuTimeoutRef.current);
-                }
-                setSubmenuAberto(menu);
-            };
-
-            // Função para fechar submenu com delay GRANDE (1 segundo!)
-            const fecharSubmenu = () => {
-                submenuTimeoutRef.current = setTimeout(() => {
-                    setSubmenuAberto(null);
-                }, 1000); // 1 SEGUNDO de delay - tempo de sobra!
-            };
             
             const [gastosFixos, setGastosFixos] = useState(() => {
                 const saved = localStorage.getItem('gastosFixos');
@@ -3290,6 +3273,131 @@
                     </form>
                 );
             };
+
+            // Componente Menu isolado para não afetar Dashboard
+            const MenuNavegacao = React.memo(({ telaAtiva, setTelaAtiva, isUserAdmin }) => {
+                const [submenuAberto, setSubmenuAberto] = useState(null);
+                const submenuTimeoutRef = React.useRef(null);
+
+                const abrirSubmenu = (menu) => {
+                    if (submenuTimeoutRef.current) {
+                        clearTimeout(submenuTimeoutRef.current);
+                    }
+                    setSubmenuAberto(menu);
+                };
+
+                const fecharSubmenu = () => {
+                    submenuTimeoutRef.current = setTimeout(() => {
+                        setSubmenuAberto(null);
+                    }, 1000);
+                };
+
+                return (
+                    <div className="menu-bar">
+                        {/* Dashboard */}
+                        <button 
+                            onClick={() => setTelaAtiva('dashboard')}
+                            className={`menu-button ${telaAtiva === 'dashboard' ? 'active' : ''}`}
+                        >
+                            📊 Dashboard
+                        </button>
+
+                        {/* Admin */}
+                        {isUserAdmin && (
+                            <button 
+                                onClick={() => setTelaAtiva('admin')}
+                                className={`menu-button ${telaAtiva === 'admin' ? 'active' : ''}`}
+                            >
+                                👑 Admin
+                            </button>
+                        )}
+
+                        {/* Planejamento com Submenu */}
+                        <div 
+                            className="menu-item"
+                            onMouseEnter={() => abrirSubmenu('planejamento')}
+                            onMouseLeave={fecharSubmenu}
+                        >
+                            <button 
+                                className={`menu-button ${telaAtiva.startsWith('planejamento') ? 'active' : ''}`}
+                            >
+                                📋 Planejamento <span style={{ fontSize: '0.6rem' }}>▼</span>
+                            </button>
+                            <div 
+                                className={`submenu ${submenuAberto === 'planejamento' ? 'open' : ''}`}
+                                onMouseEnter={() => abrirSubmenu('planejamento')}
+                                onMouseLeave={fecharSubmenu}
+                            >
+                                <div onClick={() => { setTelaAtiva('planejamento'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento' ? 'active' : ''}`}>
+                                    🏥 Diagnóstico
+                                </div>
+                                <div onClick={() => { setTelaAtiva('planejamento-orcamento'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-orcamento' ? 'active' : ''}`}>
+                                    📊 Orçamento
+                                </div>
+                                <div onClick={() => { setTelaAtiva('planejamento-premes'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-premes' ? 'active' : ''}`}>
+                                    📝 Pré-Mês
+                                </div>
+                                <div onClick={() => { setTelaAtiva('planejamento-metas'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-metas' ? 'active' : ''}`}>
+                                    🎯 Metas
+                                </div>
+                                <div onClick={() => { setTelaAtiva('planejamento-dividas'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-dividas' ? 'active' : ''}`}>
+                                    💳 Dívidas
+                                </div>
+                                <div onClick={() => { setTelaAtiva('planejamento-simulador'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-simulador' ? 'active' : ''}`}>
+                                    🎲 Simulador
+                                </div>
+                                <div onClick={() => { setTelaAtiva('planejamento-timeline'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-timeline' ? 'active' : ''}`}>
+                                    📈 Timeline
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Receitas */}
+                        <button 
+                            onClick={() => setTelaAtiva('receitas')}
+                            className={`menu-button ${telaAtiva === 'receitas' ? 'active' : ''}`}
+                        >
+                            💰 Receitas
+                        </button>
+
+                        {/* Despesas com Submenu */}
+                        <div 
+                            className="menu-item"
+                            onMouseEnter={() => abrirSubmenu('despesas')}
+                            onMouseLeave={fecharSubmenu}
+                        >
+                            <button 
+                                className={`menu-button ${['cartoes', 'fixos', 'variaveis'].includes(telaAtiva) ? 'active' : ''}`}
+                            >
+                                💸 Despesas <span style={{ fontSize: '0.6rem' }}>▼</span>
+                            </button>
+                            <div 
+                                className={`submenu ${submenuAberto === 'despesas' ? 'open' : ''}`}
+                                onMouseEnter={() => abrirSubmenu('despesas')}
+                                onMouseLeave={fecharSubmenu}
+                            >
+                                <div onClick={() => { setTelaAtiva('cartoes'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'cartoes' ? 'active' : ''}`}>
+                                    💳 Cartões
+                                </div>
+                                <div onClick={() => { setTelaAtiva('fixos'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'fixos' ? 'active' : ''}`}>
+                                    🏠 Gastos Fixos
+                                </div>
+                                <div onClick={() => { setTelaAtiva('variaveis'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'variaveis' ? 'active' : ''}`}>
+                                    📊 Gastos Variáveis
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Farol */}
+                        <button 
+                            onClick={() => setTelaAtiva('farol')}
+                            className={`menu-button ${telaAtiva === 'farol' ? 'active' : ''}`}
+                        >
+                            🚦 Farol
+                        </button>
+                    </div>
+                );
+            });
 
             // Screens
             const Dashboard = React.memo(() => {
@@ -7185,109 +7293,7 @@
                     {/* MENU PRINCIPAL - NO LUGAR DO HEADER */}
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg sticky-desktop top-[105px] md:top-[115px] z-10">
                         <div className="max-w-7xl mx-auto px-2 md:px-4 py-3">
-                            <div className="menu-bar">
-                                {/* Dashboard */}
-                                <button 
-                                    onClick={() => setTelaAtiva('dashboard')}
-                                    className={`menu-button ${telaAtiva === 'dashboard' ? 'active' : ''}`}
-                                >
-                                    📊 Dashboard
-                                </button>
-
-                                {/* Admin */}
-                                {isUserAdmin && (
-                                    <button 
-                                        onClick={() => setTelaAtiva('admin')}
-                                        className={`menu-button ${telaAtiva === 'admin' ? 'active' : ''}`}
-                                    >
-                                        👑 Admin
-                                    </button>
-                                )}
-
-                                {/* Planejamento com Submenu */}
-                                <div 
-                                    className="menu-item"
-                                    onMouseEnter={() => abrirSubmenu('planejamento')}
-                                    onMouseLeave={fecharSubmenu}
-                                >
-                                    <button 
-                                        className={`menu-button ${telaAtiva.startsWith('planejamento') ? 'active' : ''}`}
-                                    >
-                                        📋 Planejamento <span style={{ fontSize: '0.6rem' }}>▼</span>
-                                    </button>
-                                    <div 
-                                        className={`submenu ${submenuAberto === 'planejamento' ? 'open' : ''}`}
-                                        onMouseEnter={() => abrirSubmenu('planejamento')}
-                                        onMouseLeave={fecharSubmenu}
-                                    >
-                                        <div onClick={() => { setTelaAtiva('planejamento'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento' ? 'active' : ''}`}>
-                                            🏥 Diagnóstico
-                                        </div>
-                                        <div onClick={() => { setTelaAtiva('planejamento-orcamento'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-orcamento' ? 'active' : ''}`}>
-                                            📊 Orçamento
-                                        </div>
-                                        <div onClick={() => { setTelaAtiva('planejamento-premes'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-premes' ? 'active' : ''}`}>
-                                            📝 Pré-Mês
-                                        </div>
-                                        <div onClick={() => { setTelaAtiva('planejamento-metas'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-metas' ? 'active' : ''}`}>
-                                            🎯 Metas
-                                        </div>
-                                        <div onClick={() => { setTelaAtiva('planejamento-dividas'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-dividas' ? 'active' : ''}`}>
-                                            💳 Dívidas
-                                        </div>
-                                        <div onClick={() => { setTelaAtiva('planejamento-simulador'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-simulador' ? 'active' : ''}`}>
-                                            🎲 Simulador
-                                        </div>
-                                        <div onClick={() => { setTelaAtiva('planejamento-timeline'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'planejamento-timeline' ? 'active' : ''}`}>
-                                            📈 Timeline
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Receitas */}
-                                <button 
-                                    onClick={() => setTelaAtiva('receitas')}
-                                    className={`menu-button ${telaAtiva === 'receitas' ? 'active' : ''}`}
-                                >
-                                    💰 Receitas
-                                </button>
-
-                                {/* Despesas com Submenu */}
-                                <div 
-                                    className="menu-item"
-                                    onMouseEnter={() => abrirSubmenu('despesas')}
-                                    onMouseLeave={fecharSubmenu}
-                                >
-                                    <button 
-                                        className={`menu-button ${['cartoes', 'fixos', 'variaveis'].includes(telaAtiva) ? 'active' : ''}`}
-                                    >
-                                        💸 Despesas <span style={{ fontSize: '0.6rem' }}>▼</span>
-                                    </button>
-                                    <div 
-                                        className={`submenu ${submenuAberto === 'despesas' ? 'open' : ''}`}
-                                        onMouseEnter={() => abrirSubmenu('despesas')}
-                                        onMouseLeave={fecharSubmenu}
-                                    >
-                                        <div onClick={() => { setTelaAtiva('cartoes'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'cartoes' ? 'active' : ''}`}>
-                                            💳 Cartões
-                                        </div>
-                                        <div onClick={() => { setTelaAtiva('fixos'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'fixos' ? 'active' : ''}`}>
-                                            🏠 Gastos Fixos
-                                        </div>
-                                        <div onClick={() => { setTelaAtiva('variaveis'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'variaveis' ? 'active' : ''}`}>
-                                            📊 Gastos Variáveis
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Farol */}
-                                <button 
-                                    onClick={() => setTelaAtiva('farol')}
-                                    className={`menu-button ${telaAtiva === 'farol' ? 'active' : ''}`}
-                                >
-                                    🚦 Farol
-                                </button>
-                            </div>
+                            <MenuNavegacao telaAtiva={telaAtiva} setTelaAtiva={setTelaAtiva} isUserAdmin={isUserAdmin} />
                         </div>
                     </div>
 
