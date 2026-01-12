@@ -2635,12 +2635,15 @@
                     descricao,
                     cartao,
                     valorTotal,
-                    parcelas,
+                    totalParcelas: parcelas, // CAMPO IMPORTANTE!
+                    parcelas, // Mantém por compatibilidade
                     valorParcela,
+                    parcelaPaga: 0, // COMEÇA EM ZERO!
                     mesInicio,
                     meses: mesesCompra
                 };
                 
+                console.log('💾 Salvando compra parcelada:', novaCompra);
                 setComprasParceladas([...comprasParceladas, novaCompra]);
             };
 
