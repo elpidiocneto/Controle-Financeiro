@@ -4301,14 +4301,51 @@
                 };
 
                 // Usar o isUserAdmin que já foi verificado no componente pai
+                console.log('🔐 TelaAdmin - isUserAdminProp:', isUserAdminProp);
+                console.log('🔐 TelaAdmin - user:', user?.uid, user?.email);
+                console.log('🔐 TelaAdmin - db:', db ? 'Conectado' : 'Desconectado');
+                
                 if (!isUserAdminProp) {
                     return (
                         <div className="max-w-4xl mx-auto p-8">
                             <div className="bg-red-50 border-2 border-red-200 rounded-xl p-8 text-center">
-                                <div className="text-xl mb-4">🚫</div>
+                                <div className="text-6xl mb-4">🚫</div>
                                 <h2 className="text-2xl font-bold text-red-800 mb-2">Acesso Negado</h2>
-                                <p className="text-red-600">Você não tem permissões de administrador.</p>
-                                <p className="text-sm text-red-500 mt-4">DEBUG: isUserAdminProp = {String(isUserAdminProp)}</p>
+                                <p className="text-red-600 mb-4">Você não tem permissões de administrador.</p>
+                                <div className="bg-white rounded-lg p-4 text-left space-y-2 text-sm">
+                                    <div><strong>DEBUG INFO:</strong></div>
+                                    <div>• isUserAdminProp: <code className="bg-gray-200 px-2 py-1 rounded">{String(isUserAdminProp)}</code></div>
+                                    <div>• User UID: <code className="bg-gray-200 px-2 py-1 rounded">{user?.uid || 'null'}</code></div>
+                                    <div>• User Email: <code className="bg-gray-200 px-2 py-1 rounded">{user?.email || 'null'}</code></div>
+                                    <div>• Firestore: <code className="bg-gray-200 px-2 py-1 rounded">{db ? 'Conectado' : 'Desconectado'}</code></div>
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        if (!db || !user) {
+                                            alert('❌ DB ou User não disponível');
+                                            return;
+                                        }
+                                        try {
+                                            const doc = await db.collection('usuarios').doc(user.uid).get();
+                                            if (doc.exists) {
+                                                const data = doc.data();
+                                                alert(`📊 DADOS DO FIRESTORE:\n\n` +
+                                                    `Nome: ${data.nome}\n` +
+                                                    `Email: ${data.email}\n` +
+                                                    `isAdmin: ${data.isAdmin}\n` +
+                                                    `Status: ${data.status}\n\n` +
+                                                    `Para ser admin, isAdmin deve ser true!`);
+                                            } else {
+                                                alert('❌ Seu usuário não existe no Firestore!');
+                                            }
+                                        } catch (error) {
+                                            alert('❌ Erro ao verificar: ' + error.message);
+                                        }
+                                    }}
+                                    className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                                >
+                                    🔍 Verificar Meus Dados no Firestore
+                                </button>
                             </div>
                         </div>
                     );
@@ -4329,8 +4366,31 @@
                     <div className="max-w-6xl mx-auto p-4 space-y-3">
                         {/* Header */}
                         <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl p-6 shadow-lg">
-                            <h1 className="text-xl font-bold mb-2">👑 Painel de Administração</h1>
-                            <p className="opacity-90">Gerencie usuários e visualize estatísticas do sistema</p>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h1 className="text-xl font-bold mb-2">👑 Painel de Administração</h1>
+                                    <p className="opacity-90">Gerencie usuários e visualize estatísticas do sistema</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        console.log('🔍 DIAGNÓSTICO COMPLETO:');
+                                        console.log('• isUserAdmin:', isUserAdminProp);
+                                        console.log('• user:', user);
+                                        console.log('• db:', db);
+                                        console.log('• usuarios.length:', usuarios.length);
+                                        console.log('• stats:', stats);
+                                        alert(`🔍 DIAGNÓSTICO:\n\n` +
+                                            `Admin: ${isUserAdminProp}\n` +
+                                            `User: ${user?.email}\n` +
+                                            `DB: ${db ? 'OK' : 'ERRO'}\n` +
+                                            `Usuários: ${usuarios.length}\n\n` +
+                                            `Veja console (F12) para mais detalhes`);
+                                    }}
+                                    className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg font-semibold transition-all"
+                                >
+                                    🔍 Diagnóstico
+                                </button>
+                            </div>
                         </div>
 
                         {/* Estatísticas */}
