@@ -502,29 +502,61 @@
                             return;
                         }
                         
-                        // Verificar status do usuário
+                        // Verificar status do usuário no Firestore
                         try {
                             const userDoc = await db.collection('usuarios').doc(user.uid).get();
-                            if (userDoc.exists) {
-                                const userData = userDoc.data();
+                            
+                            // Se usuário NÃO existe no Firestore, criar como PENDENTE
+                            if (!userDoc.exists) {
+                                console.log('⚠️ Usuário não existe no Firestore. Criando como PENDENTE...');
+                                await db.collection('usuarios').doc(user.uid).set({
+                                    nome: user.displayName || '',
+                                    email: user.email,
+                                    isAdmin: false,
+                                    status: 'PENDENTE',
+                                    emailVerificado: user.emailVerified,
+                                    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+                                    ultimoAcesso: firebase.firestore.FieldValue.serverTimestamp()
+                                });
                                 
-                                // Atualizar status de email verificado no Firestore
-                                if (user.emailVerified && !userData.emailVerificado) {
-                                    await db.collection('usuarios').doc(user.uid).update({
-                                        emailVerificado: true
-                                    });
-                                }
-                                
-                                // Se pendente ou rejeitado, fazer logout (MAS NÃO BLOQUEAR ADMINS!)
-                                if (userData.status === 'PENDENTE' && !userData.isAdmin) {
+                                // Bloquear acesso até aprovação
+                                await firebase.auth().signOut();
+                                alert('⏳ Sua conta foi criada e está aguardando aprovação do administrador.\n\nPor favor, aguarde a liberação do seu acesso.');
+                                setUser(null);
+                                setLoading(false);
+                                return;
+                            }
+                            
+                            const userData = userDoc.data();
+                            
+                            // Atualizar status de email verificado no Firestore
+                            if (user.emailVerified && !userData.emailVerificado) {
+                                await db.collection('usuarios').doc(user.uid).update({
+                                    emailVerificado: true
+                                });
+                            }
+                            
+                            // Verificar status de aprovação (NÃO BLOQUEAR ADMINS!)
+                            if (!userData.isAdmin) {
+                                if (userData.status === 'PENDENTE') {
                                     await firebase.auth().signOut();
                                     alert('⏳ Sua conta ainda está aguardando aprovação do administrador.\n\nPor favor, aguarde a liberação do seu acesso.');
                                     setUser(null);
                                     setLoading(false);
                                     return;
-                                } else if (userData.status === 'REJEITADO' && !userData.isAdmin) {
+                                } else if (userData.status === 'REJEITADO') {
                                     await firebase.auth().signOut();
                                     alert('❌ Sua solicitação de cadastro foi rejeitada.\n\nEntre em contato com o administrador para mais informações.');
+                                    setUser(null);
+                                    setLoading(false);
+                                    return;
+                                } else if (userData.status !== 'APROVADO') {
+                                    // Se não tem status definido, considerar como PENDENTE
+                                    await db.collection('usuarios').doc(user.uid).update({
+                                        status: 'PENDENTE'
+                                    });
+                                    await firebase.auth().signOut();
+                                    alert('⏳ Sua conta precisa ser aprovada pelo administrador.\n\nPor favor, aguarde a liberação do seu acesso.');
                                     setUser(null);
                                     setLoading(false);
                                     return;
@@ -532,6 +564,12 @@
                             }
                         } catch (error) {
                             console.error('Erro ao verificar status:', error);
+                            // Em caso de erro, bloquear acesso por segurança
+                            await firebase.auth().signOut();
+                            alert('❌ Erro ao verificar suas permissões.\n\nTente novamente mais tarde.');
+                            setUser(null);
+                            setLoading(false);
+                            return;
                         }
                     }
                     
@@ -3532,7 +3570,7 @@
             });
 
             // Screens
-            const Dashboard = React.memo(() => {
+            const Dashboard = () => {
                 const progressoMeta = metas.mensal > 0 ? (totais.total / metas.mensal) * 100 : 0;
                 const economia = metas.mensal - totais.total;
 
@@ -4162,7 +4200,7 @@
                         </div>
                     </div>
                 );
-            });
+            };
 
             // 👑 PAINEL DE ADMINISTRAÇÃO
             const TelaAdmin = ({ isUserAdmin: isUserAdminProp }) => {
@@ -7641,8 +7679,8 @@
                     <div className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-8 main-content">
                         {React.useMemo(() => {
                             if (telaAtiva !== 'dashboard') return null;
-                            return <Dashboard />;
-                        }, [telaAtiva === 'dashboard'])}
+                            return <Dashboard key={`${mesAtual}-${anoAtual}`} />;
+                        }, [telaAtiva === 'dashboard', mesAtual, anoAtual])}
                         {telaAtiva === 'admin' && <TelaAdmin isUserAdmin={isUserAdmin} />}
                         {telaAtiva.startsWith('planejamento') && <TelaPlanejamento />}
                         {telaAtiva === 'receitas' && <TelaReceitas />}
