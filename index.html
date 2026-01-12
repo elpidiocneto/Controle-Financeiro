@@ -4213,20 +4213,28 @@
                 }, []);
 
                 const carregarUsuarios = async () => {
-                    if (!db || !user) return;
+                    if (!db || !user) {
+                        console.log('❌ DB ou User não disponível');
+                        return;
+                    }
                     
                     try {
                         setLoading(true);
+                        console.log('📥 Carregando usuários do Firestore...');
                         const usersSnapshot = await db.collection('usuarios').get();
+                        console.log('📊 Documentos retornados:', usersSnapshot.size);
                         const usersList = [];
                         
                         usersSnapshot.forEach(doc => {
                             const data = doc.data();
+                            console.log('👤 Usuário:', doc.id, data);
                             usersList.push({
                                 uid: doc.id,
                                 ...data
                             });
                         });
+                        
+                        console.log('📋 Total de usuários carregados:', usersList.length);
 
                         // Calcular estatísticas
                         const agora = new Date();
@@ -4250,6 +4258,13 @@
                         }).length;
                         
                         const pendentes = usersList.filter(u => u.status === 'PENDENTE').length;
+                        
+                        console.log('📊 Estatísticas:', {
+                            total: usersList.length,
+                            pendentes,
+                            ativos,
+                            novos
+                        });
 
                         setStats({
                             total: usersList.length,
@@ -4259,9 +4274,10 @@
                         });
 
                         setUsuarios(usersList);
+                        console.log('✅ Usuários carregados com sucesso!');
                     } catch (error) {
-                        console.error('Erro ao carregar usuários:', error);
-                        // Não mostrar alert, apenas log
+                        console.error('❌ Erro ao carregar usuários:', error);
+                        alert('❌ Erro ao carregar usuários: ' + error.message);
                     } finally {
                         setLoading(false);
                     }
@@ -4448,8 +4464,17 @@
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
-                                        {usuarios.filter(u => u.status !== 'PENDENTE').map((usuario, index) => (
-                                            <tr key={usuario.uid} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                        {usuarios.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="6" className="px-4 py-12 text-center text-gray-500">
+                                                    <div className="text-4xl mb-2">👥</div>
+                                                    <div className="font-semibold">Nenhum usuário encontrado</div>
+                                                    <div className="text-sm mt-1">Os usuários aparecerão aqui após o cadastro</div>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            usuarios.map((usuario, index) => (
+                                                <tr key={usuario.uid} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                                 <td className="px-4 py-2">
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-2xl">{usuario.isAdmin ? '👑' : '👤'}</span>
@@ -4521,7 +4546,8 @@
                                                     )}
                                                 </td>
                                             </tr>
-                                        ))}
+                                        ))
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
