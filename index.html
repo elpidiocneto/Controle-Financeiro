@@ -1024,6 +1024,15 @@
                 };
             });
 
+            // Categorias personalizadas
+            const [categoriasPersonalizadas, setCategoriasPersonalizadas] = useState(() => {
+                const saved = localStorage.getItem('categoriasPersonalizadas');
+                return saved ? JSON.parse(saved) : {
+                    gastosFixos: [],
+                    gastosVariaveis: []
+                };
+            });
+
             const [orcamentosMensais, setOrcamentosMensais] = useState(() => {
                 const saved = localStorage.getItem('orcamentosMensais');
                 return saved ? JSON.parse(saved) : {
@@ -1062,7 +1071,11 @@
 
             useEffect(() => { localStorage.setItem('anoAtual', anoAtual.toString()); }, [anoAtual]);
             useEffect(() => { localStorage.setItem('gastosFixos', JSON.stringify(gastosFixos)); }, [gastosFixos]);
-            useEffect(() => { localStorage.setItem('cartoes', JSON.stringify(cartoes)); }, [cartoes]);
+            useEffect(() => { localStorage.setItem('categoriasPersonalizadas', JSON.stringify(categoriasPersonalizadas)); }, [categoriasPersonalizadas]);
+            useEffect(() => { 
+                console.log('💾 Salvando cartões:', cartoes.length, 'cartões'); 
+                localStorage.setItem('cartoes', JSON.stringify(cartoes)); 
+            }, [cartoes]);
             useEffect(() => { localStorage.setItem('gastosVariaveis', JSON.stringify(gastosVariaveis)); }, [gastosVariaveis]);
             useEffect(() => { localStorage.setItem('receitas', JSON.stringify(receitas)); }, [receitas]);
             useEffect(() => { localStorage.setItem('farol', JSON.stringify(farol)); }, [farol]);
@@ -1572,15 +1585,20 @@
             };
             
             const editarCartao = async (id, dadosAtualizados) => {
+                console.log('✏️ Editando cartão:', id, dadosAtualizados);
                 const novosCartoes = [];
                 cartoes.forEach(c => {
                     if (c.id === id) {
-                        novosCartoes.push({
+                        const cartaoAtualizado = {
                             ...c,
                             ...dadosAtualizados,
                             ano: parseInt(dadosAtualizados.ano) || c.ano || 2026,
-                            valor: parseFloat(dadosAtualizados.valor) || c.valor
-                        });
+                            valor: parseFloat(dadosAtualizados.valor) || c.valor,
+                            limite: parseFloat(dadosAtualizados.limite) || c.limite || 0, // IMPORTANTE!
+                            diaFechamento: parseInt(dadosAtualizados.diaFechamento) || c.diaFechamento
+                        };
+                        console.log('✅ Cartão atualizado:', cartaoAtualizado);
+                        novosCartoes.push(cartaoAtualizado);
                     } else {
                         novosCartoes.push(c);
                     }
@@ -1588,6 +1606,8 @@
                 
                 setCartoes([]);
                 setTimeout(() => setCartoes(novosCartoes), 10);
+                setModalAberto(null);
+                alert('✅ Cartão atualizado com sucesso!');
                 
                 // Salvar no Firestore
                 if (db && user) {
@@ -2759,15 +2779,37 @@
 
             const FormNovoGastoFixo = () => {
                 const [categoria, setCategoria] = useState('MORADIA');
+                const [novaCategoria, setNovaCategoria] = useState('');
+                const [mostrarNovaCategoria, setMostrarNovaCategoria] = useState(false);
                 const [descricao, setDescricao] = useState('');
                 const [valor, setValor] = useState('');
                 const [vencimento, setVencimento] = useState(10);
 
+                // Categorias padrão + personalizadas
+                const categoriasFixasDefault = ['MORADIA', 'ESTUDO', 'TRANSPORTE', 'SERVIÇOS', 'SAÚDE'];
+                const todasCategorias = [...categoriasFixasDefault, ...categoriasPersonalizadas.gastosFixos];
+
                 const handleSubmit = (e) => {
                     e.preventDefault();
-                    console.log('Submit gasto fixo:', { categoria, descricao, valor, vencimento });
+                    
+                    let categoriaFinal = categoria;
+                    
+                    // Se está criando nova categoria
+                    if (mostrarNovaCategoria && novaCategoria.trim()) {
+                        categoriaFinal = novaCategoria.trim().toUpperCase();
+                        
+                        // Adicionar à lista de categorias personalizadas
+                        if (!todasCategorias.includes(categoriaFinal)) {
+                            setCategoriasPersonalizadas({
+                                ...categoriasPersonalizadas,
+                                gastosFixos: [...categoriasPersonalizadas.gastosFixos, categoriaFinal]
+                            });
+                        }
+                    }
+                    
                     if (descricao.trim() && valor) {
-                        adicionarGastoFixo({ categoria, descricao, valor, vencimento });
+                        adicionarGastoFixo({ categoria: categoriaFinal, descricao, valor, vencimento });
+                        setModalAberto(null);
                     } else {
                         alert('Preencha todos os campos!');
                     }
@@ -2777,17 +2819,50 @@
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
-                            <select 
-                                value={categoria}
-                                onChange={(e) => setCategoria(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                            >
-                                <option value="MORADIA">Moradia</option>
-                                <option value="ESTUDO">Estudo</option>
-                                <option value="TRANSPORTE">Transporte</option>
-                                <option value="SERVIÇOS">Serviços</option>
-                                <option value="SAÚDE">Saúde</option>
-                            </select>
+                            {!mostrarNovaCategoria ? (
+                                <>
+                                    <select 
+                                        value={categoria}
+                                        onChange={(e) => setCategoria(e.target.value)}
+                                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500"
+                                    >
+                                        {todasCategorias.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMostrarNovaCategoria(true)}
+                                        className="mt-2 text-sm text-purple-600 hover:text-purple-700 font-semibold"
+                                    >
+                                        ➕ Criar nova categoria
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <input
+                                        type="text"
+                                        value={novaCategoria}
+                                        onChange={(e) => setNovaCategoria(e.target.value)}
+                                        className="w-full px-4 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500"
+                                        placeholder="Ex: PETS, INVESTIMENTOS, ASSINATURAS..."
+                                        autoFocus
+                                    />
+                                    <div className="flex gap-2 mt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setMostrarNovaCategoria(false);
+                                                setNovaCategoria('');
+                                            }}
+                                            className="text-sm text-gray-600 hover:text-gray-700"
+                                        >
+                                            ← Voltar para categorias
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">💡 Será salvo automaticamente em MAIÚSCULAS</p>
+                                </>
+                            )}
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
@@ -2795,19 +2870,19 @@
                                 type="text"
                                 value={descricao}
                                 onChange={(e) => setDescricao(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500"
                                 placeholder="Ex: Aluguel"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Valor</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Valor (R$)</label>
                             <input 
                                 type="number"
                                 step="0.01"
                                 value={valor}
                                 onChange={(e) => setValor(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500"
                                 placeholder="0.00"
                                 required
                             />
@@ -2820,7 +2895,7 @@
                                 max="31"
                                 value={vencimento}
                                 onChange={(e) => setVencimento(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500"
                                 required
                             />
                         </div>
@@ -2833,14 +2908,36 @@
 
             const FormNovoGastoVariavel = () => {
                 const [categoria, setCategoria] = useState('MERCADO');
+                const [novaCategoria, setNovaCategoria] = useState('');
+                const [mostrarNovaCategoria, setMostrarNovaCategoria] = useState(false);
                 const [descricao, setDescricao] = useState('');
                 const [valor, setValor] = useState('');
 
+                // Categorias padrão + personalizadas
+                const categoriasVariaveisDefault = ['MERCADO', 'FARMÁCIA', 'ALIMENTAÇÃO', 'TRANSPORTE', 'GASOLINA', 'LAZER'];
+                const todasCategorias = [...categoriasVariaveisDefault, ...categoriasPersonalizadas.gastosVariaveis];
+
                 const handleSubmit = (e) => {
                     e.preventDefault();
-                    console.log('Submit gasto variável:', { categoria, descricao, valor });
+                    
+                    let categoriaFinal = categoria;
+                    
+                    // Se está criando nova categoria
+                    if (mostrarNovaCategoria && novaCategoria.trim()) {
+                        categoriaFinal = novaCategoria.trim().toUpperCase();
+                        
+                        // Adicionar à lista de categorias personalizadas
+                        if (!todasCategorias.includes(categoriaFinal)) {
+                            setCategoriasPersonalizadas({
+                                ...categoriasPersonalizadas,
+                                gastosVariaveis: [...categoriasPersonalizadas.gastosVariaveis, categoriaFinal]
+                            });
+                        }
+                    }
+                    
                     if (valor) {
-                        adicionarGastoVariavel({ categoria, descricao, valor });
+                        adicionarGastoVariavel({ categoria: categoriaFinal, descricao, valor });
+                        setModalAberto(null);
                     } else {
                         alert('Preencha o valor!');
                     }
@@ -2850,18 +2947,50 @@
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
-                            <select 
-                                value={categoria}
-                                onChange={(e) => setCategoria(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                            >
-                                <option value="MERCADO">🛒 Mercado</option>
-                                <option value="FARMÁCIA">💊 Farmácia</option>
-                                <option value="ALIMENTAÇÃO">🍽️ Alimentação</option>
-                                <option value="TRANSPORTE">🚕 Transporte</option>
-                                <option value="GASOLINA">⛽ Gasolina</option>
-                                <option value="LAZER">🎮 Lazer</option>
-                            </select>
+                            {!mostrarNovaCategoria ? (
+                                <>
+                                    <select 
+                                        value={categoria}
+                                        onChange={(e) => setCategoria(e.target.value)}
+                                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500"
+                                    >
+                                        {todasCategorias.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMostrarNovaCategoria(true)}
+                                        className="mt-2 text-sm text-orange-600 hover:text-orange-700 font-semibold"
+                                    >
+                                        ➕ Criar nova categoria
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <input
+                                        type="text"
+                                        value={novaCategoria}
+                                        onChange={(e) => setNovaCategoria(e.target.value)}
+                                        className="w-full px-4 py-2 border-2 border-orange-300 rounded-lg focus:border-orange-500"
+                                        placeholder="Ex: VESTUÁRIO, ELETRÔNICOS, PRESENTES..."
+                                        autoFocus
+                                    />
+                                    <div className="flex gap-2 mt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setMostrarNovaCategoria(false);
+                                                setNovaCategoria('');
+                                            }}
+                                            className="text-sm text-gray-600 hover:text-gray-700"
+                                        >
+                                            ← Voltar para categorias
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">💡 Será salvo automaticamente em MAIÚSCULAS</p>
+                                </>
+                            )}
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Descrição (Opcional)</label>
@@ -2869,24 +2998,24 @@
                                 type="text"
                                 value={descricao}
                                 onChange={(e) => setDescricao(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500"
                                 placeholder="Ex: Supermercado Extra"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Valor</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Valor (R$)</label>
                             <input 
                                 type="number"
                                 step="0.01"
                                 value={valor}
                                 onChange={(e) => setValor(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500"
                                 placeholder="0.00"
                                 required
                             />
                         </div>
                         <button type="submit" className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700">
-                            ✅ Adicionar Gasto
+                            ✅ Adicionar Gasto Variável
                         </button>
                     </form>
                 );
@@ -4608,7 +4737,11 @@
                                                                 const cartoesAtualizados = cartoes.map(c => 
                                                                     c.id === cartao.id ? {...c, limite: parseFloat(novoLimite)} : c
                                                                 );
+                                                                console.log('✅ Atualizando limite:', novoLimite);
                                                                 setCartoes(cartoesAtualizados);
+                                                                // Força salvamento imediato
+                                                                localStorage.setItem('cartoes', JSON.stringify(cartoesAtualizados));
+                                                                alert(`✅ Limite definido: R$ ${parseFloat(novoLimite).toFixed(2)}`);
                                                             }
                                                         }}
                                                         className="mt-2 text-xs px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -4653,95 +4786,301 @@
                 );
             };
 
-            const TelaGastosFixos = () => (
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-bold text-gray-800">🏠 Gastos Fixos</h2>
-                        <button onClick={() => setModalAberto('novoGastoFixo')} className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700">
-                            ➕ Novo Gasto
-                        </button>
-                    </div>
-                    {gastosFixos.map(gasto => (
-                        <div key={gasto.id} className="bg-white rounded-xl shadow-lg p-6">
-                            <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-gray-800">{gasto.descricao}</span>
-                                        <span className={`px-2 py-1 rounded text-xs font-bold ${
-                                            gasto.ano === 2026 ? 'bg-blue-100 text-blue-700' : 
-                                            gasto.ano === 2025 ? 'bg-yellow-100 text-yellow-700' : 
-                                            'bg-gray-100 text-gray-700'
-                                        }`}>
-                                            {gasto.ano || anoAtual}
-                                        </span>
-                                    </div>
-                                    <div className="text-sm text-gray-500">{gasto.categoria} • Vencimento: dia {gasto.vencimento}</div>
+            const TelaGastosFixos = () => {
+                const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
+                
+                // Categorias únicas dos gastos fixos
+                const categorias = ['TODAS', ...new Set(gastosFixos.map(g => g.categoria))];
+                
+                // Calcular total por cada categoria
+                const totaisPorCategoria = {};
+                gastosFixos.forEach(g => {
+                    if (!totaisPorCategoria[g.categoria]) {
+                        totaisPorCategoria[g.categoria] = 0;
+                    }
+                    totaisPorCategoria[g.categoria] += g.valor;
+                });
+                
+                // Total geral
+                const totalGeral = gastosFixos.reduce((sum, g) => sum + g.valor, 0);
+                
+                // Filtrar por categoria
+                const gastosFiltrados = categoriaFiltro === 'TODAS' 
+                    ? gastosFixos 
+                    : gastosFixos.filter(g => g.categoria === categoriaFiltro);
+                
+                // Calcular total por categoria
+                const totalCategoria = gastosFiltrados.reduce((sum, g) => sum + g.valor, 0);
+                
+                return (
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold text-gray-800">🏠 Gastos Fixos</h2>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => setModalAberto('gerenciarCategorias')} 
+                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 border-2 border-gray-300"
+                                >
+                                    🏷️ Categorias
+                                </button>
+                                <button 
+                                    onClick={() => setModalAberto('novoGastoFixo')} 
+                                    className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                                >
+                                    ➕ Novo Gasto
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Cards por Categoria */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {/* Card Total Geral */}
+                            <div 
+                                className={`bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl shadow-lg p-4 cursor-pointer transition-transform hover:scale-105 ${
+                                    categoriaFiltro === 'TODAS' ? 'ring-4 ring-purple-300' : ''
+                                }`}
+                                onClick={() => setCategoriaFiltro('TODAS')}
+                            >
+                                <div className="text-white/80 text-xs font-semibold mb-1">💰 TOTAL GERAL</div>
+                                <div className="text-2xl font-bold text-white">R$ {totalGeral.toFixed(2)}</div>
+                                <div className="text-white/70 text-xs mt-1">{gastosFixos.length} gastos</div>
+                            </div>
+
+                            {/* Cards por Categoria */}
+                            {Object.entries(totaisPorCategoria)
+                                .sort((a, b) => b[1] - a[1]) // Ordena por valor (maior primeiro)
+                                .map(([categoria, total]) => {
+                                    const quantidade = gastosFixos.filter(g => g.categoria === categoria).length;
+                                    const percentual = totalGeral > 0 ? (total / totalGeral) * 100 : 0;
+                                    
+                                    return (
+                                        <div 
+                                            key={categoria}
+                                            className={`bg-white rounded-xl shadow-lg p-4 cursor-pointer transition-all hover:shadow-xl hover:scale-105 border-2 ${
+                                                categoriaFiltro === categoria 
+                                                    ? 'border-purple-500 ring-2 ring-purple-300' 
+                                                    : 'border-gray-200'
+                                            }`}
+                                            onClick={() => setCategoriaFiltro(categoria)}
+                                        >
+                                            <div className="text-gray-600 text-xs font-semibold mb-1 truncate">{categoria}</div>
+                                            <div className="text-xl font-bold text-purple-600">R$ {total.toFixed(2)}</div>
+                                            <div className="flex justify-between items-center mt-1">
+                                                <div className="text-gray-500 text-xs">{quantidade} gasto{quantidade > 1 ? 's' : ''}</div>
+                                                <div className="text-purple-600 text-xs font-semibold">{percentual.toFixed(0)}%</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+
+                        {/* Filtro por Categoria (agora só visual, cards fazem o filtro) */}
+                        <div className="bg-white rounded-xl shadow-lg p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <span className="text-sm font-semibold text-gray-700">
+                                        🔍 Mostrando: <span className="text-purple-600">{categoriaFiltro}</span>
+                                    </span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <input 
-                                        type="number"
-                                        step="0.01"
-                                        value={gasto.valor}
-                                        onChange={(e) => editarValorGastoFixo(gasto.id, e.target.value)}
-                                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-right"
-                                    />
-                                    <button 
-                                        onClick={() => {
-                                            setItemEditando(gasto);
-                                            setTipoEditando('fixo');
-                                            setModalAberto('editar');
-                                        }}
-                                        className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm font-semibold"
-                                        title="Editar gasto fixo"
-                                    >
-                                        ✏️
-                                    </button>
-                                    <button 
-                                        onClick={() => duplicarGastoFixo(gasto)}
-                                        className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm font-semibold"
-                                        title="Duplicar gasto fixo"
-                                    >
-                                        📋
-                                    </button>
-                                    <button 
-                                        onClick={() => deletarGastoFixo(gasto.id)} 
-                                        className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
-                                        title="Excluir gasto fixo"
-                                    >
-                                        🗑️
-                                    </button>
+                                <div className="text-lg font-bold text-purple-600">
+                                    R$ {totalCategoria.toFixed(2)}
                                 </div>
                             </div>
                         </div>
-                    ))}
-                </div>
-            );
+
+                        {/* Lista de Gastos */}
+                        {gastosFiltrados.length === 0 ? (
+                            <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                                <div className="text-4xl mb-3">🔍</div>
+                                <h3 className="text-xl font-bold text-gray-800 mb-2">Nenhum gasto encontrado</h3>
+                                <p className="text-gray-600">
+                                    {categoriaFiltro === 'TODAS' 
+                                        ? 'Adicione seu primeiro gasto fixo!' 
+                                        : `Nenhum gasto na categoria "${categoriaFiltro}"`}
+                                </p>
+                            </div>
+                        ) : (
+                            gastosFiltrados.map(gasto => (
+                                <div key={gasto.id} className="bg-white rounded-xl shadow-lg p-6">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-semibold text-gray-800">{gasto.descricao}</span>
+                                                <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                                    gasto.ano === 2026 ? 'bg-blue-100 text-blue-700' : 
+                                                    gasto.ano === 2025 ? 'bg-yellow-100 text-yellow-700' : 
+                                                    'bg-gray-100 text-gray-700'
+                                                }`}>
+                                                    {gasto.ano || anoAtual}
+                                                </span>
+                                            </div>
+                                            <div className="text-sm text-gray-500">{gasto.categoria} • Vencimento: dia {gasto.vencimento}</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <input 
+                                                type="number"
+                                                step="0.01"
+                                                value={gasto.valor}
+                                                onChange={(e) => editarValorGastoFixo(gasto.id, e.target.value)}
+                                                className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-right"
+                                            />
+                                            <button 
+                                                onClick={() => {
+                                                    setItemEditando(gasto);
+                                                    setTipoEditando('fixo');
+                                                    setModalAberto('editar');
+                                                }}
+                                                className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm font-semibold"
+                                                title="Editar gasto fixo"
+                                            >
+                                                ✏️
+                                            </button>
+                                            <button 
+                                                onClick={() => duplicarGastoFixo(gasto)}
+                                                className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm font-semibold"
+                                                title="Duplicar gasto fixo"
+                                            >
+                                                📋
+                                            </button>
+                                            <button 
+                                                onClick={() => deletarGastoFixo(gasto.id)} 
+                                                className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
+                                                title="Excluir gasto fixo"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                );
+            };
 
             const TelaGastosVariaveis = () => {
+                const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
+                
                 const gastosDoMes = gastosVariaveis.filter(g => g.mes === mesAtual && g.ano === anoAtual);
+                
+                // Calcular total por cada categoria
+                const totaisPorCategoria = {};
+                gastosDoMes.forEach(g => {
+                    if (!totaisPorCategoria[g.categoria]) {
+                        totaisPorCategoria[g.categoria] = 0;
+                    }
+                    totaisPorCategoria[g.categoria] += g.valor;
+                });
+                
                 const totalMes = gastosDoMes.reduce((sum, g) => sum + g.valor, 0);
+                
+                // Filtrar por categoria
+                const gastosFiltrados = categoriaFiltro === 'TODAS' 
+                    ? gastosDoMes 
+                    : gastosDoMes.filter(g => g.categoria === categoriaFiltro);
+                
+                const totalCategoria = gastosFiltrados.reduce((sum, g) => sum + g.valor, 0);
 
                 return (
                     <div className="space-y-4">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-bold text-gray-800">📊 Gastos Variáveis</h2>
-                            <button onClick={() => setModalAberto('novoGastoVariavel')} className="px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700">
-                                ➕ Novo Gasto
-                            </button>
-                        </div>
-                        <div className="bg-white rounded-xl shadow-lg p-6">
-                            <div className="flex justify-between items-center mb-3">
-                                <h3 className="text-lg font-bold text-gray-800">Total do Mês</h3>
-                                <div className="text-xl font-bold text-orange-600">R$ {totalMes.toFixed(2)}</div>
+                            <h2 className="text-lg font-bold text-gray-800">📊 Gastos Variáveis - {mesAtual.toUpperCase()} / {anoAtual}</h2>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => setModalAberto('gerenciarCategorias')} 
+                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 border-2 border-gray-300"
+                                >
+                                    🏷️ Categorias
+                                </button>
+                                <button 
+                                    onClick={() => setModalAberto('novoGastoVariavel')} 
+                                    className="px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700"
+                                >
+                                    ➕ Novo Gasto
+                                </button>
                             </div>
+                        </div>
+
+                        {/* Cards por Categoria */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {/* Card Total Geral */}
+                            <div 
+                                className={`bg-gradient-to-br from-orange-600 to-red-600 rounded-xl shadow-lg p-4 cursor-pointer transition-transform hover:scale-105 ${
+                                    categoriaFiltro === 'TODAS' ? 'ring-4 ring-orange-300' : ''
+                                }`}
+                                onClick={() => setCategoriaFiltro('TODAS')}
+                            >
+                                <div className="text-white/80 text-xs font-semibold mb-1">💰 TOTAL DO MÊS</div>
+                                <div className="text-2xl font-bold text-white">R$ {totalMes.toFixed(2)}</div>
+                                <div className="text-white/70 text-xs mt-1">{gastosDoMes.length} gastos</div>
+                            </div>
+
+                            {/* Cards por Categoria */}
+                            {Object.entries(totaisPorCategoria)
+                                .sort((a, b) => b[1] - a[1]) // Ordena por valor (maior primeiro)
+                                .map(([categoria, total]) => {
+                                    const quantidade = gastosDoMes.filter(g => g.categoria === categoria).length;
+                                    const percentual = totalMes > 0 ? (total / totalMes) * 100 : 0;
+                                    
+                                    return (
+                                        <div 
+                                            key={categoria}
+                                            className={`bg-white rounded-xl shadow-lg p-4 cursor-pointer transition-all hover:shadow-xl hover:scale-105 border-2 ${
+                                                categoriaFiltro === categoria 
+                                                    ? 'border-orange-500 ring-2 ring-orange-300' 
+                                                    : 'border-gray-200'
+                                            }`}
+                                            onClick={() => setCategoriaFiltro(categoria)}
+                                        >
+                                            <div className="text-gray-600 text-xs font-semibold mb-1 truncate">{categoria}</div>
+                                            <div className="text-xl font-bold text-orange-600">R$ {total.toFixed(2)}</div>
+                                            <div className="flex justify-between items-center mt-1">
+                                                <div className="text-gray-500 text-xs">{quantidade} gasto{quantidade > 1 ? 's' : ''}</div>
+                                                <div className="text-orange-600 text-xs font-semibold">{percentual.toFixed(0)}%</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+
+                        {/* Barra de Filtro Atual */}
+                        {gastosDoMes.length > 0 && (
+                            <div className="bg-white rounded-xl shadow-lg p-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <span className="text-sm font-semibold text-gray-700">
+                                            🔍 Mostrando: <span className="text-orange-600">{categoriaFiltro}</span>
+                                        </span>
+                                    </div>
+                                    <div className="text-lg font-bold text-orange-600">
+                                        R$ {totalCategoria.toFixed(2)}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Lista de Gastos */}
+                        <div className="bg-white rounded-xl shadow-lg p-6">
                             <div className="space-y-2">
-                                {gastosDoMes.length === 0 ? (
-                                    <div className="text-center py-12 text-gray-500">
-                                        Nenhum gasto variável registrado neste mês.
+                                {gastosFiltrados.length === 0 ? (
+                                    <div className="text-center py-12">
+                                        <div className="text-4xl mb-3">
+                                            {gastosDoMes.length === 0 ? '📊' : '🔍'}
+                                        </div>
+                                        <h3 className="text-xl font-bold text-gray-800 mb-2">
+                                            {gastosDoMes.length === 0 
+                                                ? 'Nenhum gasto variável' 
+                                                : 'Nenhum gasto encontrado'}
+                                        </h3>
+                                        <p className="text-gray-600">
+                                            {gastosDoMes.length === 0 
+                                                ? 'Adicione gastos variáveis para este mês!' 
+                                                : `Nenhum gasto na categoria "${categoriaFiltro}"`}
+                                        </p>
                                     </div>
                                 ) : (
-                                    gastosDoMes.map(gasto => (
-                                        <div key={gasto.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                                    gastosFiltrados.map(gasto => (
+                                        <div key={gasto.id} className="flex justify-between items-center p-4 bg-orange-50 rounded-lg border border-orange-200">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-semibold text-gray-800">{gasto.categoria}</span>
@@ -7460,6 +7799,103 @@
                     )}
 
                     {/* Modal Nova Meta */}
+                    {/* Modal Gerenciar Categorias */}
+                    {modalAberto === 'gerenciarCategorias' && (
+                        <Modal titulo="🏷️ Gerenciar Categorias" onClose={() => setModalAberto(null)}>
+                            <div className="space-y-6">
+                                {/* Gastos Fixos */}
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-800 mb-3">🏠 Gastos Fixos</h3>
+                                    <div className="bg-purple-50 rounded-lg p-4 mb-3">
+                                        <div className="text-sm font-semibold text-gray-700 mb-2">Categorias Padrão:</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['MORADIA', 'ESTUDO', 'TRANSPORTE', 'SERVIÇOS', 'SAÚDE'].map(cat => (
+                                                <span key={cat} className="px-3 py-1 bg-white border-2 border-purple-300 rounded-lg text-sm font-semibold text-gray-700">
+                                                    {cat}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="bg-white rounded-lg border-2 border-purple-200 p-4">
+                                        <div className="text-sm font-semibold text-gray-700 mb-2">Suas Categorias Personalizadas:</div>
+                                        {categoriasPersonalizadas.gastosFixos.length === 0 ? (
+                                            <p className="text-sm text-gray-500 italic">Nenhuma categoria personalizada ainda</p>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-2">
+                                                {categoriasPersonalizadas.gastosFixos.map(cat => (
+                                                    <div key={cat} className="flex items-center gap-1 px-3 py-1 bg-purple-100 rounded-lg">
+                                                        <span className="text-sm font-semibold text-purple-700">{cat}</span>
+                                                        <button
+                                                            onClick={() => {
+                                                                if (confirm(`Excluir categoria "${cat}"?`)) {
+                                                                    setCategoriasPersonalizadas({
+                                                                        ...categoriasPersonalizadas,
+                                                                        gastosFixos: categoriasPersonalizadas.gastosFixos.filter(c => c !== cat)
+                                                                    });
+                                                                }
+                                                            }}
+                                                            className="text-red-600 hover:text-red-700 text-xs"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Gastos Variáveis */}
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-800 mb-3">📊 Gastos Variáveis</h3>
+                                    <div className="bg-orange-50 rounded-lg p-4 mb-3">
+                                        <div className="text-sm font-semibold text-gray-700 mb-2">Categorias Padrão:</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['MERCADO', 'FARMÁCIA', 'ALIMENTAÇÃO', 'TRANSPORTE', 'GASOLINA', 'LAZER'].map(cat => (
+                                                <span key={cat} className="px-3 py-1 bg-white border-2 border-orange-300 rounded-lg text-sm font-semibold text-gray-700">
+                                                    {cat}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="bg-white rounded-lg border-2 border-orange-200 p-4">
+                                        <div className="text-sm font-semibold text-gray-700 mb-2">Suas Categorias Personalizadas:</div>
+                                        {categoriasPersonalizadas.gastosVariaveis.length === 0 ? (
+                                            <p className="text-sm text-gray-500 italic">Nenhuma categoria personalizada ainda</p>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-2">
+                                                {categoriasPersonalizadas.gastosVariaveis.map(cat => (
+                                                    <div key={cat} className="flex items-center gap-1 px-3 py-1 bg-orange-100 rounded-lg">
+                                                        <span className="text-sm font-semibold text-orange-700">{cat}</span>
+                                                        <button
+                                                            onClick={() => {
+                                                                if (confirm(`Excluir categoria "${cat}"?`)) {
+                                                                    setCategoriasPersonalizadas({
+                                                                        ...categoriasPersonalizadas,
+                                                                        gastosVariaveis: categoriasPersonalizadas.gastosVariaveis.filter(c => c !== cat)
+                                                                    });
+                                                                }
+                                                            }}
+                                                            className="text-red-600 hover:text-red-700 text-xs"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                                    <div className="text-sm text-blue-800">
+                                        💡 <strong>Dica:</strong> Para criar novas categorias, clique em "➕ Novo Gasto" e escolha "Criar nova categoria"
+                                    </div>
+                                </div>
+                            </div>
+                        </Modal>
+                    )}
+
                     {modalAberto === 'novaMeta' && (
                         <Modal titulo="🎯 Nova Meta Financeira" onClose={() => setModalAberto(null)}>
                             <div className="space-y-4">
