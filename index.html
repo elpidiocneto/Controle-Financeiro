@@ -4692,41 +4692,37 @@
                     totaisPorCartao[cartao.nome] = valorTotal;
                     totalGeralMes += valorTotal;
                     
-                    // Calcular dívida (limite usado) se cartão tem limite
+                    // Calcular dívida de TODOS os cartões (com ou sem limite)
+                    const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+                    let gastoTotal = 0;
+                    let pagoTotal = 0;
+                    
+                    meses.forEach(mes => {
+                        const val = parseFloat(valoresAno[mes]) || 0;
+                        const parc = calcularParcelasCartao(cartao.nome, mes).reduce((s, c) => s + parseFloat(c.valorParcela || 0), 0);
+                        const total = val + parc;
+                        
+                        gastoTotal += total;
+                        
+                        const st = getStatusFarol(cartao.nome, mes);
+                        if (st === 'PAGO') {
+                            pagoTotal += total;
+                        } else if (typeof st === 'number') {
+                            pagoTotal += parseFloat(st) || 0;
+                        }
+                    });
+                    
+                    const div = Math.max(gastoTotal - pagoTotal, 0);
+                    
+                    if (div > 0) {
+                        console.log(`💳 ${cartao.nome}: Gasto=${gastoTotal.toFixed(2)} Pago=${pagoTotal.toFixed(2)} Dívida=${div.toFixed(2)}`);
+                    }
+                    
+                    totalDivida += div;
+                    
+                    // Somar limites apenas dos cartões que têm limite definido
                     if (cartao.limite > 0) {
-                        const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-                        let gastoAno = 0;
-                        let pagoAno = 0;
-                        
-                        console.log(`\n💳 ${cartao.nome} (Limite: R$ ${cartao.limite})`);
-                        
-                        meses.forEach(mes => {
-                            const val = parseFloat(valoresAno[mes]) || 0;
-                            const parc = calcularParcelasCartao(cartao.nome, mes).reduce((s, c) => s + parseFloat(c.valorParcela || 0), 0);
-                            const total = val + parc;
-                            
-                            if (total > 0) {
-                                console.log(`  ${mes.toUpperCase()}: Base=${val.toFixed(2)} Parc=${parc.toFixed(2)} Total=${total.toFixed(2)}`);
-                            }
-                            
-                            gastoAno += total;
-                            
-                            const st = getStatusFarol(cartao.nome, mes);
-                            if (st === 'PAGO') {
-                                pagoAno += total;
-                                if (total > 0) console.log(`    ✅ PAGO: ${total.toFixed(2)}`);
-                            } else if (typeof st === 'number') {
-                                const pgto = parseFloat(st) || 0;
-                                pagoAno += pgto;
-                                if (pgto > 0) console.log(`    💵 PAGO PARCIAL: ${pgto.toFixed(2)}`);
-                            }
-                        });
-                        
-                        const div = Math.max(gastoAno - pagoAno, 0);
-                        totalDivida += div;
                         totalLimites += cartao.limite;
-                        
-                        console.log(`  📊 TOTAL: Gasto=${gastoAno.toFixed(2)} Pago=${pagoAno.toFixed(2)} DÍVIDA=${div.toFixed(2)}`);
                     }
                 });
                 
@@ -4758,16 +4754,7 @@
                             <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-md p-3 cursor-pointer transition-transform hover:scale-105">
                                 <div className="text-white/80 text-xs font-semibold mb-1">💳 TOTAL MÊS</div>
                                 <div className="text-xl font-bold text-white">R$ {totalGeralMes.toFixed(2)}</div>
-                                <div className="text-white/70 text-xs mt-0.5">{cartoes.length} cartão{cartoes.length !== 1 ? 'ões' : ''}</div>
-                            </div>
-                            
-                            {/* Card Dívida Total */}
-                            <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-lg shadow-md p-3 cursor-pointer transition-transform hover:scale-105">
-                                <div className="text-white/80 text-xs font-semibold mb-1">🔴 DÍVIDA</div>
-                                <div className="text-xl font-bold text-white">R$ {totalDivida.toFixed(2)}</div>
-                                <div className="text-white/70 text-xs mt-0.5">
-                                    {totalLimites > 0 ? `${((totalDivida / totalLimites) * 100).toFixed(0)}% limites` : 'Sem limites'}
-                                </div>
+                                <div className="text-white/70 text-xs mt-0.5">{mesAtual.toUpperCase()}/{anoAtual}</div>
                             </div>
 
                             {/* Cards por Cartão */}
@@ -4820,6 +4807,15 @@
                                         </div>
                                     );
                                 })}
+                            
+                            {/* Card Dívida Total - NO FINAL */}
+                            <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-lg shadow-md p-3 transition-transform hover:scale-105">
+                                <div className="text-white/80 text-xs font-semibold mb-1">🔴 DÍVIDA TOTAL</div>
+                                <div className="text-xl font-bold text-white">R$ {totalDivida.toFixed(2)}</div>
+                                <div className="text-white/70 text-xs mt-0.5">
+                                    {totalLimites > 0 ? `${((totalDivida / totalLimites) * 100).toFixed(0)}% limites` : 'Ano completo'}
+                                </div>
+                            </div>
                         </div>
 
                         {/* Lista de Cartões */}
