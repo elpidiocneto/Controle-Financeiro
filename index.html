@@ -4698,16 +4698,27 @@
                         let gastoAno = 0;
                         let pagoAno = 0;
                         
+                        console.log(`\n💳 ${cartao.nome} (Limite: R$ ${cartao.limite})`);
+                        
                         meses.forEach(mes => {
-                            const val = valoresAno[mes] || 0;
-                            const parc = calcularParcelasCartao(cartao.nome, mes).reduce((s, c) => s + c.valorParcela, 0);
-                            gastoAno += val + parc;
+                            const val = parseFloat(valoresAno[mes]) || 0;
+                            const parc = calcularParcelasCartao(cartao.nome, mes).reduce((s, c) => s + parseFloat(c.valorParcela || 0), 0);
+                            const total = val + parc;
+                            
+                            if (total > 0) {
+                                console.log(`  ${mes.toUpperCase()}: Base=${val.toFixed(2)} Parc=${parc.toFixed(2)} Total=${total.toFixed(2)}`);
+                            }
+                            
+                            gastoAno += total;
                             
                             const st = getStatusFarol(cartao.nome, mes);
                             if (st === 'PAGO') {
-                                pagoAno += val + parc;
+                                pagoAno += total;
+                                if (total > 0) console.log(`    ✅ PAGO: ${total.toFixed(2)}`);
                             } else if (typeof st === 'number') {
-                                pagoAno += st;
+                                const pgto = parseFloat(st) || 0;
+                                pagoAno += pgto;
+                                if (pgto > 0) console.log(`    💵 PAGO PARCIAL: ${pgto.toFixed(2)}`);
                             }
                         });
                         
@@ -4715,7 +4726,7 @@
                         totalDivida += div;
                         totalLimites += cartao.limite;
                         
-                        console.log(`💳 ${cartao.nome}: Gasto=${gastoAno.toFixed(2)} Pago=${pagoAno.toFixed(2)} Dívida=${div.toFixed(2)}`);
+                        console.log(`  📊 TOTAL: Gasto=${gastoAno.toFixed(2)} Pago=${pagoAno.toFixed(2)} DÍVIDA=${div.toFixed(2)}`);
                     }
                 });
                 
