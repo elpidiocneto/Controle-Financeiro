@@ -7540,6 +7540,7 @@
                 const [filtroStatus, setFiltroStatus] = useState('todos');
                 const [modalPagamento, setModalPagamento] = useState(null);
                 const [valorParcial, setValorParcial] = useState('');
+                const [mostrarTimeline, setMostrarTimeline] = useState(false); // INICIA FECHADO
                 
                 const itensTodos = [
                     // CORRIGIDO: Acessa valores do ano atual
@@ -7559,8 +7560,152 @@
                     filtroStatus === 'pagos' ? itensTodos.filter(item => getStatusFarol(item.nome, mesAtual) === 'PAGO') :
                     itensTodos.filter(item => getStatusFarol(item.nome, mesAtual) === 'PENDENTE');
 
+                // Calcular vencimentos da semana
+                const hoje = new Date();
+                const diaHoje = hoje.getDate();
+                const proximaSemana = diaHoje + 7;
+                
+                const vencimentosHoje = itensTodos.filter(item => {
+                    const status = getStatusFarol(item.nome, mesAtual);
+                    return item.vencimento === diaHoje && status !== 'PAGO';
+                });
+                
+                const vencimentosSemana = itensTodos.filter(item => {
+                    const status = getStatusFarol(item.nome, mesAtual);
+                    return item.vencimento > diaHoje && item.vencimento <= proximaSemana && status !== 'PAGO';
+                });
+                
+                const totalHoje = vencimentosHoje.reduce((sum, item) => sum + item.valor, 0);
+                const totalSemana = vencimentosSemana.reduce((sum, item) => sum + item.valor, 0);
+
                 return (
                     <div className="space-y-3">
+                        {/* Card Vencimentos da Semana - COMPACTO */}
+                        <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-lg shadow-lg p-4 text-white">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-lg font-bold flex items-center gap-2">
+                                    📅 Vencimentos da Semana
+                                </h3>
+                                <div className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                                    Hoje: {diaHoje} {mesAtual.toUpperCase()}
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                {/* Vence Hoje */}
+                                <div className="bg-white/10 backdrop-blur rounded-lg p-3 border border-red-300">
+                                    <div className="text-xs opacity-90 mb-1">🔴 VENCE HOJE</div>
+                                    <div className="text-2xl font-bold mb-1">R$ {totalHoje.toFixed(2)}</div>
+                                    <div className="text-xs opacity-80 mb-1">{vencimentosHoje.length} {vencimentosHoje.length === 1 ? 'item' : 'itens'}</div>
+                                    {vencimentosHoje.length > 0 && (
+                                        <div className="mt-1 space-y-0.5">
+                                            {vencimentosHoje.slice(0, 2).map((item, idx) => (
+                                                <div key={idx} className="text-xs opacity-80 truncate">• {item.nome}</div>
+                                            ))}
+                                            {vencimentosHoje.length > 2 && (
+                                                <div className="text-xs opacity-70">+ {vencimentosHoje.length - 2} mais</div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {/* Próximos 7 Dias */}
+                                <div className="bg-white/10 backdrop-blur rounded-lg p-3 border border-yellow-300">
+                                    <div className="text-xs opacity-90 mb-1">🟡 PRÓXIMOS 7 DIAS</div>
+                                    <div className="text-2xl font-bold mb-1">R$ {totalSemana.toFixed(2)}</div>
+                                    <div className="text-xs opacity-80 mb-1">{vencimentosSemana.length} {vencimentosSemana.length === 1 ? 'item' : 'itens'}</div>
+                                    {vencimentosSemana.length > 0 && (
+                                        <div className="mt-1 space-y-0.5">
+                                            {vencimentosSemana.slice(0, 2).map((item, idx) => (
+                                                <div key={idx} className="text-xs opacity-80 truncate">• {item.nome} (dia {item.vencimento})</div>
+                                            ))}
+                                            {vencimentosSemana.length > 2 && (
+                                                <div className="text-xs opacity-70">+ {vencimentosSemana.length - 2} mais</div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {/* Total da Semana */}
+                                <div className="bg-white/10 backdrop-blur rounded-lg p-3 border border-white/50">
+                                    <div className="text-xs opacity-90 mb-1">💰 TOTAL SEMANA</div>
+                                    <div className="text-2xl font-bold mb-1">R$ {(totalHoje + totalSemana).toFixed(2)}</div>
+                                    <div className="text-xs opacity-80 mb-2">{vencimentosHoje.length + vencimentosSemana.length} itens total</div>
+                                    <button
+                                        onClick={() => setMostrarTimeline(!mostrarTimeline)}
+                                        className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition-colors w-full"
+                                    >
+                                        {mostrarTimeline ? '📅 Ocultar' : '📅 Ver'} Timeline
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Timeline Semanal - NOVO */}
+                        {mostrarTimeline && (
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <h3 className="text-lg font-bold text-gray-800 mb-4">📆 Timeline da Semana</h3>
+                                <div className="space-y-3">
+                                    {[...Array(7)].map((_, i) => {
+                                        const dia = diaHoje + i;
+                                        const vencimentosDia = itensTodos.filter(item => {
+                                            const status = getStatusFarol(item.nome, mesAtual);
+                                            return item.vencimento === dia && status !== 'PAGO';
+                                        });
+                                        const totalDia = vencimentosDia.reduce((sum, item) => sum + item.valor, 0);
+                                        const dataFutura = new Date(hoje);
+                                        dataFutura.setDate(dia);
+                                        const diaSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'][dataFutura.getDay()];
+                                        const isHoje = i === 0;
+                                        
+                                        return (
+                                            <div key={i} className={`flex items-start gap-3 p-3 rounded-lg transition-all ${
+                                                isHoje ? 'bg-purple-50 border-2 border-purple-500' : 
+                                                vencimentosDia.length > 0 ? 'bg-orange-50 border border-orange-200' : 
+                                                'bg-gray-50 border border-gray-200'
+                                            }`}>
+                                                <div className={`flex-shrink-0 w-16 text-center ${isHoje ? 'text-purple-600' : 'text-gray-600'}`}>
+                                                    <div className="text-xs font-semibold">{diaSemana}</div>
+                                                    <div className={`text-2xl font-bold ${isHoje ? 'text-purple-700' : 'text-gray-700'}`}>{dia}</div>
+                                                    {isHoje && <div className="text-xs font-bold text-purple-600">HOJE</div>}
+                                                </div>
+                                                
+                                                <div className="flex-1">
+                                                    {vencimentosDia.length === 0 ? (
+                                                        <div className="text-sm text-gray-400 italic py-2">Nenhum vencimento</div>
+                                                    ) : (
+                                                        <div className="space-y-2">
+                                                            {vencimentosDia.map((item, idx) => {
+                                                                const status = getStatusFarol(item.nome, mesAtual);
+                                                                const isPago = status === 'PAGO';
+                                                                return (
+                                                                    <div key={idx} className="flex items-center justify-between bg-white rounded p-2 shadow-sm">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-lg">{isPago ? '✅' : '⚪'}</span>
+                                                                            <div>
+                                                                                <div className="font-semibold text-sm text-gray-800">{item.nome}</div>
+                                                                                <div className="text-xs text-gray-500">{item.tipo}</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="text-right">
+                                                                            <div className="font-bold text-gray-800">R$ {item.valor.toFixed(2)}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                            <div className="text-xs text-right font-bold text-gray-600 pt-1 border-t">
+                                                                Total do dia: R$ {totalDia.toFixed(2)}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="bg-white rounded-xl shadow-lg p-6">
                             <h2 className="text-2xl font-bold text-gray-800 mb-3">🚦 Farol de Pagamentos - {mesAtual.toUpperCase()} / {anoAtual}</h2>
                             
@@ -7637,113 +7782,104 @@
                                 </button>
                             </div>
 
-                            {/* Lista de Pagamentos */}
-                            <div className="space-y-2">
-                                {itensFiltrados.map((item, idx) => {
-                                    const status = getStatusFarol(item.nome, mesAtual);
-                                    const isPago = status === 'PAGO';
-                                    const isParcial = typeof status === 'number' && status > 0;
-                                    const valorPago = isParcial ? status : 0;
-                                    const valorRestante = isParcial ? (item.valor - valorPago) : 0;
+                            {/* Lista de Pagamentos - IGUAL À TIMELINE */}
+                            <div className="space-y-3">
+                                {(() => {
+                                    // Agrupar itens por data de vencimento
+                                    const itensPorData = {};
+                                    itensFiltrados.forEach(item => {
+                                        const dia = item.vencimento;
+                                        if (!itensPorData[dia]) {
+                                            itensPorData[dia] = [];
+                                        }
+                                        itensPorData[dia].push(item);
+                                    });
                                     
-                                    // Cores
-                                    let bgCard = 'bg-gray-50 border-gray-200';
-                                    let bgIcone = 'bg-orange-500';
-                                    let icone = '!';
-                                    let bgBadge = 'bg-orange-500';
-                                    let textoBadge = '⏳ PENDENTE';
+                                    // Ordenar dias
+                                    const diasOrdenados = Object.keys(itensPorData).sort((a, b) => parseInt(a) - parseInt(b));
                                     
-                                    if (isPago) {
-                                        bgCard = 'bg-green-50 border-green-200';
-                                        bgIcone = 'bg-green-500';
-                                        icone = '✓';
-                                        bgBadge = 'bg-green-500';
-                                        textoBadge = '✅ PAGO';
-                                    } else if (isParcial) {
-                                        bgCard = 'bg-blue-50 border-blue-200';
-                                        bgIcone = 'bg-blue-500';
-                                        icone = '½';
-                                        bgBadge = 'bg-blue-500';
-                                        textoBadge = '💰 PARCIAL';
-                                    }
-                                    
-                                    return (
-                                        <div 
-                                            key={idx}
-                                            className={`${bgCard} flex items-center justify-between p-4 rounded-lg border-2 transition-all`}
-                                        >
-                                            <div 
-                                                className="flex items-center gap-4 flex-1 cursor-pointer"
-                                                onClick={() => setModalPagamento(item)}
-                                            >
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${bgIcone}`}>
-                                                    {icone}
+                                    return diasOrdenados.map(dia => {
+                                        const itensDoDia = itensPorData[dia];
+                                        const totalDia = itensDoDia.reduce((sum, item) => sum + item.valor, 0);
+                                        const hoje = new Date().getDate();
+                                        const isHoje = parseInt(dia) === hoje;
+                                        
+                                        // Calcular dia da semana
+                                        const dataAtual = new Date();
+                                        const anoNum = dataAtual.getFullYear();
+                                        const mesNum = dataAtual.getMonth();
+                                        const dataVencimento = new Date(anoNum, mesNum, parseInt(dia));
+                                        const diaSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'][dataVencimento.getDay()];
+                                        
+                                        return (
+                                            <div key={dia} className={`flex items-start gap-3 p-3 rounded-lg transition-all ${
+                                                isHoje ? 'bg-purple-50 border-2 border-purple-500' : 
+                                                itensDoDia.length > 0 ? 'bg-orange-50 border border-orange-200' : 
+                                                'bg-gray-50 border border-gray-200'
+                                            }`}>
+                                                {/* Data na lateral - IGUAL TIMELINE */}
+                                                <div className={`flex-shrink-0 w-16 text-center ${isHoje ? 'text-purple-600' : 'text-gray-600'}`}>
+                                                    <div className="text-xs font-semibold">{diaSemana}</div>
+                                                    <div className={`text-2xl font-bold ${isHoje ? 'text-purple-700' : 'text-gray-700'}`}>{dia}</div>
+                                                    {isHoje && <div className="text-xs font-bold text-purple-600">HOJE</div>}
                                                 </div>
-                                                <div>
-                                                    <div className={`font-semibold ${isPago ? 'text-green-700 line-through' : 'text-gray-800'}`}>
-                                                        {item.nome}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        {item.tipo} • Vencimento: dia {item.vencimento}
-                                                    </div>
-                                                    {isParcial && (
-                                                        <div className="text-xs text-blue-600 font-semibold mt-1">
-                                                            Pago: R$ {valorPago.toFixed(2)} • Falta: R$ {valorRestante.toFixed(2)}
+                                                
+                                                {/* Conteúdo do dia */}
+                                                <div className="flex-1">
+                                                    {itensDoDia.length === 0 ? (
+                                                        <div className="text-sm text-gray-400 italic py-2">Nenhum vencimento</div>
+                                                    ) : (
+                                                        <div className="space-y-2">
+                                                            {itensDoDia.map((item, idx) => {
+                                                                const status = getStatusFarol(item.nome, mesAtual);
+                                                                const isPago = status === 'PAGO';
+                                                                const isParcial = typeof status === 'number' && status > 0;
+                                                                const valorPago = isParcial ? status : 0;
+                                                                const isAtrasado = parseInt(dia) < hoje && !isPago;
+                                                                
+                                                                return (
+                                                                    <div 
+                                                                        key={idx} 
+                                                                        className="flex items-center justify-between bg-white rounded p-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                                                                        onClick={() => setModalPagamento(item)}
+                                                                    >
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-lg">
+                                                                                {isPago ? '✅' : isAtrasado ? '⚠️' : isParcial ? '💵' : '⚪'}
+                                                                            </span>
+                                                                            <div>
+                                                                                <div className={`font-semibold text-sm ${isPago ? 'text-green-700 line-through' : 'text-gray-800'}`}>
+                                                                                    {item.nome}
+                                                                                </div>
+                                                                                <div className="text-xs text-gray-500">{item.tipo}</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="text-right">
+                                                                            <div className={`font-bold ${isPago ? 'text-green-600' : 'text-gray-800'}`}>
+                                                                                R$ {item.valor.toFixed(2)}
+                                                                            </div>
+                                                                            {isParcial && (
+                                                                                <div className="text-xs text-blue-600">Pago: R$ {valorPago.toFixed(2)}</div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                            <div className="text-xs text-right font-bold text-gray-600 pt-1 border-t">
+                                                                Total do dia: R$ {totalDia.toFixed(2)}
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex flex-col items-end gap-2">
-                                                    <div className={`text-xl font-bold ${isPago ? 'text-green-600' : 'text-gray-800'}`}>
-                                                        R$ {item.valor.toFixed(2)}
-                                                    </div>
-                                                    <span className={`px-4 py-1 rounded-full text-xs font-semibold ${bgBadge} text-white`}>
-                                                        {textoBadge}
-                                                    </span>
-                                                </div>
-                                                
-                                                {/* Botão de Desfazer - só aparece se estiver PAGO ou PARCIAL */}
-                                                {(isPago || isParcial) && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation(); // Não abre o modal
-                                                            const tipoPagamento = isPago ? 'INTEGRAL' : 'PARCIAL';
-                                                            const valorPago = isPago ? item.valor.toFixed(2) : status.toFixed(2);
-                                                            
-                                                            if (confirm(`🔄 DESFAZER PAGAMENTO?\n\n` +
-                                                                `Item: ${item.nome}\n` +
-                                                                `Tipo: ${tipoPagamento}\n` +
-                                                                `Valor: R$ ${valorPago}\n\n` +
-                                                                `Voltar para PENDENTE?`)) {
-                                                                const chave = `${item.nome}-${mesAtual}-${anoAtual}`;
-                                                                setFarol(prev => {
-                                                                    const novoFarol = {...prev};
-                                                                    delete novoFarol[chave];
-                                                                    return novoFarol;
-                                                                });
-                                                                alert('✅ Pagamento desfeito!');
-                                                            }
-                                                        }}
-                                                        className="px-3 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all text-sm"
-                                                        title="Desfazer pagamento"
-                                                    >
-                                                        🔄 Desfazer
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                                {itensFiltrados.length === 0 && (
-                                    <div className="text-center py-12 text-gray-500">
-                                        Nenhum item nesta categoria
-                                    </div>
-                                )}
+                                        );
+                                    });
+                                })()}
                             </div>
+
                         </div>
-                        
-                        {/* Modal Pagamento */}
+
+                        {/* Modal de Pagamento */}
                         {modalPagamento && (
                             <div className="modal-overlay" onClick={() => setModalPagamento(null)}>
                                 <div className="modal-content" onClick={(e) => e.stopPropagation()}>
