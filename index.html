@@ -958,7 +958,7 @@
                     )}
                     
                     {/* Mês (se for variável ou receita) */}
-                    {(tipo === 'variavel' || tipo === 'receita') && (
+                    {(tipo === 'variavel' || tipo === 'receita' || tipo === 'extra') && (
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Mês
@@ -973,6 +973,31 @@
                                     <option key={mes} value={mes}>{mes}</option>
                                 ))}
                             </select>
+                        </div>
+                    )}
+                    
+                    {/* Data específica (se for variável ou extra) */}
+                    {(tipo === 'variavel' || tipo === 'extra') && (
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Data do Gasto
+                            </label>
+                            <input
+                                type="date"
+                                value={formData.dataCompleta || ''}
+                                onChange={(e) => {
+                                    const dataInput = e.target.value;
+                                    const dataObj = new Date(dataInput + 'T00:00:00');
+                                    const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                                    handleChange('dataCompleta', dataInput);
+                                    handleChange('data', dataFormatada);
+                                }}
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                                required
+                            />
+                            {formData.data && (
+                                <p className="text-xs text-gray-500 mt-1">Exibido como: {formData.data}</p>
+                            )}
                         </div>
                     )}
                     
@@ -2985,10 +3010,24 @@
                 const [descricao, setDescricao] = useState('');
                 const [valor, setValor] = useState('');
                 const [vencimento, setVencimento] = useState(10);
+                const [temporario, setTemporario] = useState(false);
+                const [totalParcelas, setTotalParcelas] = useState(1);
+                const [mesInicio, setMesInicio] = useState('jan');
+                const [anoInicio, setAnoInicio] = useState(anoAtual);
 
                 // Categorias padrão + personalizadas
                 const categoriasFixasDefault = ['MORADIA', 'ESTUDO', 'TRANSPORTE', 'SERVIÇOS', 'SAÚDE'];
                 const todasCategorias = [...categoriasFixasDefault, ...categoriasPersonalizadas.gastosFixos];
+
+                const mesesList = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+                const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+                const calcularValorParcela = () => {
+                    if (temporario && valor && totalParcelas > 0) {
+                        return (parseFloat(valor) / parseInt(totalParcelas)).toFixed(2);
+                    }
+                    return valor;
+                };
 
                 const handleSubmit = (e) => {
                     e.preventDefault();
@@ -3009,7 +3048,52 @@
                     }
                     
                     if (descricao.trim() && valor) {
-                        adicionarGastoFixo({ categoria: categoriaFinal, descricao, valor, vencimento });
+                        // Se é temporário, criar múltiplas parcelas
+                        if (temporario && totalParcelas > 1) {
+                            const valorParcela = parseFloat(valor) / parseInt(totalParcelas);
+                            const mesInicioIdx = mesesList.indexOf(mesInicio);
+                            let anoAtualParcela = anoInicio;
+                            
+                            for (let i = 1; i <= parseInt(totalParcelas); i++) {
+                                // Calcular mês da parcela
+                                const mesParcelaIdx = (mesInicioIdx + i - 1) % 12;
+                                const mesParcela = mesesList[mesParcelaIdx];
+                                
+                                // Se voltou para janeiro, incrementa o ano
+                                if (i > 1 && mesParcelaIdx === 0) {
+                                    anoAtualParcela++;
+                                }
+                                
+                                const novaParcela = {
+                                    categoria: categoriaFinal,
+                                    descricao: `${descricao} - ${i}/${totalParcelas}`,
+                                    valor: valorParcela,
+                                    vencimento: parseInt(vencimento),
+                                    temporario: true,
+                                    totalParcelas: parseInt(totalParcelas),
+                                    parcelaAtual: i,
+                                    mes: mesParcela,
+                                    ano: anoAtualParcela
+                                };
+                                
+                                adicionarGastoFixo(novaParcela);
+                            }
+                            
+                            alert(`✅ ${totalParcelas} parcelas criadas com sucesso!`);
+                        } else {
+                            // Gasto fixo normal
+                            const novoGasto = {
+                                categoria: categoriaFinal,
+                                descricao,
+                                valor: parseFloat(valor),
+                                vencimento: parseInt(vencimento),
+                                temporario: false,
+                                totalParcelas: null,
+                                parcelaAtual: null
+                            };
+                            adicionarGastoFixo(novoGasto);
+                        }
+                        
                         setModalAberto(null);
                     } else {
                         alert('Preencha todos os campos!');
@@ -3066,18 +3150,27 @@
                             )}
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Descrição {temporario && <span className="text-purple-600">(base)</span>}
+                            </label>
                             <input 
                                 type="text"
                                 value={descricao}
                                 onChange={(e) => setDescricao(e.target.value)}
                                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500"
-                                placeholder="Ex: Aluguel"
+                                placeholder={temporario ? "Ex: IPVA 2026" : "Ex: Aluguel"}
                                 required
                             />
+                            {temporario && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    💡 Sistema adicionará " - 1/3", " - 2/3", etc.
+                                </p>
+                            )}
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Valor (R$)</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Valor {temporario && <span className="text-purple-600">(total)</span>}
+                            </label>
                             <input 
                                 type="number"
                                 step="0.01"
@@ -3087,6 +3180,11 @@
                                 placeholder="0.00"
                                 required
                             />
+                            {temporario && valor && totalParcelas > 0 && (
+                                <p className="text-xs text-green-600 font-semibold mt-1">
+                                    💰 Cada parcela: R$ {calcularValorParcela()}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Dia do Vencimento</label>
@@ -3100,8 +3198,95 @@
                                 required
                             />
                         </div>
+                        
+                        {/* CHECKBOX TEMPORÁRIO */}
+                        <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                    type="checkbox"
+                                    checked={temporario}
+                                    onChange={(e) => setTemporario(e.target.checked)}
+                                    className="w-5 h-5 text-purple-600 border-2 border-gray-300 rounded focus:ring-purple-500"
+                                />
+                                <span className="text-sm font-semibold text-gray-700">
+                                    ⏱️ Parcelar este gasto (criar parcelas automaticamente)
+                                </span>
+                            </label>
+                            <p className="text-xs text-gray-500 mt-1 ml-7">
+                                Exemplo: IPVA, financiamento, etc.
+                            </p>
+                            
+                            {/* CAMPOS CONDICIONAIS */}
+                            {temporario && (
+                                <div className="mt-4 space-y-3">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                            Número de Parcelas
+                                        </label>
+                                        <input 
+                                            type="number"
+                                            min="1"
+                                            max="60"
+                                            value={totalParcelas}
+                                            onChange={(e) => setTotalParcelas(e.target.value)}
+                                            className="w-full px-3 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 text-sm"
+                                            placeholder="3"
+                                            required
+                                        />
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                                Mês de Início
+                                            </label>
+                                            <select
+                                                value={mesInicio}
+                                                onChange={(e) => setMesInicio(e.target.value)}
+                                                className="w-full px-3 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 text-sm"
+                                            >
+                                                {mesesList.map((mes, idx) => (
+                                                    <option key={mes} value={mes}>{mesesNomes[idx]}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                                Ano de Início
+                                            </label>
+                                            <select
+                                                value={anoInicio}
+                                                onChange={(e) => setAnoInicio(parseInt(e.target.value))}
+                                                className="w-full px-3 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 text-sm"
+                                            >
+                                                {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(ano => (
+                                                    <option key={ano} value={ano}>{ano}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-white rounded p-3 text-xs space-y-1">
+                                        <div className="font-semibold text-purple-700">📋 Resumo do Parcelamento:</div>
+                                        <div className="text-gray-600">
+                                            • Total: R$ {valor || '0.00'}
+                                        </div>
+                                        <div className="text-gray-600">
+                                            • {totalParcelas}x de R$ {calcularValorParcela()}
+                                        </div>
+                                        <div className="text-gray-600">
+                                            • Início: {mesesNomes[mesesList.indexOf(mesInicio)]}/{anoInicio}
+                                        </div>
+                                        <div className="text-gray-600">
+                                            • Vencimento: todo dia {vencimento}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        
                         <button type="submit" className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700">
-                            ✅ Adicionar Gasto Fixo
+                            {temporario ? `✅ Criar ${totalParcelas} Parcelas` : '✅ Adicionar Gasto Fixo'}
                         </button>
                     </form>
                 );
@@ -3270,12 +3455,17 @@
                     }
                     
                     if (valor) {
+                        const dataInput = document.getElementById('dataGastoExtra').value;
+                        const dataObj = new Date(dataInput + 'T00:00:00');
+                        const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                        
                         const novoGasto = {
                             id: Date.now(),
                             categoria: categoriaFinal,
                             descricao: descricao || categoriaFinal,
                             valor: parseFloat(valor),
-                            data: new Date().toLocaleDateString('pt-BR'),
+                            data: dataFormatada,
+                            dataCompleta: dataInput, // YYYY-MM-DD
                             mes: mesAtual,
                             ano: anoAtual
                         };
@@ -3332,6 +3522,16 @@
                                     <p className="text-xs text-gray-500 mt-1">💡 Salvo em MAIÚSCULAS</p>
                                 </>
                             )}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Data do Gasto</label>
+                            <input 
+                                type="date"
+                                id="dataGastoExtra"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500"
+                                defaultValue={new Date().toISOString().split('T')[0]}
+                                required
+                            />
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
@@ -5534,7 +5734,14 @@
                                                     {gastosDoDia.map(gasto => (
                                                         <div key={gasto.id} className="flex items-center justify-between bg-white rounded p-2 shadow-sm">
                                                             <div className="flex-1">
-                                                                <div className="font-semibold text-sm text-gray-800">{gasto.descricao}</div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="font-semibold text-sm text-gray-800">{gasto.descricao}</div>
+                                                                    {gasto.temporario && gasto.totalParcelas && (
+                                                                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded">
+                                                                            {gasto.parcelaAtual || 1}/{gasto.totalParcelas}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                                 <div className="text-xs text-gray-500">{gasto.categoria}</div>
                                                             </div>
                                                             <div className="flex items-center gap-2">
@@ -5613,6 +5820,47 @@
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-gray-800">📊 Gastos Variáveis - {mesAtual.toUpperCase()} / {anoAtual}</h2>
                             <div className="flex gap-2">
+                                <button 
+                                    onClick={() => {
+                                        console.log('🔧 FORÇANDO MIGRAÇÃO MANUAL...');
+                                        const migrados = gastosVariaveis.map(gasto => {
+                                            if (!gasto.dataCompleta) {
+                                                let dataGasto;
+                                                
+                                                // 1. Tentar converter data BR
+                                                if (gasto.data && gasto.data.includes('/')) {
+                                                    const [dia, mes, ano] = gasto.data.split('/');
+                                                    dataGasto = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
+                                                    console.log('📅 Convertendo:', gasto.data, '→', dataGasto.toISOString().split('T')[0]);
+                                                }
+                                                // 2. Fallback: usar mês/ano
+                                                else {
+                                                    const anoGasto = gasto.ano || 2026;
+                                                    const mesGasto = gasto.mes || 'jan';
+                                                    const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+                                                    const mesNum = meses.indexOf(mesGasto.toLowerCase());
+                                                    dataGasto = new Date(anoGasto, mesNum >= 0 ? mesNum : 0, 1);
+                                                    console.log('📅 Fallback:', mesGasto, anoGasto, '→', dataGasto.toISOString().split('T')[0]);
+                                                }
+                                                
+                                                return {
+                                                    ...gasto,
+                                                    dataCompleta: dataGasto.toISOString().split('T')[0],
+                                                    data: dataGasto.toLocaleDateString('pt-BR')
+                                                };
+                                            }
+                                            return gasto;
+                                        });
+                                        
+                                        console.log('💾 Salvando gastos migrados...');
+                                        setGastosVariaveis(migrados);
+                                        localStorage.setItem('gastosVariaveis', JSON.stringify(migrados));
+                                        alert('✅ Migração concluída! Recarregue a página (F5)');
+                                    }}
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 border-2 border-green-700"
+                                >
+                                    🔧 Migrar Datas
+                                </button>
                                 <button 
                                     onClick={() => {
                                         console.log('🔍 DEBUG GASTOS VARIÁVEIS:');
