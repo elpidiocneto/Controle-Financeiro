@@ -3052,30 +3052,28 @@
                         if (temporario && totalParcelas > 1) {
                             const valorParcela = parseFloat(valor) / parseInt(totalParcelas);
                             const mesInicioIdx = mesesList.indexOf(mesInicio);
-                            let anoAtualParcela = anoInicio;
                             
-                            for (let i = 1; i <= parseInt(totalParcelas); i++) {
-                                // Calcular mês da parcela
-                                const mesParcelaIdx = (mesInicioIdx + i - 1) % 12;
+                            for (let i = 0; i < parseInt(totalParcelas); i++) {
+                                // Calcular mês e ano da parcela
+                                const mesesAFrente = mesInicioIdx + i;
+                                const mesParcelaIdx = mesesAFrente % 12;
+                                const anosAFrente = Math.floor(mesesAFrente / 12);
                                 const mesParcela = mesesList[mesParcelaIdx];
-                                
-                                // Se voltou para janeiro, incrementa o ano
-                                if (i > 1 && mesParcelaIdx === 0) {
-                                    anoAtualParcela++;
-                                }
+                                const anoAtualParcela = anoInicio + anosAFrente;
                                 
                                 const novaParcela = {
                                     categoria: categoriaFinal,
-                                    descricao: `${descricao} - ${i}/${totalParcelas}`,
+                                    descricao: `${descricao} - ${i + 1}/${totalParcelas}`,
                                     valor: valorParcela,
                                     vencimento: parseInt(vencimento),
                                     temporario: true,
                                     totalParcelas: parseInt(totalParcelas),
-                                    parcelaAtual: i,
+                                    parcelaAtual: i + 1,
                                     mes: mesParcela,
                                     ano: anoAtualParcela
                                 };
                                 
+                                console.log(`📦 Criando parcela ${i + 1}/${totalParcelas}:`, novaParcela);
                                 adicionarGastoFixo(novaParcela);
                             }
                             
