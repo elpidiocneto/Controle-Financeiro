@@ -1013,7 +1013,113 @@
 
             const [gastosVariaveis, setGastosVariaveis] = useState(() => {
                 const saved = localStorage.getItem('gastosVariaveis');
-                return saved ? JSON.parse(saved) : [];
+                const gastos = saved ? JSON.parse(saved) : [];
+                
+                // Migração: adicionar dataCompleta para gastos que não têm
+                let precisaSalvar = false;
+                const gastosMigrados = gastos.map(gasto => {
+                    if (!gasto.dataCompleta) {
+                        precisaSalvar = true;
+                        
+                        // Tentar diferentes fontes para a data
+                        let dataGasto;
+                        
+                        // 1. Se já tem data em formato BR, converter
+                        if (gasto.data && gasto.data.includes('/')) {
+                            const [dia, mes, ano] = gasto.data.split('/');
+                            dataGasto = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
+                            console.log('📅 Convertendo data BR:', gasto.data, '→', dataGasto.toISOString().split('T')[0]);
+                        }
+                        // 2. Se ID é timestamp válido
+                        else if (gasto.id && !isNaN(gasto.id) && gasto.id > 1000000000000) {
+                            dataGasto = new Date(gasto.id);
+                            console.log('📅 Usando ID como timestamp:', gasto.id, '→', dataGasto.toISOString().split('T')[0]);
+                        }
+                        // 3. Fallback: usar mês e ano atuais com dia 1
+                        else {
+                            const anoGasto = gasto.ano || new Date().getFullYear();
+                            const mesGasto = gasto.mes || 'jan';
+                            const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+                            const mesNum = meses.indexOf(mesGasto.toLowerCase());
+                            dataGasto = new Date(anoGasto, mesNum >= 0 ? mesNum : 0, 1);
+                            console.log('📅 Fallback mês/ano:', mesGasto, anoGasto, '→', dataGasto.toISOString().split('T')[0]);
+                        }
+                        
+                        const dataCompletaGerada = dataGasto.toISOString().split('T')[0];
+                        const dataFormatada = dataGasto.toLocaleDateString('pt-BR');
+                        
+                        console.log('✅ Migrado:', gasto.descricao || 'Sem descrição', '-', dataCompletaGerada);
+                        
+                        return {
+                            ...gasto,
+                            dataCompleta: dataCompletaGerada,
+                            data: dataFormatada
+                        };
+                    }
+                    return gasto;
+                });
+                
+                // Salvar automaticamente se teve migração
+                if (precisaSalvar) {
+                    console.log('💾 Salvando', gastosMigrados.length, 'gastos migrados no localStorage...');
+                    setTimeout(() => {
+                        localStorage.setItem('gastosVariaveis', JSON.stringify(gastosMigrados));
+                        console.log('✅ Migração de datas concluída para gastos variáveis');
+                    }, 100);
+                }
+                
+                return gastosMigrados;
+            });
+
+            const [gastosExtras, setGastosExtras] = useState(() => {
+                const saved = localStorage.getItem('gastosExtras');
+                const gastos = saved ? JSON.parse(saved) : [];
+                
+                // Migração: adicionar dataCompleta para gastos que não têm
+                let precisaSalvar = false;
+                const gastosMigrados = gastos.map(gasto => {
+                    if (!gasto.dataCompleta) {
+                        precisaSalvar = true;
+                        
+                        // Tentar diferentes fontes para a data
+                        let dataGasto;
+                        
+                        // 1. Se já tem data em formato BR, converter
+                        if (gasto.data && gasto.data.includes('/')) {
+                            const [dia, mes, ano] = gasto.data.split('/');
+                            dataGasto = new Date(ano, mes - 1, dia);
+                        }
+                        // 2. Se ID é timestamp válido
+                        else if (gasto.id && !isNaN(gasto.id) && gasto.id > 1000000000000) {
+                            dataGasto = new Date(gasto.id);
+                        }
+                        // 3. Fallback: usar mês e ano atuais com dia 1
+                        else {
+                            const anoGasto = gasto.ano || new Date().getFullYear();
+                            const mesGasto = gasto.mes || 'jan';
+                            const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+                            const mesNum = meses.indexOf(mesGasto.toLowerCase());
+                            dataGasto = new Date(anoGasto, mesNum, 1);
+                        }
+                        
+                        return {
+                            ...gasto,
+                            dataCompleta: dataGasto.toISOString().split('T')[0], // YYYY-MM-DD
+                            data: dataGasto.toLocaleDateString('pt-BR')
+                        };
+                    }
+                    return gasto;
+                });
+                
+                // Salvar automaticamente se teve migração
+                if (precisaSalvar) {
+                    setTimeout(() => {
+                        localStorage.setItem('gastosExtras', JSON.stringify(gastosMigrados));
+                        console.log('✅ Migração de datas concluída:', gastosMigrados.length, 'gastos extras');
+                    }, 100);
+                }
+                
+                return gastosMigrados;
             });
 
             const [receitas, setReceitas] = useState(() => {
@@ -1067,7 +1173,8 @@
                 const saved = localStorage.getItem('categoriasPersonalizadas');
                 return saved ? JSON.parse(saved) : {
                     gastosFixos: [],
-                    gastosVariaveis: []
+                    gastosVariaveis: [],
+                    gastosExtras: []
                 };
             });
 
@@ -1115,6 +1222,7 @@
                 localStorage.setItem('cartoes', JSON.stringify(cartoes)); 
             }, [cartoes]);
             useEffect(() => { localStorage.setItem('gastosVariaveis', JSON.stringify(gastosVariaveis)); }, [gastosVariaveis]);
+            useEffect(() => { localStorage.setItem('gastosExtras', JSON.stringify(gastosExtras)); }, [gastosExtras]);
             useEffect(() => { localStorage.setItem('receitas', JSON.stringify(receitas)); }, [receitas]);
             useEffect(() => { localStorage.setItem('farol', JSON.stringify(farol)); }, [farol]);
             useEffect(() => { localStorage.setItem('metas', JSON.stringify(metas)); }, [metas]);
@@ -1311,13 +1419,19 @@
                     .filter(g => g.mes === mes && g.ano === anoAtual)
                     .reduce((sum, g) => sum + g.valor, 0);
                 
+                // Extras também filtram por ANO
+                const totalExtras = gastosExtras
+                    .filter(g => g.mes === mes && g.ano === anoAtual)
+                    .reduce((sum, g) => sum + g.valor, 0);
+                
                 return { 
                     cartoes: totalCartoes, 
                     cartoesBase: totalCartoesBase,
                     parcelas: parcelasDoMes,
                     fixos: totalFixos, 
-                    variaveis: totalVariaveis, 
-                    total: totalCartoes + totalFixos + totalVariaveis 
+                    variaveis: totalVariaveis,
+                    extras: totalExtras,
+                    total: totalCartoes + totalFixos + totalVariaveis + totalExtras
                 };
             };
 
@@ -1608,8 +1722,9 @@
                     descricao: dados.descricao || '',
                     valor: parseFloat(dados.valor),
                     mes: mesAtual,
-                    ano: anoAtual, // ADICIONADO
-                    data: new Date().toLocaleDateString('pt-BR')
+                    ano: anoAtual,
+                    data: dados.data || new Date().toLocaleDateString('pt-BR'),
+                    dataCompleta: dados.dataCompleta || new Date().toISOString().split('T')[0] // YYYY-MM-DD para ordenar
                 };
                 setGastosVariaveis([...gastosVariaveis, novoGasto]);
                 setModalAberto(null);
@@ -1824,6 +1939,53 @@
                 alert('✅ Gasto variável duplicado com sucesso!');
             };
 
+            // Funções para Gastos Extras
+            const deletarGastoExtra = (id) => {
+                if (confirm('Tem certeza?')) {
+                    setGastosExtras(gastosExtras.filter(g => g.id !== id));
+                }
+            };
+            
+            const editarGastoExtra = async (id, dadosAtualizados) => {
+                const novosGastos = [];
+                gastosExtras.forEach(g => {
+                    if (g.id === id) {
+                        novosGastos.push({
+                            ...g,
+                            ...dadosAtualizados,
+                            ano: parseInt(dadosAtualizados.ano) || g.ano || 2026,
+                            valor: parseFloat(dadosAtualizados.valor) || g.valor
+                        });
+                    } else {
+                        novosGastos.push(g);
+                    }
+                });
+                
+                setGastosExtras([]);
+                setTimeout(() => setGastosExtras(novosGastos), 10);
+                
+                // Salvar no Firestore
+                if (db && user) {
+                    try {
+                        await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').update({
+                            'dados.gastosExtras': novosGastos
+                        });
+                    } catch (err) {
+                        console.error('Erro ao salvar:', err);
+                    }
+                }
+            };
+            
+            const duplicarGastoExtra = (gasto) => {
+                const novoGasto = {
+                    ...gasto,
+                    id: Date.now(),
+                    descricao: gasto.descricao + ' (Cópia)'
+                };
+                setGastosExtras([...gastosExtras, novoGasto]);
+                alert('✅ Gasto extra duplicado com sucesso!');
+            };
+
             // 💳 MIGRAÇÃO DE VALORES DE CARTÕES 2025 → 2026 (MOVE, NÃO COPIA)
             const migrarValoresCartoes = async (anoOrigem, anoDestino) => {
                 if (!confirm(`💳 MOVER VALORES DE CARTÕES\n\nIsso vai MOVER todos os valores de ${anoOrigem} para ${anoDestino}.\n\n⚠️ ATENÇÃO:\n✅ Valores vão para ${anoDestino}\n❌ Valores de ${anoOrigem} serão APAGADOS\n\nExemplo:\nNubank ${anoOrigem}: R$ 1.500\n  ↓\nNubank ${anoDestino}: R$ 1.500\nNubank ${anoOrigem}: R$ 0 (zerado!)\n\nDeseja continuar?`)) {
@@ -1894,7 +2056,8 @@
                             dados: {
                                 cartoes: novosCartoes,
                                 gastosFixos, 
-                                gastosVariaveis, 
+                                gastosVariaveis,
+                                gastosExtras,
                                 receitas,
                                 farol, 
                                 metas, 
@@ -2974,7 +3137,17 @@
                     }
                     
                     if (valor) {
-                        adicionarGastoVariavel({ categoria: categoriaFinal, descricao, valor });
+                        const dataInput = document.getElementById('dataGastoVariavel').value;
+                        const dataObj = new Date(dataInput + 'T00:00:00');
+                        const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                        
+                        adicionarGastoVariavel({ 
+                            categoria: categoriaFinal, 
+                            descricao, 
+                            valor,
+                            data: dataFormatada,
+                            dataCompleta: dataInput
+                        });
                         setModalAberto(null);
                     } else {
                         alert('Preencha o valor!');
@@ -3031,6 +3204,16 @@
                             )}
                         </div>
                         <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Data do Gasto</label>
+                            <input 
+                                type="date"
+                                id="dataGastoVariavel"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500"
+                                defaultValue={new Date().toISOString().split('T')[0]}
+                                required
+                            />
+                        </div>
+                        <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Descrição (Opcional)</label>
                             <input 
                                 type="text"
@@ -3054,6 +3237,126 @@
                         </div>
                         <button type="submit" className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700">
                             ✅ Adicionar Gasto Variável
+                        </button>
+                    </form>
+                );
+            };
+
+            const FormNovoGastoExtra = () => {
+                const [categoria, setCategoria] = useState('VIAGEM');
+                const [novaCategoria, setNovaCategoria] = useState('');
+                const [mostrarNovaCategoria, setMostrarNovaCategoria] = useState(false);
+                const [descricao, setDescricao] = useState('');
+                const [valor, setValor] = useState('');
+
+                // Categorias padrão para gastos extras
+                const categoriasExtrasDefault = ['VIAGEM', 'PRESENTE', 'EMERGÊNCIA', 'MÉDICO', 'VETERINÁRIO', 'MANUTENÇÃO', 'REFORMA', 'FESTA'];
+                const todasCategorias = [...categoriasExtrasDefault, ...(categoriasPersonalizadas.gastosExtras || [])];
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    
+                    let categoriaFinal = categoria;
+                    
+                    if (mostrarNovaCategoria && novaCategoria.trim()) {
+                        categoriaFinal = novaCategoria.trim().toUpperCase();
+                        
+                        if (!todasCategorias.includes(categoriaFinal)) {
+                            setCategoriasPersonalizadas({
+                                ...categoriasPersonalizadas,
+                                gastosExtras: [...(categoriasPersonalizadas.gastosExtras || []), categoriaFinal]
+                            });
+                        }
+                    }
+                    
+                    if (valor) {
+                        const novoGasto = {
+                            id: Date.now(),
+                            categoria: categoriaFinal,
+                            descricao: descricao || categoriaFinal,
+                            valor: parseFloat(valor),
+                            data: new Date().toLocaleDateString('pt-BR'),
+                            mes: mesAtual,
+                            ano: anoAtual
+                        };
+                        setGastosExtras([...gastosExtras, novoGasto]);
+                        setModalAberto(null);
+                    } else {
+                        alert('Preencha o valor!');
+                    }
+                };
+
+                return (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
+                            {!mostrarNovaCategoria ? (
+                                <>
+                                    <select 
+                                        value={categoria}
+                                        onChange={(e) => setCategoria(e.target.value)}
+                                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500"
+                                    >
+                                        {todasCategorias.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMostrarNovaCategoria(true)}
+                                        className="mt-2 text-sm text-amber-600 hover:text-amber-700 font-semibold"
+                                    >
+                                        ➕ Criar nova categoria
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <input
+                                        type="text"
+                                        value={novaCategoria}
+                                        onChange={(e) => setNovaCategoria(e.target.value)}
+                                        className="w-full px-4 py-2 border-2 border-amber-300 rounded-lg focus:border-amber-500"
+                                        placeholder="Ex: CURSO, EQUIPAMENTO..."
+                                        autoFocus
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setMostrarNovaCategoria(false);
+                                            setNovaCategoria('');
+                                        }}
+                                        className="mt-2 text-sm text-gray-600 hover:text-gray-700"
+                                    >
+                                        ← Voltar
+                                    </button>
+                                    <p className="text-xs text-gray-500 mt-1">💡 Salvo em MAIÚSCULAS</p>
+                                </>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
+                            <input 
+                                type="text"
+                                value={descricao}
+                                onChange={(e) => setDescricao(e.target.value)}
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500"
+                                placeholder="Ex: Passagem aérea"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Valor (R$)</label>
+                            <input 
+                                type="number"
+                                step="0.01"
+                                value={valor}
+                                onChange={(e) => setValor(e.target.value)}
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500"
+                                placeholder="0.00"
+                                required
+                            />
+                        </div>
+                        <button type="submit" className="w-full px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700">
+                            ✅ Adicionar Gasto Extra
                         </button>
                     </form>
                 );
@@ -3537,7 +3840,7 @@
                             onMouseLeave={fecharSubmenu}
                         >
                             <button 
-                                className={`menu-button ${['cartoes', 'fixos', 'variaveis'].includes(telaAtiva) ? 'active' : ''}`}
+                                className={`menu-button ${['cartoes', 'fixos', 'variaveis', 'extras'].includes(telaAtiva) ? 'active' : ''}`}
                             >
                                 💸 Despesas <span style={{ fontSize: '0.6rem' }}>▼</span>
                             </button>
@@ -3554,6 +3857,9 @@
                                 </div>
                                 <div onClick={() => { setTelaAtiva('variaveis'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'variaveis' ? 'active' : ''}`}>
                                     📊 Gastos Variáveis
+                                </div>
+                                <div onClick={() => { setTelaAtiva('extras'); setSubmenuAberto(null); }} className={`submenu-item ${telaAtiva === 'extras' ? 'active' : ''}`}>
+                                    ⚡ Gastos Extras
                                 </div>
                             </div>
                         </div>
@@ -5171,7 +5477,8 @@
                             </div>
                         </div>
 
-                        {/* Lista de Gastos */}
+                        {/* Lista de Gastos - AGRUPADA POR DATA */}
+                        <div className="space-y-3">
                         {gastosFiltrados.length === 0 ? (
                             <div className="bg-white rounded-xl shadow-lg p-12 text-center">
                                 <div className="text-4xl mb-3">🔍</div>
@@ -5183,60 +5490,97 @@
                                 </p>
                             </div>
                         ) : (
-                            gastosFiltrados.map(gasto => (
-                                <div key={gasto.id} className="bg-white rounded-xl shadow-lg p-6">
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-semibold text-gray-800">{gasto.descricao}</span>
-                                                <span className={`px-2 py-1 rounded text-xs font-bold ${
-                                                    gasto.ano === 2026 ? 'bg-blue-100 text-blue-700' : 
-                                                    gasto.ano === 2025 ? 'bg-yellow-100 text-yellow-700' : 
-                                                    'bg-gray-100 text-gray-700'
-                                                }`}>
-                                                    {gasto.ano || anoAtual}
-                                                </span>
+                            (() => {
+                                // Agrupar gastos por data de vencimento
+                                const gastosPorData = {};
+                                gastosFiltrados.forEach(gasto => {
+                                    const dia = gasto.vencimento;
+                                    if (!gastosPorData[dia]) {
+                                        gastosPorData[dia] = [];
+                                    }
+                                    gastosPorData[dia].push(gasto);
+                                });
+                                
+                                // Ordenar dias
+                                const diasOrdenados = Object.keys(gastosPorData).sort((a, b) => parseInt(a) - parseInt(b));
+                                
+                                return diasOrdenados.map(dia => {
+                                    const gastosDoDia = gastosPorData[dia];
+                                    const totalDia = gastosDoDia.reduce((sum, g) => sum + g.valor, 0);
+                                    const hoje = new Date().getDate();
+                                    const isHoje = parseInt(dia) === hoje;
+                                    
+                                    // Calcular dia da semana
+                                    const dataAtual = new Date();
+                                    const anoNum = dataAtual.getFullYear();
+                                    const mesNum = dataAtual.getMonth();
+                                    const dataVencimento = new Date(anoNum, mesNum, parseInt(dia));
+                                    const diaSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'][dataVencimento.getDay()];
+                                    
+                                    return (
+                                        <div key={dia} className={`flex items-start gap-3 p-3 rounded-lg transition-all ${
+                                            isHoje ? 'bg-purple-50 border-2 border-purple-500' : 'bg-purple-50 border border-purple-200'
+                                        }`}>
+                                            {/* Data na lateral */}
+                                            <div className={`flex-shrink-0 w-16 text-center ${isHoje ? 'text-purple-600' : 'text-gray-600'}`}>
+                                                <div className="text-xs font-semibold">{diaSemana}</div>
+                                                <div className={`text-2xl font-bold ${isHoje ? 'text-purple-700' : 'text-gray-700'}`}>{dia}</div>
+                                                {isHoje && <div className="text-xs font-bold text-purple-600">HOJE</div>}
                                             </div>
-                                            <div className="text-sm text-gray-500">{gasto.categoria} • Vencimento: dia {gasto.vencimento}</div>
+                                            
+                                            {/* Conteúdo do dia */}
+                                            <div className="flex-1">
+                                                <div className="space-y-2">
+                                                    {gastosDoDia.map(gasto => (
+                                                        <div key={gasto.id} className="flex items-center justify-between bg-white rounded p-2 shadow-sm">
+                                                            <div className="flex-1">
+                                                                <div className="font-semibold text-sm text-gray-800">{gasto.descricao}</div>
+                                                                <div className="text-xs text-gray-500">{gasto.categoria}</div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <input 
+                                                                    type="number"
+                                                                    step="0.01"
+                                                                    value={gasto.valor}
+                                                                    onChange={(e) => editarValorGastoFixo(gasto.id, e.target.value)}
+                                                                    className="w-28 px-2 py-1 border border-gray-300 rounded text-right text-sm font-bold"
+                                                                />
+                                                                <button 
+                                                                    onClick={() => {
+                                                                        setItemEditando(gasto);
+                                                                        setTipoEditando('fixo');
+                                                                        setModalAberto('editar');
+                                                                    }}
+                                                                    className="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-sm"
+                                                                >
+                                                                    ✏️
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => duplicarGastoFixo(gasto)}
+                                                                    className="px-2 py-1 bg-purple-100 text-purple-600 rounded hover:bg-purple-200 text-sm"
+                                                                >
+                                                                    📋
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => deletarGastoFixo(gasto.id)} 
+                                                                    className="px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-sm"
+                                                                >
+                                                                    🗑️
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    <div className="text-xs text-right font-bold text-gray-600 pt-1 border-t">
+                                                        Total do dia: R$ {totalDia.toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <input 
-                                                type="number"
-                                                step="0.01"
-                                                value={gasto.valor}
-                                                onChange={(e) => editarValorGastoFixo(gasto.id, e.target.value)}
-                                                className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-right"
-                                            />
-                                            <button 
-                                                onClick={() => {
-                                                    setItemEditando(gasto);
-                                                    setTipoEditando('fixo');
-                                                    setModalAberto('editar');
-                                                }}
-                                                className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm font-semibold"
-                                                title="Editar gasto fixo"
-                                            >
-                                                ✏️
-                                            </button>
-                                            <button 
-                                                onClick={() => duplicarGastoFixo(gasto)}
-                                                className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm font-semibold"
-                                                title="Duplicar gasto fixo"
-                                            >
-                                                📋
-                                            </button>
-                                            <button 
-                                                onClick={() => deletarGastoFixo(gasto.id)} 
-                                                className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
-                                                title="Excluir gasto fixo"
-                                            >
-                                                🗑️
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
+                                    );
+                                });
+                            })()
                         )}
+                        </div>
                     </div>
                 );
             };
@@ -5269,6 +5613,28 @@
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-gray-800">📊 Gastos Variáveis - {mesAtual.toUpperCase()} / {anoAtual}</h2>
                             <div className="flex gap-2">
+                                <button 
+                                    onClick={() => {
+                                        console.log('🔍 DEBUG GASTOS VARIÁVEIS:');
+                                        console.log('Total de gastos:', gastosVariaveis.length);
+                                        gastosVariaveis.forEach((g, i) => {
+                                            console.log(`Gasto ${i+1}:`, {
+                                                id: g.id,
+                                                categoria: g.categoria,
+                                                descricao: g.descricao,
+                                                valor: g.valor,
+                                                data: g.data,
+                                                dataCompleta: g.dataCompleta,
+                                                mes: g.mes,
+                                                ano: g.ano
+                                            });
+                                        });
+                                        alert('✅ Dados dos gastos no console (F12)');
+                                    }} 
+                                    className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 border-2 border-blue-300"
+                                >
+                                    🔍 Debug
+                                </button>
                                 <button 
                                     onClick={() => setModalAberto('gerenciarCategorias')} 
                                     className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 border-2 border-gray-300"
@@ -5342,28 +5708,294 @@
                             </div>
                         )}
 
+                        {/* Extrato por Categoria → Data → Itens */}
+                        <div className="space-y-4">
+                            {gastosFiltrados.length === 0 ? (
+                                <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                                    <div className="text-4xl mb-3">
+                                        {gastosDoMes.length === 0 ? '📊' : '🔍'}
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-800 mb-2">
+                                        {gastosDoMes.length === 0 
+                                            ? 'Nenhum gasto variável' 
+                                            : 'Nenhum gasto encontrado'}
+                                    </h3>
+                                    <p className="text-gray-600">
+                                        {gastosDoMes.length === 0 
+                                            ? 'Adicione gastos variáveis para este mês!' 
+                                            : `Nenhum gasto na categoria "${categoriaFiltro}"`}
+                                    </p>
+                                </div>
+                            ) : (
+                                (() => {
+                                    // Agrupar por CATEGORIA primeiro
+                                    const gastosPorCategoria = {};
+                                    gastosFiltrados.forEach(gasto => {
+                                        const cat = gasto.categoria;
+                                        if (!gastosPorCategoria[cat]) {
+                                            gastosPorCategoria[cat] = [];
+                                        }
+                                        gastosPorCategoria[cat].push(gasto);
+                                    });
+                                    
+                                    // Ordenar categorias alfabeticamente
+                                    const categoriasOrdenadas = Object.keys(gastosPorCategoria).sort();
+                                    
+                                    return categoriasOrdenadas.map(categoria => {
+                                        const gastosCategoria = gastosPorCategoria[categoria];
+                                        
+                                        // Agrupar por DATA dentro da categoria
+                                        const gastosPorData = {};
+                                        gastosCategoria.forEach(gasto => {
+                                            const dataKey = gasto.dataCompleta || gasto.data || 'Sem data';
+                                            if (!gastosPorData[dataKey]) {
+                                                gastosPorData[dataKey] = [];
+                                            }
+                                            gastosPorData[dataKey].push(gasto);
+                                        });
+                                        
+                                        // Ordenar datas (mais recente primeiro)
+                                        const datasOrdenadas = Object.keys(gastosPorData).sort((a, b) => {
+                                            if (a === 'Sem data') return 1;
+                                            if (b === 'Sem data') return -1;
+                                            return b.localeCompare(a);
+                                        });
+                                        
+                                        const totalCategoria = gastosCategoria.reduce((sum, g) => sum + g.valor, 0);
+                                        
+                                        return (
+                                            <div key={categoria} className="bg-white rounded-xl shadow-lg overflow-hidden">
+                                                {/* Header da Categoria */}
+                                                <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4">
+                                                    <div className="flex items-center justify-between text-white">
+                                                        <h3 className="text-lg font-bold">📁 {categoria}</h3>
+                                                        <div className="text-right">
+                                                            <div className="text-2xl font-bold">R$ {totalCategoria.toFixed(2)}</div>
+                                                            <div className="text-xs opacity-90">{gastosCategoria.length} gasto{gastosCategoria.length > 1 ? 's' : ''}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Datas da Categoria */}
+                                                <div className="p-4 space-y-3">
+                                                    {datasOrdenadas.map(dataKey => {
+                                                        const gastosDaData = gastosPorData[dataKey];
+                                                        const totalData = gastosDaData.reduce((sum, g) => sum + g.valor, 0);
+                                                        
+                                                        // Calcular informações da data
+                                                        let diaSemana = '';
+                                                        let diaNumero = '';
+                                                        let dataFormatada = dataKey;
+                                                        let isHoje = false;
+                                                        
+                                                        if (dataKey !== 'Sem data') {
+                                                            const dataObj = new Date(dataKey + 'T00:00:00');
+                                                            const hoje = new Date();
+                                                            isHoje = dataObj.toDateString() === hoje.toDateString();
+                                                            
+                                                            diaSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'][dataObj.getDay()];
+                                                            diaNumero = dataObj.getDate();
+                                                            dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                                                        }
+                                                        
+                                                        return (
+                                                            <div key={dataKey} className={`rounded-lg border-2 overflow-hidden ${
+                                                                isHoje ? 'border-orange-500 bg-orange-50' : 'border-orange-200 bg-orange-50'
+                                                            }`}>
+                                                                {/* Header da Data */}
+                                                                <div className="flex items-center gap-3 p-2 bg-white border-b border-orange-200">
+                                                                    <div className={`flex-shrink-0 w-14 text-center ${isHoje ? 'text-orange-600' : 'text-gray-600'}`}>
+                                                                        {dataKey !== 'Sem data' ? (
+                                                                            <>
+                                                                                <div className="text-xs font-semibold">{diaSemana}</div>
+                                                                                <div className={`text-xl font-bold ${isHoje ? 'text-orange-700' : 'text-gray-700'}`}>{diaNumero}</div>
+                                                                            </>
+                                                                        ) : (
+                                                                            <div className="text-xs font-semibold text-gray-500">SEM DATA</div>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <div className="text-sm font-semibold text-gray-700">{dataFormatada}</div>
+                                                                        {isHoje && <div className="text-xs font-bold text-orange-600">HOJE</div>}
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <div className="text-sm font-bold text-orange-600">R$ {totalData.toFixed(2)}</div>
+                                                                        <div className="text-xs text-gray-500">{gastosDaData.length} item{gastosDaData.length > 1 ? 's' : ''}</div>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                {/* Itens da Data */}
+                                                                <div className="divide-y divide-orange-100">
+                                                                    {gastosDaData.map(gasto => (
+                                                                        <div key={gasto.id} className="flex items-center justify-between p-2 bg-white hover:bg-orange-50 transition-colors">
+                                                                            <div className="flex-1 pl-4">
+                                                                                <div className="text-sm text-gray-800">{gasto.descricao || 'Sem descrição'}</div>
+                                                                            </div>
+                                                                            <div className="flex items-center gap-2">
+                                                                                <div className="font-bold text-orange-600">R$ {gasto.valor.toFixed(2)}</div>
+                                                                                <button 
+                                                                                    onClick={() => {
+                                                                                        setItemEditando(gasto);
+                                                                                        setTipoEditando('variavel');
+                                                                                        setModalAberto('editar');
+                                                                                    }}
+                                                                                    className="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs"
+                                                                                >
+                                                                                    ✏️
+                                                                                </button>
+                                                                                <button 
+                                                                                    onClick={() => duplicarGastoVariavel(gasto)}
+                                                                                    className="px-2 py-1 bg-purple-100 text-purple-600 rounded hover:bg-purple-200 text-xs"
+                                                                                >
+                                                                                    📋
+                                                                                </button>
+                                                                                <button 
+                                                                                    onClick={() => deletarGastoVariavel(gasto.id)} 
+                                                                                    className="px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-xs"
+                                                                                >
+                                                                                    🗑️
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    });
+                                })()
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
+            const TelaGastosExtras = () => {
+                const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
+                
+                const gastosDoMes = gastosExtras.filter(g => g.mes === mesAtual && g.ano === anoAtual);
+                
+                // Calcular total por cada categoria
+                const totaisPorCategoria = {};
+                gastosDoMes.forEach(g => {
+                    if (!totaisPorCategoria[g.categoria]) {
+                        totaisPorCategoria[g.categoria] = 0;
+                    }
+                    totaisPorCategoria[g.categoria] += g.valor;
+                });
+                
+                const totalMes = gastosDoMes.reduce((sum, g) => sum + g.valor, 0);
+                
+                // Filtrar por categoria
+                const gastosFiltrados = categoriaFiltro === 'TODAS' 
+                    ? gastosDoMes 
+                    : gastosDoMes.filter(g => g.categoria === categoriaFiltro);
+                
+                const totalCategoria = gastosFiltrados.reduce((sum, g) => sum + g.valor, 0);
+
+                return (
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold text-gray-800">⚡ Gastos Extras - {mesAtual.toUpperCase()} / {anoAtual}</h2>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => setModalAberto('gerenciarCategorias')} 
+                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 border-2 border-gray-300"
+                                >
+                                    🏷️ Categorias
+                                </button>
+                                <button 
+                                    onClick={() => setModalAberto('novoGastoExtra')} 
+                                    className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700"
+                                >
+                                    ➕ Novo Gasto Extra
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Cards por Categoria */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {/* Card Total Geral */}
+                            <div 
+                                className={`bg-gradient-to-br from-amber-600 to-yellow-600 rounded-xl shadow-lg p-4 cursor-pointer transition-transform hover:scale-105 ${
+                                    categoriaFiltro === 'TODAS' ? 'ring-4 ring-amber-300' : ''
+                                }`}
+                                onClick={() => setCategoriaFiltro('TODAS')}
+                            >
+                                <div className="text-white/80 text-xs font-semibold mb-1">⚡ TOTAL DO MÊS</div>
+                                <div className="text-2xl font-bold text-white">R$ {totalMes.toFixed(2)}</div>
+                                <div className="text-white/70 text-xs mt-1">{gastosDoMes.length} gastos extras</div>
+                            </div>
+
+                            {/* Cards por Categoria */}
+                            {Object.entries(totaisPorCategoria)
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([categoria, total]) => {
+                                    const quantidade = gastosDoMes.filter(g => g.categoria === categoria).length;
+                                    const percentual = totalMes > 0 ? (total / totalMes) * 100 : 0;
+                                    
+                                    return (
+                                        <div 
+                                            key={categoria}
+                                            className={`bg-white rounded-xl shadow-lg p-4 cursor-pointer transition-all hover:shadow-xl hover:scale-105 border-2 ${
+                                                categoriaFiltro === categoria 
+                                                    ? 'border-amber-500 ring-2 ring-amber-300' 
+                                                    : 'border-gray-200'
+                                            }`}
+                                            onClick={() => setCategoriaFiltro(categoria)}
+                                        >
+                                            <div className="text-gray-600 text-xs font-semibold mb-1 truncate">{categoria}</div>
+                                            <div className="text-xl font-bold text-amber-600">R$ {total.toFixed(2)}</div>
+                                            <div className="flex justify-between items-center mt-1">
+                                                <div className="text-gray-500 text-xs">{quantidade} gasto{quantidade > 1 ? 's' : ''}</div>
+                                                <div className="text-amber-600 text-xs font-semibold">{percentual.toFixed(0)}%</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+
+                        {/* Barra de Filtro Atual */}
+                        {gastosDoMes.length > 0 && (
+                            <div className="bg-white rounded-xl shadow-lg p-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <span className="text-sm font-semibold text-gray-700">
+                                            🔍 Mostrando: <span className="text-amber-600">{categoriaFiltro}</span>
+                                        </span>
+                                    </div>
+                                    <div className="text-lg font-bold text-amber-600">
+                                        R$ {totalCategoria.toFixed(2)}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Lista de Gastos */}
                         <div className="bg-white rounded-xl shadow-lg p-6">
                             <div className="space-y-2">
                                 {gastosFiltrados.length === 0 ? (
                                     <div className="text-center py-12">
                                         <div className="text-4xl mb-3">
-                                            {gastosDoMes.length === 0 ? '📊' : '🔍'}
+                                            {gastosDoMes.length === 0 ? '⚡' : '🔍'}
                                         </div>
                                         <h3 className="text-xl font-bold text-gray-800 mb-2">
                                             {gastosDoMes.length === 0 
-                                                ? 'Nenhum gasto variável' 
+                                                ? 'Nenhum gasto extra' 
                                                 : 'Nenhum gasto encontrado'}
                                         </h3>
                                         <p className="text-gray-600">
                                             {gastosDoMes.length === 0 
-                                                ? 'Adicione gastos variáveis para este mês!' 
+                                                ? 'Adicione gastos extras para este mês!' 
                                                 : `Nenhum gasto na categoria "${categoriaFiltro}"`}
                                         </p>
                                     </div>
                                 ) : (
                                     gastosFiltrados.map(gasto => (
-                                        <div key={gasto.id} className="flex justify-between items-center p-4 bg-orange-50 rounded-lg border border-orange-200">
+                                        <div key={gasto.id} className="flex justify-between items-center p-4 bg-amber-50 rounded-lg border border-amber-200">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-semibold text-gray-800">{gasto.categoria}</span>
@@ -5378,29 +6010,29 @@
                                                 <div className="text-sm text-gray-500">{gasto.descricao} • {gasto.data}</div>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <div className="text-xl font-bold text-orange-600">R$ {gasto.valor.toFixed(2)}</div>
+                                                <div className="text-xl font-bold text-amber-600">R$ {gasto.valor.toFixed(2)}</div>
                                                 <button 
                                                     onClick={() => {
                                                         setItemEditando(gasto);
-                                                        setTipoEditando('variavel');
+                                                        setTipoEditando('extra');
                                                         setModalAberto('editar');
                                                     }}
                                                     className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm font-semibold"
-                                                    title="Editar gasto variável"
+                                                    title="Editar gasto extra"
                                                 >
                                                     ✏️
                                                 </button>
                                                 <button 
-                                                    onClick={() => duplicarGastoVariavel(gasto)}
+                                                    onClick={() => duplicarGastoExtra(gasto)}
                                                     className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm font-semibold"
-                                                    title="Duplicar gasto variável"
+                                                    title="Duplicar gasto extra"
                                                 >
                                                     📋
                                                 </button>
                                                 <button 
-                                                    onClick={() => deletarGastoVariavel(gasto.id)} 
+                                                    onClick={() => deletarGastoExtra(gasto.id)} 
                                                     className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
-                                                    title="Excluir gasto variável"
+                                                    title="Excluir gasto extra"
                                                 >
                                                     🗑️
                                                 </button>
@@ -8118,6 +8750,7 @@
                         {telaAtiva === 'cartoes' && <TelaCartoes />}
                         {telaAtiva === 'fixos' && <TelaGastosFixos />}
                         {telaAtiva === 'variaveis' && <TelaGastosVariaveis />}
+                        {telaAtiva === 'extras' && <TelaGastosExtras />}
                         {telaAtiva === 'farol' && <TelaFarol />}
                     </div>
 
@@ -8148,6 +8781,8 @@
                                         editarGastoFixo(itemEditando.id, dadosAtualizados);
                                     } else if (tipoEditando === 'variavel') {
                                         editarGastoVariavel(itemEditando.id, dadosAtualizados);
+                                    } else if (tipoEditando === 'extra') {
+                                        editarGastoExtra(itemEditando.id, dadosAtualizados);
                                     }
                                 }}
                             />
@@ -8356,6 +8991,48 @@
                                     </div>
                                 </div>
 
+                                {/* Gastos Extras */}
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-800 mb-3">⚡ Gastos Extras</h3>
+                                    <div className="bg-amber-50 rounded-lg p-4 mb-3">
+                                        <div className="text-sm font-semibold text-gray-700 mb-2">Categorias Padrão:</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['VIAGEM', 'PRESENTE', 'EMERGÊNCIA', 'MÉDICO', 'VETERINÁRIO', 'MANUTENÇÃO', 'REFORMA', 'FESTA'].map(cat => (
+                                                <span key={cat} className="px-3 py-1 bg-white border-2 border-amber-300 rounded-lg text-sm font-semibold text-gray-700">
+                                                    {cat}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="bg-white rounded-lg border-2 border-amber-200 p-4">
+                                        <div className="text-sm font-semibold text-gray-700 mb-2">Suas Categorias Personalizadas:</div>
+                                        {(!categoriasPersonalizadas.gastosExtras || categoriasPersonalizadas.gastosExtras.length === 0) ? (
+                                            <p className="text-sm text-gray-500 italic">Nenhuma categoria personalizada ainda</p>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-2">
+                                                {categoriasPersonalizadas.gastosExtras.map(cat => (
+                                                    <div key={cat} className="flex items-center gap-1 px-3 py-1 bg-amber-100 rounded-lg">
+                                                        <span className="text-sm font-semibold text-amber-700">{cat}</span>
+                                                        <button
+                                                            onClick={() => {
+                                                                if (confirm(`Excluir categoria "${cat}"?`)) {
+                                                                    setCategoriasPersonalizadas({
+                                                                        ...categoriasPersonalizadas,
+                                                                        gastosExtras: categoriasPersonalizadas.gastosExtras.filter(c => c !== cat)
+                                                                    });
+                                                                }
+                                                            }}
+                                                            className="text-red-600 hover:text-red-700 text-xs"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
                                 <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
                                     <div className="text-sm text-blue-800">
                                         💡 <strong>Dica:</strong> Para criar novas categorias, clique em "➕ Novo Gasto" e escolha "Criar nova categoria"
@@ -8528,6 +9205,11 @@
                     {modalAberto === 'novoGastoVariavel' && (
                         <Modal titulo="➕ Novo Gasto Variável" onClose={() => setModalAberto(null)}>
                             <FormNovoGastoVariavel />
+                        </Modal>
+                    )}
+                    {modalAberto === 'novoGastoExtra' && (
+                        <Modal titulo="➕ Novo Gasto Extra" onClose={() => setModalAberto(null)}>
+                            <FormNovoGastoExtra />
                         </Modal>
                     )}
                     {modalAberto === 'metas' && (
