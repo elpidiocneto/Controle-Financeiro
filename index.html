@@ -1732,11 +1732,20 @@
                     categoria: dados.categoria.toUpperCase(),
                     descricao: dados.descricao.toUpperCase(),
                     valor: parseFloat(dados.valor),
-                    vencimento: parseInt(dados.vencimento)
+                    vencimento: parseInt(dados.vencimento),
+                    temporario: dados.temporario || false,
+                    totalParcelas: dados.totalParcelas || null,
+                    parcelaAtual: dados.parcelaAtual || null,
+                    mes: dados.mes || null,
+                    ano: dados.ano || null
                 };
                 setGastosFixos([...gastosFixos, novoGasto]);
-                setModalAberto(null);
-                alert('Gasto fixo adicionado com sucesso!');
+                
+                // Só mostra alert se for gasto único (não parcelado)
+                if (!dados.temporario || dados.totalParcelas <= 1) {
+                    setModalAberto(null);
+                    alert('Gasto fixo adicionado com sucesso!');
+                }
             };
 
             const adicionarGastoVariavel = (dados) => {
@@ -3053,6 +3062,10 @@
                             const valorParcela = parseFloat(valor) / parseInt(totalParcelas);
                             const mesInicioIdx = mesesList.indexOf(mesInicio);
                             
+                            // CRIAR ARRAY COM TODAS AS PARCELAS PRIMEIRO
+                            const novasParcelas = [];
+                            const baseTime = Date.now();
+                            
                             for (let i = 0; i < parseInt(totalParcelas); i++) {
                                 // Calcular mês e ano da parcela
                                 const mesesAFrente = mesInicioIdx + i;
@@ -3062,6 +3075,7 @@
                                 const anoAtualParcela = anoInicio + anosAFrente;
                                 
                                 const novaParcela = {
+                                    id: baseTime + i,
                                     categoria: categoriaFinal,
                                     descricao: `${descricao} - ${i + 1}/${totalParcelas}`,
                                     valor: valorParcela,
@@ -3073,11 +3087,16 @@
                                     ano: anoAtualParcela
                                 };
                                 
-                                console.log(`📦 Criando parcela ${i + 1}/${totalParcelas}:`, novaParcela);
-                                adicionarGastoFixo(novaParcela);
+                                console.log(`📦 Criando parcela ${i + 1}/${totalParcelas}: ${mesParcela}/${anoAtualParcela}`);
+                                novasParcelas.push(novaParcela);
                             }
                             
-                            alert(`✅ ${totalParcelas} parcelas criadas com sucesso!`);
+                            // ADICIONAR TODAS DE UMA VEZ
+                            setGastosFixos(prev => [...prev, ...novasParcelas]);
+                            console.log(`✅ Total de parcelas criadas: ${novasParcelas.length}`);
+                            
+                            setModalAberto(null);
+                            alert(`✅ ${novasParcelas.length} parcelas criadas com sucesso!`);
                         } else {
                             // Gasto fixo normal
                             const novoGasto = {
@@ -3090,9 +3109,8 @@
                                 parcelaAtual: null
                             };
                             adicionarGastoFixo(novoGasto);
+                            setModalAberto(null);
                         }
-                        
-                        setModalAberto(null);
                     } else {
                         alert('Preencha todos os campos!');
                     }
@@ -5576,12 +5594,22 @@
             const TelaGastosFixos = () => {
                 const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
                 
-                // Categorias únicas dos gastos fixos
-                const categorias = ['TODAS', ...new Set(gastosFixos.map(g => g.categoria))];
+                // FILTRAR POR MÊS E ANO ATUAL
+                const gastosDoMesAno = gastosFixos.filter(g => {
+                    // Se tem mes e ano definidos, filtrar por eles
+                    if (g.mes && g.ano) {
+                        return g.mes === mesAtual && g.ano === anoAtual;
+                    }
+                    // Se não tem mes/ano, é gasto fixo permanente (aparece sempre)
+                    return true;
+                });
+                
+                // Categorias únicas dos gastos fixos do mês
+                const categorias = ['TODAS', ...new Set(gastosDoMesAno.map(g => g.categoria))];
                 
                 // Calcular total por cada categoria
                 const totaisPorCategoria = {};
-                gastosFixos.forEach(g => {
+                gastosDoMesAno.forEach(g => {
                     if (!totaisPorCategoria[g.categoria]) {
                         totaisPorCategoria[g.categoria] = 0;
                     }
@@ -5589,12 +5617,12 @@
                 });
                 
                 // Total geral
-                const totalGeral = gastosFixos.reduce((sum, g) => sum + g.valor, 0);
+                const totalGeral = gastosDoMesAno.reduce((sum, g) => sum + g.valor, 0);
                 
                 // Filtrar por categoria
                 const gastosFiltrados = categoriaFiltro === 'TODAS' 
-                    ? gastosFixos 
-                    : gastosFixos.filter(g => g.categoria === categoriaFiltro);
+                    ? gastosDoMesAno 
+                    : gastosDoMesAno.filter(g => g.categoria === categoriaFiltro);
                 
                 // Calcular total por categoria
                 const totalCategoria = gastosFiltrados.reduce((sum, g) => sum + g.valor, 0);
@@ -5602,7 +5630,7 @@
                 return (
                     <div className="space-y-4">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-bold text-gray-800">🏠 Gastos Fixos</h2>
+                            <h2 className="text-lg font-bold text-gray-800">🏠 Gastos Fixos - {mesAtual.toUpperCase()} / {anoAtual}</h2>
                             <div className="flex gap-2">
                                 <button 
                                     onClick={() => setModalAberto('gerenciarCategorias')} 
@@ -8431,7 +8459,17 @@
                             valor: valoresAno[mesAtual] || 0 
                         };
                     }),
-                    ...gastosFixos.map(g => ({ tipo: 'FIXO', nome: g.descricao, vencimento: g.vencimento, valor: g.valor }))
+                    // Filtrar gastos fixos por mês (se tiverem mês definido) ou mostrar todos sem mês
+                    ...gastosFixos
+                        .filter(g => !g.mes || g.mes === mesAtual) // Se não tem mês OU é do mês atual
+                        .filter(g => !g.ano || g.ano === anoAtual) // Se não tem ano OU é do ano atual
+                        .map(g => ({ 
+                            tipo: 'FIXO', 
+                            nome: g.descricao, 
+                            vencimento: g.vencimento, 
+                            valor: g.valor,
+                            badge: g.temporario && g.totalParcelas ? `${g.parcelaAtual}/${g.totalParcelas}` : null
+                        }))
                 ].filter(item => item.valor > 0).sort((a, b) => a.vencimento - b.vencimento);
 
                 const itensFiltrados = filtroStatus === 'todos' ? itensTodos :
