@@ -1437,7 +1437,18 @@
                     .reduce((sum, compra) => sum + (compra.valorParcela || 0), 0);
                 
                 const totalCartoes = totalCartoesBase + parcelasDoMes;
-                const totalFixos = gastosFixos.reduce((sum, g) => sum + g.valor, 0);
+                
+                // FIXOS: filtrar por mês/ano (gastos temporários) OU mostrar permanentes
+                const totalFixos = gastosFixos
+                    .filter(g => {
+                        // Se tem mes e ano, filtrar por eles
+                        if (g.mes && g.ano) {
+                            return g.mes === mes && g.ano === anoAtual;
+                        }
+                        // Se não tem, é permanente (aparece sempre)
+                        return true;
+                    })
+                    .reduce((sum, g) => sum + g.valor, 0);
                 
                 // Variáveis agora filtram por ANO também
                 const totalVariaveis = gastosVariaveis
