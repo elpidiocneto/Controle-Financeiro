@@ -3068,8 +3068,8 @@
                     }
                     
                     if (descricao.trim() && valor) {
-                        // Se é temporário, criar múltiplas parcelas
-                        if (temporario && totalParcelas > 1) {
+                        // Se é temporário, criar múltiplas parcelas OU única parcela com mes/ano
+                        if (temporario && totalParcelas >= 1) {
                             const valorParcela = parseFloat(valor) / parseInt(totalParcelas);
                             const mesInicioIdx = mesesList.indexOf(mesInicio);
                             
@@ -3088,7 +3088,7 @@
                                 const novaParcela = {
                                     id: baseTime + i,
                                     categoria: categoriaFinal,
-                                    descricao: `${descricao} - ${i + 1}/${totalParcelas}`,
+                                    descricao: totalParcelas > 1 ? `${descricao} - ${i + 1}/${totalParcelas}` : descricao,
                                     valor: valorParcela,
                                     vencimento: parseInt(vencimento),
                                     temporario: true,
@@ -3107,7 +3107,7 @@
                             console.log(`✅ Total de parcelas criadas: ${novasParcelas.length}`);
                             
                             setModalAberto(null);
-                            alert(`✅ ${novasParcelas.length} parcelas criadas com sucesso!`);
+                            alert(`✅ ${novasParcelas.length} ${totalParcelas === 1 ? 'gasto temporário criado' : 'parcelas criadas'} com sucesso!`);
                         } else {
                             // Gasto fixo normal
                             const novoGasto = {
