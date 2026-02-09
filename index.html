@@ -1515,24 +1515,33 @@
                             pago: statusFarol === 'PAGO'
                         };
                     }),
-                    ...gastosFixos.map(g => {
-                        const statusFarol = farol[`${g.descricao}-${mes}-${anoAtual}`];
-                        
-                        let valorPago = 0;
-                        if (statusFarol === 'PAGO') {
-                            valorPago = g.valor;
-                        } else if (typeof statusFarol === 'number') {
-                            valorPago = statusFarol;
-                        }
-                        
-                        return { 
-                            tipo: 'FIXO', 
-                            nome: g.descricao, 
-                            valor: g.valor,
-                            valorPago: valorPago,
-                            pago: statusFarol === 'PAGO'
-                        };
-                    })
+                    ...gastosFixos
+                        .filter(g => {
+                            // Se tem mes e ano, filtrar por eles
+                            if (g.mes && g.ano) {
+                                return g.mes === mes && g.ano === anoAtual;
+                            }
+                            // Se não tem, é permanente (aparece sempre)
+                            return true;
+                        })
+                        .map(g => {
+                            const statusFarol = farol[`${g.descricao}-${mes}-${anoAtual}`];
+                            
+                            let valorPago = 0;
+                            if (statusFarol === 'PAGO') {
+                                valorPago = g.valor;
+                            } else if (typeof statusFarol === 'number') {
+                                valorPago = statusFarol;
+                            }
+                            
+                            return { 
+                                tipo: 'FIXO', 
+                                nome: g.descricao, 
+                                valor: g.valor,
+                                valorPago: valorPago,
+                                pago: statusFarol === 'PAGO'
+                            };
+                        })
                 ].filter(item => item.valor > 0);
 
                 const totalPagar = itensPagamento.reduce((sum, item) => sum + item.valor, 0);
@@ -3325,6 +3334,7 @@
                 const [mostrarNovaCategoria, setMostrarNovaCategoria] = useState(false);
                 const [descricao, setDescricao] = useState('');
                 const [valor, setValor] = useState('');
+                const [mostrarNoFarol, setMostrarNoFarol] = useState(false);
 
                 // Categorias padrão + personalizadas
                 const categoriasVariaveisDefault = ['MERCADO', 'FARMÁCIA', 'ALIMENTAÇÃO', 'TRANSPORTE', 'GASOLINA', 'LAZER'];
@@ -3352,13 +3362,16 @@
                         const dataInput = document.getElementById('dataGastoVariavel').value;
                         const dataObj = new Date(dataInput + 'T00:00:00');
                         const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                        const dia = dataObj.getDate();
                         
                         adicionarGastoVariavel({ 
                             categoria: categoriaFinal, 
                             descricao, 
                             valor,
                             data: dataFormatada,
-                            dataCompleta: dataInput
+                            dataCompleta: dataInput,
+                            mostrarNoFarol: mostrarNoFarol,
+                            vencimento: mostrarNoFarol ? dia : null
                         });
                         setModalAberto(null);
                     } else {
@@ -3447,6 +3460,25 @@
                                 required
                             />
                         </div>
+                        
+                        {/* Checkbox Mostrar no Farol */}
+                        <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                    type="checkbox"
+                                    checked={mostrarNoFarol}
+                                    onChange={(e) => setMostrarNoFarol(e.target.checked)}
+                                    className="w-5 h-5 text-orange-600 border-2 border-gray-300 rounded focus:ring-orange-500"
+                                />
+                                <span className="text-sm font-semibold text-gray-700">
+                                    🚦 Mostrar no Farol de Pagamentos
+                                </span>
+                            </label>
+                            <p className="text-xs text-gray-500 mt-1 ml-7">
+                                Para gastos recorrentes como IPTU, seguro anual, etc.
+                            </p>
+                        </div>
+                        
                         <button type="submit" className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700">
                             ✅ Adicionar Gasto Variável
                         </button>
@@ -3460,6 +3492,7 @@
                 const [mostrarNovaCategoria, setMostrarNovaCategoria] = useState(false);
                 const [descricao, setDescricao] = useState('');
                 const [valor, setValor] = useState('');
+                const [mostrarNoFarol, setMostrarNoFarol] = useState(false);
 
                 // Categorias padrão para gastos extras
                 const categoriasExtrasDefault = ['VIAGEM', 'PRESENTE', 'EMERGÊNCIA', 'MÉDICO', 'VETERINÁRIO', 'MANUTENÇÃO', 'REFORMA', 'FESTA'];
@@ -3485,6 +3518,7 @@
                         const dataInput = document.getElementById('dataGastoExtra').value;
                         const dataObj = new Date(dataInput + 'T00:00:00');
                         const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                        const dia = dataObj.getDate();
                         
                         const novoGasto = {
                             id: Date.now(),
@@ -3494,7 +3528,9 @@
                             data: dataFormatada,
                             dataCompleta: dataInput, // YYYY-MM-DD
                             mes: mesAtual,
-                            ano: anoAtual
+                            ano: anoAtual,
+                            mostrarNoFarol: mostrarNoFarol,
+                            vencimento: mostrarNoFarol ? dia : null
                         };
                         setGastosExtras([...gastosExtras, novoGasto]);
                         setModalAberto(null);
@@ -3582,6 +3618,25 @@
                                 required
                             />
                         </div>
+                        
+                        {/* Checkbox Mostrar no Farol */}
+                        <div className="bg-amber-50 border-2 border-amber-200 rounded-lg p-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                    type="checkbox"
+                                    checked={mostrarNoFarol}
+                                    onChange={(e) => setMostrarNoFarol(e.target.checked)}
+                                    className="w-5 h-5 text-amber-600 border-2 border-gray-300 rounded focus:ring-amber-500"
+                                />
+                                <span className="text-sm font-semibold text-gray-700">
+                                    🚦 Mostrar no Farol de Pagamentos
+                                </span>
+                            </label>
+                            <p className="text-xs text-gray-500 mt-1 ml-7">
+                                Para gastos recorrentes como seguro, licenciamento, etc.
+                            </p>
+                        </div>
+                        
                         <button type="submit" className="w-full px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700">
                             ✅ Adicionar Gasto Extra
                         </button>
@@ -8480,6 +8535,24 @@
                             vencimento: g.vencimento, 
                             valor: g.valor,
                             badge: g.temporario && g.totalParcelas ? `${g.parcelaAtual}/${g.totalParcelas}` : null
+                        })),
+                    // Gastos Variáveis que devem aparecer no Farol
+                    ...gastosVariaveis
+                        .filter(g => g.mostrarNoFarol && g.mes === mesAtual && g.ano === anoAtual)
+                        .map(g => ({
+                            tipo: 'VARIÁVEL',
+                            nome: g.descricao || g.categoria,
+                            vencimento: g.vencimento || 1,
+                            valor: g.valor
+                        })),
+                    // Gastos Extras que devem aparecer no Farol
+                    ...gastosExtras
+                        .filter(g => g.mostrarNoFarol && g.mes === mesAtual && g.ano === anoAtual)
+                        .map(g => ({
+                            tipo: 'EXTRA',
+                            nome: g.descricao || g.categoria,
+                            vencimento: g.vencimento || 1,
+                            valor: g.valor
                         }))
                 ].filter(item => item.valor > 0).sort((a, b) => a.vencimento - b.vencimento);
 
