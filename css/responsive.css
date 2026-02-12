@@ -1,0 +1,149 @@
+/* ===================================
+   RESPONSIVIDADE MOBILE
+   =================================== */
+
+/* MOBILE OPTIMIZATIONS */
+@media (max-width: 768px) {
+    /* Modal fullscreen no mobile */
+    .modal-content {
+        max-width: 100%;
+        width: 100%;
+        height: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        padding: 1rem;
+    }
+
+    /* Ajustar conteúdo principal */
+    .main-content {
+        padding-top: 1rem !important;
+    }
+
+    /* Cards menores no mobile */
+    .card-mobile {
+        padding: 1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    /* Textos maiores no mobile */
+    .text-mobile-lg {
+        font-size: 1.125rem !important;
+    }
+
+    /* Botões touch-friendly */
+    button {
+        min-height: 44px !important;
+        padding: 0.75rem 1rem !important;
+    }
+
+    /* Grid sempre 1 coluna no mobile */
+    .mobile-single-column {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Scroll horizontal para tabelas */
+    .table-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .container { padding: 1rem; }
+    h1 { font-size: 1.5rem !important; }
+    h2 { font-size: 1.25rem !important; }
+    .grid { grid-template-columns: 1fr !important; }
+    .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+    .text-xl { font-size: 1.5rem !important; }
+    .text-2xl { font-size: 1.25rem !important; }
+    button { padding: 0.5rem 1rem !important; font-size: 0.875rem !important; }
+    .hidden-mobile { display: none !important; }
+    .overflow-x-auto { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Esconder texto nos botões, mostrar só ícone */
+    .hide-mobile {
+        display: none !important;
+    }
+
+    /* Botões em linha horizontal compacta */
+    .mobile-stack {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 0.25rem !important;
+        flex-wrap: wrap;
+    }
+    
+    .menu-bar {
+        flex-direction: column;
+        width: 100%;
+    }
+    .menu-item {
+        width: 100%;
+    }
+    .menu-button {
+        width: 100%;
+        justify-content: space-between;
+        font-size: 0.875rem;
+        padding: 0.625rem 1rem;
+    }
+    .submenu {
+        position: static;
+        margin-top: 0.25rem;
+        box-shadow: none;
+        border: none;
+        background: #F9FAFB;
+    }
+    .submenu-item {
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Cards responsivos */
+    .compact-card {
+        padding: 0.75rem !important;
+        font-size: 0.875rem;
+    }
+    
+    /* Títulos menores no mobile */
+    h2 {
+        font-size: 1rem !important;
+    }
+    
+    /* Inputs mobile */
+    input, select {
+        font-size: 1rem; /* Evita zoom no iOS */
+    }
+    
+    /* Cards do Dashboard mobile - 2 colunas */
+    .grid-cols-2 {
+        gap: 0.5rem;
+    }
+    
+    /* Projeção futura - scroll horizontal no mobile */
+    .grid.grid-cols-6 {
+        display: flex;
+        overflow-x: auto;
+        gap: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+    .grid.grid-cols-6 > div {
+        min-width: 80px;
+        flex-shrink: 0;
+    }
+
+    .sticky-desktop {
+        position: relative !important;
+    }
+}
+
+/* Mobile pequeno (< 400px) */
+@media (max-width: 400px) {
+    .compact-card {
+        padding: 0.5rem !important;
+        font-size: 0.75rem;
+    }
+    .text-xl {
+        font-size: 1rem !important;
+    }
+    .text-lg {
+        font-size: 0.875rem !important;
+    }
+}

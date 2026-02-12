@@ -1,0 +1,164 @@
+/* ===================================
+   SISTEMA FINANCEIRO - ESTILOS PRINCIPAIS
+   =================================== */
+
+/* MODAIS */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.7); display: flex;
+    align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-content {
+    background: white; border-radius: 1rem; padding: 2rem;
+    max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;
+}
+
+/* CARDS COMPACTOS */
+.compact-card {
+    padding: 1rem !important;
+}
+.compact-title {
+    font-size: 1rem !important;
+    margin-bottom: 0.5rem !important;
+}
+.compact-value {
+    font-size: 1.5rem !important;
+}
+.compact-text {
+    font-size: 0.875rem !important;
+}
+
+/* SCROLL SUAVE */
+#meses-container {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 #F1F5F9;
+}
+#meses-container::-webkit-scrollbar {
+    height: 6px;
+}
+#meses-container::-webkit-scrollbar-track {
+    background: #F1F5F9;
+    border-radius: 3px;
+}
+#meses-container::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 3px;
+}
+#meses-container::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+/* EDIÇÃO INLINE */
+.editable-inline {
+    border: 2px dashed transparent;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.editable-inline:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+/* LOADING STATES */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* MENU DROPDOWN */
+.menu-bar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.menu-item {
+    position: relative;
+}
+.menu-button {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+}
+.menu-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+.menu-button.active {
+    background: white;
+    color: #3B82F6;
+}
+.submenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.5rem;
+    background: white;
+    border: 2px solid #3B82F6;
+    border-radius: 0.5rem;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    min-width: 200px;
+    display: none;
+    z-index: 50;
+}
+.submenu.open {
+    display: block;
+    animation: fadeIn 0.15s ease-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.submenu-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    color: #111827;
+    font-weight: 600;
+    background: white;
+}
+.submenu-item:hover {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+.submenu-item.active {
+    background: #3B82F6;
+    color: white;
+    font-weight: 700;
+}
+.submenu-item:first-child {
+    border-radius: 0.4rem 0.4rem 0 0;
+}
+.submenu-item:last-child {
+    border-radius: 0 0 0.4rem 0.4rem;
+}
+
+/* ESPAÇAMENTOS REDUZIDOS */
+.space-y-3 > * + * {
+    margin-top: 1rem !important;
+}
+.gap-4 {
+    gap: 0.75rem !important;
+}
+.p-6 {
+    padding: 1rem !important;
+}
+.p-8 {
+    padding: 1.25rem !important;
+}
