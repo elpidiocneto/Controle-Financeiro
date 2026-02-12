@@ -26,8 +26,34 @@
 <body>
     <div id="root"></div>
     
-    <!-- Configuração Firebase -->
-    <script src="js/firebase-config.js"></script>
+    <!-- Configuração Firebase (INLINE para funcionar com file://) -->
+    <script>
+        // Configuração Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDf9jwohYm8jMBHYxh44ZhX1jQdc_nk2YQ",
+            authDomain: "elpidiofinancas.firebaseapp.com",
+            projectId: "elpidiofinancas",
+            storageBucket: "elpidiofinancas.firebasestorage.app",
+            messagingSenderId: "447370107548",
+            appId: "1:447370107548:web:a17e42519fe07f0c23eb59"
+        };
+
+        // Inicializar Firebase
+        let db = null;
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+            console.log("✅ Firebase inicializado - Backup na nuvem ATIVO!");
+        } catch (error) {
+            console.error("❌ Erro ao inicializar Firebase:", error);
+            alert("⚠️ Erro ao conectar com Firebase. Verifique sua conexão com a internet.");
+        }
+        
+        // Exportar para uso global
+        window.db = db;
+    </script>
     
     <!-- Aplicação Principal -->
     <script src="js/app.js" type="text/babel"></script>
