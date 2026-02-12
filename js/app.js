@@ -1,8 +1,8 @@
         const { useState, useEffect } = React;
 
         // Firebase já foi inicializado no firebase-config.js
-        // Pegando referência do db global
-        const db = window.db;
+        // Usando db global do window
+
 
         const DADOS_INICIAIS = {
             gastosFixos: [
