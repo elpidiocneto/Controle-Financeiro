@@ -9115,7 +9115,7 @@
                         {telaAtiva === 'admin' && <TelaAdmin isUserAdmin={isUserAdmin} />}
                         {telaAtiva.startsWith('planejamento') && <TelaPlanejamento />}
                         {telaAtiva === 'receitas' && <TelaReceitas />}
-                        {telaAtiva === 'cartoes' && <TelaCartoes />}
+                        {telaAtiva === 'cartoes' && <TelaCartoes key={JSON.stringify(farol)} />}
                         {telaAtiva === 'fixos' && <TelaGastosFixos />}
                         {telaAtiva === 'variaveis' && <TelaGastosVariaveis />}
                         {telaAtiva === 'extras' && <TelaGastosExtras />}
