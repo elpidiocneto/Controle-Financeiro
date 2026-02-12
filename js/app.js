@@ -1,28 +1,8 @@
         const { useState, useEffect } = React;
 
-        // 🔥 CONFIGURAÇÃO FIREBASE PARA BACKUP NA NUVEM
-        // 🔥 CONFIGURAÇÃO FIREBASE - ELPÍDIO FINANÇAS
-        const firebaseConfig = {
-            apiKey: "AIzaSyDf9jwohYm8jMBHYxh44ZhX1jQdc_nk2YQ",
-            authDomain: "elpidiofinancas.firebaseapp.com",
-            projectId: "elpidiofinancas",
-            storageBucket: "elpidiofinancas.firebasestorage.app",
-            messagingSenderId: "447370107548",
-            appId: "1:447370107548:web:a17e42519fe07f0c23eb59"
-        };
-
-        // Inicializar Firebase
-        let db = null;
-        try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.firestore();
-            console.log("✅ Firebase inicializado - Backup na nuvem ATIVO!");
-        } catch (error) {
-            console.error("❌ Erro ao inicializar Firebase:", error);
-            alert("⚠️ Erro ao conectar com Firebase. Verifique sua conexão com a internet.");
-        }
+        // Firebase já foi inicializado no firebase-config.js
+        // Pegando referência do db global
+        const db = window.db;
 
         const DADOS_INICIAIS = {
             gastosFixos: [

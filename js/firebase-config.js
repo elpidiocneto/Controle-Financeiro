@@ -5,8 +5,6 @@
 // IMPORTANTE: Em produção (Vercel/Netlify), configure as variáveis de ambiente
 // no painel de controle da plataforma
 
-// Para desenvolvimento local, crie um arquivo .env baseado no .env.example
-
 const firebaseConfig = {
     apiKey: "AIzaSyDf9jwohYm8jMBHYxh44ZhX1jQdc_nk2YQ",
     authDomain: "elpidiofinancas.firebaseapp.com",
@@ -29,5 +27,5 @@ try {
     alert("⚠️ Erro ao conectar com Firebase. Verifique sua conexão com a internet.");
 }
 
-// Exportar para uso global
+// Exportar para uso global (window.db será acessível em app.js)
 window.db = db;
