@@ -9020,7 +9020,7 @@
 
                     {/* CONTEÚDO PRINCIPAL - só mostra se não expirou */}
                     {(isUserAdmin || planoInfo.plano === 'premium' || !planoInfo.expirado) && (
-                    <div>
+                    <>
 
                     {/* Meses */}
                     <div className="bg-white border-b shadow-sm sticky-desktop top-[60px] md:top-[70px] z-10">
@@ -9541,8 +9541,7 @@
                             <FormCompraParcelada />
                         </Modal>
                     )}
-                </div>
-                    </div>
+                    </>
                     )} {/* fim conteudo principal */}
                 </div>
             );
