@@ -8979,7 +8979,7 @@
                         </div>
                     )}
 
-                    {/* TELA DE TRIAL EXPIRADO */}
+                    {/* TELA DE TRIAL EXPIRADO - BLOQUEIA O RESTO */}
                     {!isUserAdmin && planoInfo.plano === 'trial' && planoInfo.expirado && (
                         <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#F9FAFB' }}>
                             <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
@@ -9018,9 +9018,8 @@
                         </div>
                     )}
 
-                    {/* CONTEÚDO PRINCIPAL - só mostra se não expirou */}
-                    {(isUserAdmin || planoInfo.plano === 'premium' || !planoInfo.expirado) && (
-                    <>
+                    {/* CONTEÚDO PRINCIPAL - oculto se trial expirou */}
+                    <div style={{display: (!isUserAdmin && planoInfo.plano === 'trial' && planoInfo.expirado) ? 'none' : 'block'}}>
 
                     {/* Meses */}
                     <div className="bg-white border-b shadow-sm sticky-desktop top-[60px] md:top-[70px] z-10">
@@ -9541,8 +9540,7 @@
                             <FormCompraParcelada />
                         </Modal>
                     )}
-                    </>
-                    )} {/* fim conteudo principal */}
+                    </div> {/* fim conteudo principal */}
                 </div>
             );
         }
