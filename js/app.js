@@ -204,13 +204,19 @@
                     const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
                     await userCredential.user.updateProfile({ displayName: nome });
                     
-                    // 2. Criar documento no Firestore PRIMEIRO
+                    // 2. Criar documento no Firestore com dados de trial
+                    const agora = new Date();
+                    const fimTrial = new Date(agora);
+                    fimTrial.setDate(fimTrial.getDate() + 60); // 60 dias = 2 meses
+                    
                     await db.collection('usuarios').doc(userCredential.user.uid).set({
                         nome: nome,
                         email: email,
                         isAdmin: false,
                         status: 'PENDENTE',
                         emailVerificado: false,
+                        plano: 'trial',
+                        dataFimTrial: fimTrial,
                         criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
                         ultimoAcesso: firebase.firestore.FieldValue.serverTimestamp()
                     });
@@ -601,6 +607,7 @@
             const [salvando, setSalvando] = useState(false);
             const [ultimoSave, setUltimoSave] = useState(null);
             const [isUserAdmin, setIsUserAdmin] = useState(false);
+            const [planoInfo, setPlanoInfo] = useState({ plano: 'trial', diasRestantes: 60, expirado: false });
             
             const [anoAtual, setAnoAtual] = useState(() => {
                 const saved = localStorage.getItem('anoAtual');
@@ -916,9 +923,22 @@
                             if (!userData.status) {
                                 await db.collection('usuarios').doc(user.uid).update({
                                     status: 'APROVADO',
-                                    emailVerificado: true // Usuários antigos são considerados verificados
+                                    emailVerificado: true,
+                                    plano: 'premium', // Usuários antigos viram premium
                                 });
                                 console.log('✅ Usuário antigo aprovado e verificado automaticamente');
+                            }
+                            
+                            // ✅ VERIFICAR PLANO E TRIAL
+                            const planoAtual = userData.plano || 'trial';
+                            if (planoAtual === 'trial' && userData.dataFimTrial) {
+                                const agora = new Date();
+                                const fimTrial = userData.dataFimTrial.toDate ? userData.dataFimTrial.toDate() : new Date(userData.dataFimTrial);
+                                const diasRestantes = Math.ceil((fimTrial - agora) / (1000 * 60 * 60 * 24));
+                                const expirado = diasRestantes <= 0;
+                                setPlanoInfo({ plano: planoAtual, diasRestantes: Math.max(0, diasRestantes), expirado });
+                            } else if (planoAtual === 'premium') {
+                                setPlanoInfo({ plano: 'premium', diasRestantes: 0, expirado: false });
                             }
                         } else {
                             setIsUserAdmin(false);
@@ -8944,6 +8964,64 @@
                         </div>
                     </div>
 
+                    {/* BANNER DE TRIAL */}
+                    {!isUserAdmin && planoInfo.plano === 'trial' && !planoInfo.expirado && planoInfo.diasRestantes <= 30 && (
+                        <div className={`text-center py-2 px-4 text-sm font-semibold ${planoInfo.diasRestantes <= 7 ? 'bg-red-500' : 'bg-yellow-500'} text-white`}>
+                            {planoInfo.diasRestantes <= 7 
+                                ? `🚨 Seu trial vence em ${planoInfo.diasRestantes} dia(s)! Assine agora para não perder o acesso.`
+                                : `⏳ Período de teste: ${planoInfo.diasRestantes} dias restantes. Aproveite o sistema completo gratuitamente!`
+                            }
+                            {' '}
+                            <a href="mailto:contato@seusite.com.br?subject=Quero assinar o Sistema Financeiro" 
+                               className="underline font-bold hover:opacity-80">
+                                Assinar por R$ 29,90/mês →
+                            </a>
+                        </div>
+                    )}
+
+                    {/* TELA DE TRIAL EXPIRADO */}
+                    {!isUserAdmin && planoInfo.plano === 'trial' && planoInfo.expirado && (
+                        <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#F9FAFB' }}>
+                            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+                                <div className="text-6xl mb-4">⏰</div>
+                                <h2 className="text-2xl font-bold text-gray-800 mb-2">Seu período de teste encerrou!</h2>
+                                <p className="text-gray-600 mb-6">
+                                    Seus 2 meses gratuitos chegaram ao fim. Assine agora para continuar acessando todos os seus dados e funcionalidades.
+                                </p>
+                                
+                                <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white mb-6">
+                                    <div className="text-sm opacity-90 mb-1">Plano Completo</div>
+                                    <div className="text-4xl font-bold mb-1">R$ 29,90</div>
+                                    <div className="text-sm opacity-90">por mês • Cancele quando quiser</div>
+                                </div>
+
+                                <div className="text-left space-y-2 mb-6">
+                                    {['✅ Acesso completo a todas as funcionalidades', '✅ Dados salvos na nuvem com segurança', '✅ Relatórios e exportação PDF/Excel', '✅ Simulador de compras', '✅ Planejamento e metas financeiras', '✅ Suporte por email'].map((item, i) => (
+                                        <div key={i} className="text-sm text-gray-700">{item}</div>
+                                    ))}
+                                </div>
+
+                                <a 
+                                    href="mailto:contato@seusite.com.br?subject=Quero assinar o Sistema Financeiro - R$ 29,90/mês"
+                                    className="block w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-lg hover:opacity-90 transition-all mb-3"
+                                >
+                                    🚀 Assinar Agora - R$ 29,90/mês
+                                </a>
+                                
+                                <button 
+                                    onClick={() => firebase.auth().signOut()}
+                                    className="text-sm text-gray-500 hover:text-gray-700 underline"
+                                >
+                                    Sair da conta
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* CONTEÚDO PRINCIPAL - só mostra se não expirou */}
+                    {(isUserAdmin || planoInfo.plano === 'premium' || !planoInfo.expirado) && (
+                    <div>
+
                     {/* Meses */}
                     <div className="bg-white border-b shadow-sm sticky-desktop top-[60px] md:top-[70px] z-10">
                         <div className="max-w-7xl mx-auto px-2 md:px-4 py-2">
@@ -9463,6 +9541,9 @@
                             <FormCompraParcelada />
                         </Modal>
                     )}
+                </div>
+                    </div>
+                    )} {/* fim conteudo principal */}
                 </div>
             );
         }
