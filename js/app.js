@@ -764,89 +764,8 @@
 
 
         // Componente Menu de Navegação (escopo global)
-        const MenuNavegacao = ({ telaAtiva, setTelaAtiva, isUserAdmin }) => {
-            const [sub, setSub] = React.useState(null);
-
-            const ir = (tela) => { setTelaAtiva(tela); setSub(null); };
-            const tog = (nome) => setSub(sub === nome ? null : nome);
-
-            const B = ({ id, label, ativo }) => (
-                <button onClick={() => ir(id)} style={{
-                    padding:'6px 14px', border:'none', cursor:'pointer',
-                    borderRadius:'8px', fontSize:'0.8rem', fontWeight:'600',
-                    whiteSpace:'nowrap', background:'transparent',
-                    color: ativo ? '#fff' : 'rgba(255,255,255,0.65)',
-                    borderBottom: ativo ? '2px solid #10b981' : '2px solid transparent',
-                }}>{label}</button>
-            );
-
-            const dropStyle = {
-                position:'absolute', top:'calc(100% + 4px)', left:0, zIndex:9999,
-                background:'#1e1b4b', borderRadius:'10px', minWidth:'180px',
-                boxShadow:'0 12px 40px rgba(0,0,0,0.7)',
-                border:'1px solid rgba(99,102,241,0.4)',
-            };
-
-            const I = ({ id, label }) => (
-                <div onClick={() => ir(id)} style={{
-                    padding:'10px 16px', cursor:'pointer', fontSize:'0.82rem',
-                    color: telaAtiva === id ? '#10b981' : 'rgba(255,255,255,0.85)',
-                    fontWeight: telaAtiva === id ? '700' : '500',
-                    borderLeft: telaAtiva === id ? '3px solid #10b981' : '3px solid transparent',
-                }}>{label}</div>
-            );
-
-            return (
-                <div style={{display:'flex', alignItems:'center', gap:'2px', overflowX:'auto', scrollbarWidth:'none'}}>
-                    <B id="dashboard" label="📊 Dashboard" ativo={telaAtiva==='dashboard'} />
-                    {isUserAdmin && <B id="admin" label="👑 Admin" ativo={telaAtiva==='admin'} />}
-
-                    <div style={{position:'relative', flexShrink:0}}>
-                        <button onClick={() => tog('plan')} style={{
-                            padding:'6px 14px', border:'none', cursor:'pointer',
-                            borderRadius:'8px', fontSize:'0.8rem', fontWeight:'600',
-                            whiteSpace:'nowrap', background: sub==='plan' ? 'rgba(255,255,255,0.1)' : 'transparent',
-                            color: telaAtiva.startsWith('planejamento') ? '#fff' : 'rgba(255,255,255,0.65)',
-                            borderBottom: telaAtiva.startsWith('planejamento') ? '2px solid #10b981' : '2px solid transparent',
-                        }}>📋 Planejar ▾</button>
-                        {sub === 'plan' && (
-                            <div style={dropStyle}>
-                                <I id="planejamento" label="🏥 Diagnóstico" />
-                                <I id="planejamento-orcamento" label="📊 Orçamento" />
-                                <I id="planejamento-premes" label="📝 Pré-Mês" />
-                                <I id="planejamento-metas" label="🎯 Metas" />
-                                <I id="planejamento-dividas" label="💳 Dívidas" />
-                                <I id="planejamento-compra" label="🛒 Simul. Compra" />
-                                <I id="planejamento-simulador" label="🎲 Simulador" />
-                                <I id="planejamento-timeline" label="📈 Timeline" />
-                            </div>
-                        )}
-                    </div>
-
-                    <B id="receitas" label="💰 Receitas" ativo={telaAtiva==='receitas'} />
-
-                    <div style={{position:'relative', flexShrink:0}}>
-                        <button onClick={() => tog('desp')} style={{
-                            padding:'6px 14px', border:'none', cursor:'pointer',
-                            borderRadius:'8px', fontSize:'0.8rem', fontWeight:'600',
-                            whiteSpace:'nowrap', background: sub==='desp' ? 'rgba(255,255,255,0.1)' : 'transparent',
-                            color: ['cartoes','fixos','variaveis','extras'].includes(telaAtiva) ? '#fff' : 'rgba(255,255,255,0.65)',
-                            borderBottom: ['cartoes','fixos','variaveis','extras'].includes(telaAtiva) ? '2px solid #10b981' : '2px solid transparent',
-                        }}>💸 Despesas ▾</button>
-                        {sub === 'desp' && (
-                            <div style={dropStyle}>
-                                <I id="cartoes" label="💳 Cartões" />
-                                <I id="fixos" label="🏠 Gastos Fixos" />
-                                <I id="variaveis" label="📊 Gastos Variáveis" />
-                                <I id="extras" label="⚡ Gastos Extras" />
-                            </div>
-                        )}
-                    </div>
-
-                    <B id="farol" label="🚦 Farol" ativo={telaAtiva==='farol'} />
-                </div>
-            );
-        };
+        // MenuNavegacao carregado de js/menu.js como window.MenuNavegacao
+        const MenuNavegacao = window.MenuNavegacao;
 
 
         // Componente UserMenu (escopo global)
@@ -9669,4 +9588,4 @@
             );
         }
 
-        ReactDOM.render(<AuthWrapper />, document.getElementById('root'));
+        const rootEl = document.getElementById('root'); ReactDOM.createRoot(rootEl).render(<AuthWrapper />);
