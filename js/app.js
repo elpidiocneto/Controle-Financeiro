@@ -5,45 +5,10 @@
 
 
         const DADOS_INICIAIS = {
-            gastosFixos: [
-                { id: 1, categoria: "MORADIA", descricao: "ALUGUEL", valor: 550, vencimento: 10 },
-                { id: 2, categoria: "MORADIA", descricao: "CONDOMINIO", valor: 440, vencimento: 10 },
-                { id: 3, categoria: "MORADIA", descricao: "APARTAMENTO", valor: 660, vencimento: 8 },
-                { id: 4, categoria: "MORADIA", descricao: "INTERNET", valor: 100, vencimento: 15 },
-                { id: 5, categoria: "MORADIA", descricao: "ENERGIA", valor: 300, vencimento: 20 },
-                { id: 6, categoria: "ESTUDO", descricao: "CONDUÇÃO", valor: 250, vencimento: 5 },
-                { id: 7, categoria: "ESTUDO", descricao: "PÓS GRADUAÇÃO", valor: 98, vencimento: 10 },
-                { id: 8, categoria: "ESTUDO", descricao: "ESCOLA", valor: 620, vencimento: 12 },
-                { id: 9, categoria: "ESTUDO", descricao: "FACULDADE CAMILLY", valor: 720, vencimento: 15 },
-                { id: 10, categoria: "TRANSPORTE", descricao: "CARRO", valor: 1300, vencimento: 25 },
-                { id: 11, categoria: "SERVIÇOS", descricao: "UNHA", valor: 80, vencimento: 18 }
-            ],
-            cartoes: [
-                { id: 1, nome: "CAMILLY", vencimento: 5, valores: { 
-                    jan: 200, fev: 200, mar: 0, abr: 0, mai: 0, jun: 0, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
-                }},
-                { id: 2, nome: "UNICLASS", vencimento: 5, valores: { 
-                    jan: 2920, fev: 2577, mar: 1952, abr: 1852, mai: 1676, jun: 1565, jul: 1565, ago: 111, set: 0, out: 0, nov: 0, dez: 0 
-                }},
-                { id: 3, nome: "PÃO DE AÇUCAR", vencimento: 5, valores: { 
-                    jan: 2760, fev: 1621, mar: 1621, abr: 1621, mai: 1621, jun: 0, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
-                }},
-                { id: 4, nome: "NUBANK", vencimento: 7, valores: { 
-                    jan: 3296, fev: 2613, mar: 2430, abr: 1493, mai: 338, jun: 338, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
-                }},
-                { id: 5, nome: "NEON", vencimento: 11, valores: { 
-                    jan: 150, fev: 0, mar: 0, abr: 0, mai: 0, jun: 0, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
-                }},
-                { id: 6, nome: "RIACHUELLO", vencimento: 15, valores: { 
-                    jan: 250, fev: 0, mar: 0, abr: 0, mai: 0, jun: 0, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
-                }},
-                { id: 7, nome: "PLATINUN", vencimento: 11, valores: { 
-                    jan: 570, fev: 570, mar: 333, abr: 333, mai: 333, jun: 333, jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
-                }},
-                { id: 8, nome: "SIGNATURE", vencimento: 20, valores: { 
-                    jan: 953, fev: 567, mar: 567, abr: 567, mai: 516, jun: 333, jul: 309, ago: 0, set: 0, out: 0, nov: 0, dez: 0 
-                }}
-            ]
+            // Novos usuários começam com dados completamente vazios.
+            // Cartões e gastos são cadastrados pelo próprio usuário.
+            gastosFixos: [],
+            cartoes: []
         };
 
         const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
@@ -161,58 +126,71 @@
                     
                     // ===================================================
                     // ISOLAMENTO DE DADOS POR USUÁRIO
-                    // Sempre limpar localStorage e carregar do Firestore
-                    // para garantir que cada usuário vê APENAS seus dados
+                    // Compara o uid atual com o uid salvo no localStorage.
+                    // Se mudou (troca de conta), limpa tudo, carrega do Firestore
+                    // e dá reload para forçar o React a reinicializar com dados limpos.
                     // ===================================================
                     if (user) {
-                        try {
-                            // 1. Limpar TODOS os dados do localStorage para evitar
-                            //    contaminação entre usuários no mesmo navegador
-                            const keysToRemove = [
-                                'cartoes', 'gastosFixos', 'gastosVariaveis', 'gastosExtras',
-                                'receitas', 'farol', 'metas', 'metasFinanceiras',
-                                'orcamento', 'orcamentosMensais', 'orcamentoAnual',
-                                'planejadosMes', 'comprasParceladas', 'dividas',
-                                'reservaEmergencia', 'categoriasPersonalizadas',
-                                'anoAtual', 'mesAtual'
-                            ];
-                            keysToRemove.forEach(key => localStorage.removeItem(key));
+                        const uidAnterior = localStorage.getItem('_currentUserId');
+                        const uidMudou = uidAnterior && uidAnterior !== user.uid;
+                        const primeiroLogin = !uidAnterior;
 
-                            // 2. Carregar dados do Firestore do usuário atual
-                            const backupDoc = await db.collection('usuarios')
-                                .doc(user.uid)
-                                .collection('backups')
-                                .doc('atual')
-                                .get();
+                        if (uidMudou || primeiroLogin) {
+                            try {
+                                // 1. Limpar TODOS os dados do localStorage
+                                const keysToRemove = [
+                                    'cartoes', 'gastosFixos', 'gastosVariaveis', 'gastosExtras',
+                                    'receitas', 'farol', 'metas', 'metasFinanceiras',
+                                    'orcamento', 'orcamentosMensais', 'orcamentoAnual',
+                                    'planejadosMes', 'comprasParceladas', 'dividas',
+                                    'reservaEmergencia', 'categoriasPersonalizadas',
+                                    'anoAtual', 'mesAtual'
+                                ];
+                                keysToRemove.forEach(key => localStorage.removeItem(key));
 
-                            if (backupDoc.exists) {
-                                // Usuário tem dados salvos na nuvem → carregar
-                                const dadosBackup = backupDoc.data().dados || {};
-                                
-                                if (dadosBackup.cartoes) localStorage.setItem('cartoes', JSON.stringify(dadosBackup.cartoes));
-                                if (dadosBackup.gastosFixos) localStorage.setItem('gastosFixos', JSON.stringify(dadosBackup.gastosFixos));
-                                if (dadosBackup.gastosVariaveis) localStorage.setItem('gastosVariaveis', JSON.stringify(dadosBackup.gastosVariaveis));
-                                if (dadosBackup.gastosExtras) localStorage.setItem('gastosExtras', JSON.stringify(dadosBackup.gastosExtras));
-                                if (dadosBackup.receitas) localStorage.setItem('receitas', JSON.stringify(dadosBackup.receitas));
-                                if (dadosBackup.farol) localStorage.setItem('farol', JSON.stringify(dadosBackup.farol));
-                                if (dadosBackup.metas) localStorage.setItem('metas', JSON.stringify(dadosBackup.metas));
-                                if (dadosBackup.metasFinanceiras) localStorage.setItem('metasFinanceiras', JSON.stringify(dadosBackup.metasFinanceiras));
-                                if (dadosBackup.orcamento) localStorage.setItem('orcamento', JSON.stringify(dadosBackup.orcamento));
-                                if (dadosBackup.orcamentosMensais) localStorage.setItem('orcamentosMensais', JSON.stringify(dadosBackup.orcamentosMensais));
-                                if (dadosBackup.orcamentoAnual) localStorage.setItem('orcamentoAnual', JSON.stringify(dadosBackup.orcamentoAnual));
-                                if (dadosBackup.planejadosMes) localStorage.setItem('planejadosMes', JSON.stringify(dadosBackup.planejadosMes));
-                                if (dadosBackup.comprasParceladas) localStorage.setItem('comprasParceladas', JSON.stringify(dadosBackup.comprasParceladas));
-                                if (dadosBackup.dividas) localStorage.setItem('dividas', JSON.stringify(dadosBackup.dividas));
-                                if (dadosBackup.reservaEmergencia !== undefined) localStorage.setItem('reservaEmergencia', dadosBackup.reservaEmergencia.toString());
-                                if (dadosBackup.categoriasPersonalizadas) localStorage.setItem('categoriasPersonalizadas', JSON.stringify(dadosBackup.categoriasPersonalizadas));
-                                
-                                console.log('✅ Dados do usuário', user.uid, 'carregados do Firestore');
-                            } else {
-                                // Novo usuário sem dados → localStorage já foi limpo, começa do zero
-                                console.log('🆕 Novo usuário', user.uid, '- iniciando com dados vazios');
+                                // 2. Carregar dados do Firestore do usuário atual
+                                const backupDoc = await db.collection('usuarios')
+                                    .doc(user.uid)
+                                    .collection('backups')
+                                    .doc('atual')
+                                    .get();
+
+                                if (backupDoc.exists) {
+                                    const dadosBackup = backupDoc.data().dados || {};
+                                    if (dadosBackup.cartoes) localStorage.setItem('cartoes', JSON.stringify(dadosBackup.cartoes));
+                                    if (dadosBackup.gastosFixos) localStorage.setItem('gastosFixos', JSON.stringify(dadosBackup.gastosFixos));
+                                    if (dadosBackup.gastosVariaveis) localStorage.setItem('gastosVariaveis', JSON.stringify(dadosBackup.gastosVariaveis));
+                                    if (dadosBackup.gastosExtras) localStorage.setItem('gastosExtras', JSON.stringify(dadosBackup.gastosExtras));
+                                    if (dadosBackup.receitas) localStorage.setItem('receitas', JSON.stringify(dadosBackup.receitas));
+                                    if (dadosBackup.farol) localStorage.setItem('farol', JSON.stringify(dadosBackup.farol));
+                                    if (dadosBackup.metas) localStorage.setItem('metas', JSON.stringify(dadosBackup.metas));
+                                    if (dadosBackup.metasFinanceiras) localStorage.setItem('metasFinanceiras', JSON.stringify(dadosBackup.metasFinanceiras));
+                                    if (dadosBackup.orcamento) localStorage.setItem('orcamento', JSON.stringify(dadosBackup.orcamento));
+                                    if (dadosBackup.orcamentosMensais) localStorage.setItem('orcamentosMensais', JSON.stringify(dadosBackup.orcamentosMensais));
+                                    if (dadosBackup.orcamentoAnual) localStorage.setItem('orcamentoAnual', JSON.stringify(dadosBackup.orcamentoAnual));
+                                    if (dadosBackup.planejadosMes) localStorage.setItem('planejadosMes', JSON.stringify(dadosBackup.planejadosMes));
+                                    if (dadosBackup.comprasParceladas) localStorage.setItem('comprasParceladas', JSON.stringify(dadosBackup.comprasParceladas));
+                                    if (dadosBackup.dividas) localStorage.setItem('dividas', JSON.stringify(dadosBackup.dividas));
+                                    if (dadosBackup.reservaEmergencia !== undefined) localStorage.setItem('reservaEmergencia', dadosBackup.reservaEmergencia.toString());
+                                    if (dadosBackup.categoriasPersonalizadas) localStorage.setItem('categoriasPersonalizadas', JSON.stringify(dadosBackup.categoriasPersonalizadas));
+                                    console.log('✅ Dados do usuário', user.uid, 'carregados do Firestore');
+                                } else {
+                                    console.log('🆕 Usuário', user.uid, '- sem backup, iniciando do zero');
+                                }
+
+                                // 3. Salvar o uid atual para comparação futura
+                                localStorage.setItem('_currentUserId', user.uid);
+
+                                // 4. Se o uid MUDOU (troca de conta), recarregar a página
+                                //    para que os useState do React reinicializem com os dados corretos
+                                if (uidMudou) {
+                                    console.log('🔄 Troca de conta detectada, recarregando...');
+                                    window.location.reload();
+                                    return;
+                                }
+                            } catch (error) {
+                                console.error('Erro ao isolar dados do usuário:', error);
                             }
-                        } catch (error) {
-                            console.error('Erro ao isolar dados do usuário:', error);
                         }
                     }
 
@@ -934,9 +912,9 @@
             const [metas, setMetas] = useState(() => {
                 const saved = localStorage.getItem('metas');
                 return saved ? JSON.parse(saved) : { 
-                    mensal: 20000,
-                    jan: 18000, fev: 16000, mar: 15000, abr: 14000, mai: 13000, jun: 12000,
-                    jul: 12000, ago: 12000, set: 13000, out: 14000, nov: 15000, dez: 18000
+                    mensal: 0,
+                    jan: 0, fev: 0, mar: 0, abr: 0, mai: 0, jun: 0,
+                    jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0
                 };
             });
             
@@ -961,9 +939,9 @@
             const [orcamento, setOrcamento] = useState(() => {
                 const saved = localStorage.getItem('orcamento');
                 return saved ? JSON.parse(saved) : {
-                    cartoes: 8000,
-                    fixos: 5500,
-                    variaveis: 2000
+                    cartoes: 0,
+                    fixos: 0,
+                    variaveis: 0
                 };
             });
 
@@ -980,26 +958,26 @@
             const [orcamentosMensais, setOrcamentosMensais] = useState(() => {
                 const saved = localStorage.getItem('orcamentosMensais');
                 return saved ? JSON.parse(saved) : {
-                    jan: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
-                    fev: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
-                    mar: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
-                    abr: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
-                    mai: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
-                    jun: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
-                    jul: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
-                    ago: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
-                    set: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
-                    out: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
-                    nov: { cartoes: 8000, fixos: 5500, variaveis: 2000 },
-                    dez: { cartoes: 8000, fixos: 5500, variaveis: 2000 }
+                    jan: { cartoes: 0, fixos: 0, variaveis: 0 },
+                    fev: { cartoes: 0, fixos: 0, variaveis: 0 },
+                    mar: { cartoes: 0, fixos: 0, variaveis: 0 },
+                    abr: { cartoes: 0, fixos: 0, variaveis: 0 },
+                    mai: { cartoes: 0, fixos: 0, variaveis: 0 },
+                    jun: { cartoes: 0, fixos: 0, variaveis: 0 },
+                    jul: { cartoes: 0, fixos: 0, variaveis: 0 },
+                    ago: { cartoes: 0, fixos: 0, variaveis: 0 },
+                    set: { cartoes: 0, fixos: 0, variaveis: 0 },
+                    out: { cartoes: 0, fixos: 0, variaveis: 0 },
+                    nov: { cartoes: 0, fixos: 0, variaveis: 0 },
+                    dez: { cartoes: 0, fixos: 0, variaveis: 0 }
                 };
             });
 
             const [orcamentoAnual, setOrcamentoAnual] = useState(() => {
                 const saved = localStorage.getItem('orcamentoAnual');
                 return saved ? JSON.parse(saved) : {
-                    jan: 15000, fev: 15000, mar: 15000, abr: 15000, mai: 15000, jun: 15000,
-                    jul: 15000, ago: 15000, set: 15000, out: 15000, nov: 15000, dez: 15000
+                    jan: 0, fev: 0, mar: 0, abr: 0, mai: 0, jun: 0,
+                    jul: 0, ago: 0, set: 0, out: 0, nov: 0, dez: 0
                 };
             });
 
@@ -1135,8 +1113,8 @@
                             setGastosVariaveis(dadosBackup.dados.gastosVariaveis || []);
                             setReceitas(dadosBackup.dados.receitas || []);
                             setFarol(dadosBackup.dados.farol || {});
-                            setMetas(dadosBackup.dados.metas || { mensal: 20000 });
-                            setOrcamento(dadosBackup.dados.orcamento || { cartoes: 8000, fixos: 5500, variaveis: 2000 });
+                            setMetas(dadosBackup.dados.metas || { mensal: 0 });
+                            setOrcamento(dadosBackup.dados.orcamento || { cartoes: 0, fixos: 0, variaveis: 0 });
                             setOrcamentosMensais(dadosBackup.dados.orcamentosMensais || {});
                             setOrcamentoAnual(dadosBackup.dados.orcamentoAnual || {});
                             setPlanejadosMes(dadosBackup.dados.planejadosMes || []);
@@ -2592,8 +2570,8 @@
                                 setGastosVariaveis(dadosBackup.dados.gastosVariaveis || []);
                                 setReceitas(dadosBackup.dados.receitas || []);
                                 setFarol(dadosBackup.dados.farol || {});
-                                setMetas(dadosBackup.dados.metas || { mensal: 20000 });
-                                setOrcamento(dadosBackup.dados.orcamento || { cartoes: 8000, fixos: 5500, variaveis: 2000 });
+                                setMetas(dadosBackup.dados.metas || { mensal: 0 });
+                                setOrcamento(dadosBackup.dados.orcamento || { cartoes: 0, fixos: 0, variaveis: 0 });
                                 setOrcamentosMensais(dadosBackup.dados.orcamentosMensais || {});
                                 setOrcamentoAnual(dadosBackup.dados.orcamentoAnual || {});
                                 setPlanejadosMes(dadosBackup.dados.planejadosMes || []);
@@ -2665,8 +2643,8 @@
                         setGastosVariaveis(dadosBackup.dados.gastosVariaveis || []);
                         setReceitas(dadosBackup.dados.receitas || []);
                         setFarol(dadosBackup.dados.farol || {});
-                        setMetas(dadosBackup.dados.metas || { mensal: 20000 });
-                        setOrcamento(dadosBackup.dados.orcamento || { cartoes: 8000, fixos: 5500, variaveis: 2000 });
+                        setMetas(dadosBackup.dados.metas || { mensal: 0 });
+                        setOrcamento(dadosBackup.dados.orcamento || { cartoes: 0, fixos: 0, variaveis: 0 });
                         setOrcamentosMensais(dadosBackup.dados.orcamentosMensais || {});
                         setOrcamentoAnual(dadosBackup.dados.orcamentoAnual || {});
                         setPlanejadosMes(dadosBackup.dados.planejadosMes || []);
@@ -9235,7 +9213,7 @@
                                                             Logado como: {user.email}
                                                         </div>
                                                         <button onClick={() => { if (confirm('Deseja sair da sua conta?')) { 
-                                                    const keysToRemove = ['cartoes','gastosFixos','gastosVariaveis','gastosExtras','receitas','farol','metas','metasFinanceiras','orcamento','orcamentosMensais','orcamentoAnual','planejadosMes','comprasParceladas','dividas','reservaEmergencia','categoriasPersonalizadas','anoAtual','mesAtual'];
+                                                    const keysToRemove = ['cartoes','gastosFixos','gastosVariaveis','gastosExtras','receitas','farol','metas','metasFinanceiras','orcamento','orcamentosMensais','orcamentoAnual','planejadosMes','comprasParceladas','dividas','reservaEmergencia','categoriasPersonalizadas','anoAtual','mesAtual','_currentUserId'];
                                                     keysToRemove.forEach(k => localStorage.removeItem(k));
                                                     firebase.auth().signOut(); 
                                                 } }} style={{
@@ -9308,7 +9286,7 @@
                                 
                                 <button 
                                     onClick={() => {
-                                        const keysToRemove = ['cartoes','gastosFixos','gastosVariaveis','gastosExtras','receitas','farol','metas','metasFinanceiras','orcamento','orcamentosMensais','orcamentoAnual','planejadosMes','comprasParceladas','dividas','reservaEmergencia','categoriasPersonalizadas','anoAtual','mesAtual'];
+                                        const keysToRemove = ['cartoes','gastosFixos','gastosVariaveis','gastosExtras','receitas','farol','metas','metasFinanceiras','orcamento','orcamentosMensais','orcamentoAnual','planejadosMes','comprasParceladas','dividas','reservaEmergencia','categoriasPersonalizadas','anoAtual','mesAtual','_currentUserId'];
                                         keysToRemove.forEach(k => localStorage.removeItem(k));
                                         firebase.auth().signOut();
                                     }}
