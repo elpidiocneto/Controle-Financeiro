@@ -762,6 +762,107 @@
             );
         }
 
+
+        // Componente Menu de Navegação (escopo global)
+        const MenuNavegacao = ({ telaAtiva, setTelaAtiva, isUserAdmin }) => {
+            const [sub, setSub] = React.useState(null);
+
+            const toggle = (nome) => setSub(prev => prev === nome ? null : nome);
+
+            const btn = (ativo) => ({
+                padding: '6px 14px', border: 'none', cursor: 'pointer',
+                borderRadius: '8px', fontSize: '0.8rem', fontWeight: '600',
+                whiteSpace: 'nowrap', background: 'transparent',
+                color: ativo ? '#fff' : 'rgba(255,255,255,0.65)',
+                borderBottom: ativo ? '2px solid rgba(16,185,129,0.8)' : '2px solid transparent',
+            });
+
+            const drop = {
+                position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 9999,
+                background: '#1e1b4b', borderRadius: '10px', minWidth: '180px',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.7)',
+                border: '1px solid rgba(99,102,241,0.4)',
+            };
+
+            const item = (ativo) => ({
+                padding: '10px 16px', cursor: 'pointer', fontSize: '0.82rem',
+                color: ativo ? '#10b981' : 'rgba(255,255,255,0.85)',
+                background: ativo ? 'rgba(16,185,129,0.1)' : 'transparent',
+                fontWeight: ativo ? '700' : '500',
+                borderLeft: ativo ? '3px solid #10b981' : '3px solid transparent',
+            });
+
+            const ir = (tela) => { setTelaAtiva(tela); setSub(null); };
+
+            return (
+                <div style={{position:'relative'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:'2px', overflowX:'auto', scrollbarWidth:'none'}}>
+
+                        <button onClick={() => ir('dashboard')} style={btn(telaAtiva === 'dashboard')}>📊 Dashboard</button>
+
+                        {isUserAdmin && (
+                            <button onClick={() => ir('admin')} style={btn(telaAtiva === 'admin')}>👑 Admin</button>
+                        )}
+
+                        <div style={{position:'relative', flexShrink:0}}>
+                            <button onClick={() => toggle('planejamento')} style={btn(telaAtiva.startsWith('planejamento'))}>
+                                📋 Planejar ▾
+                            </button>
+                            {sub === 'planejamento' && (
+                                <div style={drop}>
+                                    {[
+                                        {id:'planejamento', label:'🏥 Diagnóstico'},
+                                        {id:'planejamento-orcamento', label:'📊 Orçamento'},
+                                        {id:'planejamento-premes', label:'📝 Pré-Mês'},
+                                        {id:'planejamento-metas', label:'🎯 Metas'},
+                                        {id:'planejamento-dividas', label:'💳 Dívidas'},
+                                        {id:'planejamento-compra', label:'🛒 Simul. Compra'},
+                                        {id:'planejamento-simulador', label:'🎲 Simulador'},
+                                        {id:'planejamento-timeline', label:'📈 Timeline'},
+                                    ].map(i => (
+                                        <div key={i.id} onClick={() => ir(i.id)} style={item(telaAtiva === i.id)}
+                                            onMouseEnter={e => { if(telaAtiva !== i.id) e.currentTarget.style.background='rgba(255,255,255,0.07)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = telaAtiva === i.id ? 'rgba(16,185,129,0.1)' : 'transparent'; }}>
+                                            {i.label}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <button onClick={() => ir('receitas')} style={btn(telaAtiva === 'receitas')}>💰 Receitas</button>
+
+                        <div style={{position:'relative', flexShrink:0}}>
+                            <button onClick={() => toggle('despesas')} style={btn(['cartoes','fixos','variaveis','extras'].includes(telaAtiva))}>
+                                💸 Despesas ▾
+                            </button>
+                            {sub === 'despesas' && (
+                                <div style={drop}>
+                                    {[
+                                        {id:'cartoes', label:'💳 Cartões'},
+                                        {id:'fixos', label:'🏠 Gastos Fixos'},
+                                        {id:'variaveis', label:'📊 Gastos Variáveis'},
+                                        {id:'extras', label:'⚡ Gastos Extras'},
+                                    ].map(i => (
+                                        <div key={i.id} onClick={() => ir(i.id)} style={item(telaAtiva === i.id)}
+                                            onMouseEnter={e => { if(telaAtiva !== i.id) e.currentTarget.style.background='rgba(255,255,255,0.07)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = telaAtiva === i.id ? 'rgba(16,185,129,0.1)' : 'transparent'; }}>
+                                            {i.label}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <button onClick={() => ir('farol')} style={btn(telaAtiva === 'farol')}>🚦 Farol</button>
+
+                    </div>
+                </div>
+            );
+        };
+
+
+
         function App({ user }) {
             const [salvando, setSalvando] = useState(false);
             const [ultimoSave, setUltimoSave] = useState(null);
@@ -3794,138 +3895,8 @@
                 );
             };
 
-            // Componente Menu de Navegação
-            const MenuNavegacao = ({ telaAtiva, setTelaAtiva, isUserAdmin }) => {
-                const [submenuAberto, setSubmenuAberto] = React.useState(null);
 
-                // Fecha ao clicar fora - usa 'click' para não competir com onClick dos botões
-                React.useEffect(() => {
-                    if (!submenuAberto) return;
-                    const fechar = () => setSubmenuAberto(null);
-                    // Timeout para não fechar imediatamente ao abrir
-                    const timer = setTimeout(() => {
-                        document.addEventListener('click', fechar, { once: true });
-                    }, 0);
-                    return () => {
-                        clearTimeout(timer);
-                        document.removeEventListener('click', fechar);
-                    };
-                }, [submenuAberto]);
 
-                const btnStyle = (ativo) => ({
-                    padding: '6px 14px', border: 'none', cursor: 'pointer',
-                    borderRadius: '8px', fontSize: '0.8rem', fontWeight: '600',
-                    transition: 'all 0.2s', whiteSpace: 'nowrap', background: 'transparent',
-                    color: ativo ? '#fff' : 'rgba(255,255,255,0.65)',
-                    borderBottom: ativo ? '2px solid rgba(16,185,129,0.8)' : '2px solid transparent',
-                });
-
-                const dropStyle = {
-                    position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 9999,
-                    background: '#1e1b4b', borderRadius: '12px', minWidth: '180px',
-                    boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
-                    border: '1px solid rgba(99,102,241,0.4)',
-                    overflow: 'hidden'
-                };
-
-                const itemStyle = (ativo) => ({
-                    padding: '10px 16px', cursor: 'pointer', fontSize: '0.82rem',
-                    color: ativo ? '#10b981' : 'rgba(255,255,255,0.85)',
-                    background: ativo ? 'rgba(16,185,129,0.1)' : 'transparent',
-                    fontWeight: ativo ? '700' : '500',
-                    borderLeft: ativo ? '3px solid #10b981' : '3px solid transparent',
-                    transition: 'background 0.15s',
-                });
-
-                const toggleSubmenu = (nome, e) => {
-                    e.stopPropagation();
-                    setSubmenuAberto(prev => prev === nome ? null : nome);
-                };
-
-                return (
-                    <div style={{display:'flex', alignItems:'center', gap:'2px', overflowX:'auto', scrollbarWidth:'none'}}>
-
-                        <button onClick={(e) => { e.stopPropagation(); setTelaAtiva('dashboard'); setSubmenuAberto(null); }} style={btnStyle(telaAtiva === 'dashboard')}>
-                            📊 Dashboard
-                        </button>
-
-                        {isUserAdmin && (
-                            <button onClick={(e) => { e.stopPropagation(); setTelaAtiva('admin'); setSubmenuAberto(null); }} style={btnStyle(telaAtiva === 'admin')}>
-                                👑 Admin
-                            </button>
-                        )}
-
-                        {/* Planejamento com Submenu */}
-                        <div style={{position:'relative', flexShrink:0}}>
-                            <button
-                                onClick={(e) => toggleSubmenu('planejamento', e)}
-                                style={btnStyle(telaAtiva.startsWith('planejamento'))}
-                            >
-                                📋 Planejar ▾
-                            </button>
-                            {submenuAberto === 'planejamento' && (
-                                <div style={dropStyle} onClick={e => e.stopPropagation()}>
-                                    {[
-                                        {id:'planejamento', label:'🏥 Diagnóstico'},
-                                        {id:'planejamento-orcamento', label:'📊 Orçamento'},
-                                        {id:'planejamento-premes', label:'📝 Pré-Mês'},
-                                        {id:'planejamento-metas', label:'🎯 Metas'},
-                                        {id:'planejamento-dividas', label:'💳 Dívidas'},
-                                        {id:'planejamento-compra', label:'🛒 Simul. Compra'},
-                                        {id:'planejamento-simulador', label:'🎲 Simulador'},
-                                        {id:'planejamento-timeline', label:'📈 Timeline'},
-                                    ].map(item => (
-                                        <div key={item.id}
-                                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
-                                            onMouseLeave={e => e.currentTarget.style.background = item.id === telaAtiva ? 'rgba(16,185,129,0.1)' : 'transparent'}
-                                            onClick={(e) => { e.stopPropagation(); setTelaAtiva(item.id); setSubmenuAberto(null); }}
-                                            style={itemStyle(telaAtiva === item.id)}>
-                                            {item.label}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <button onClick={(e) => { e.stopPropagation(); setTelaAtiva('receitas'); setSubmenuAberto(null); }} style={btnStyle(telaAtiva === 'receitas')}>
-                            💰 Receitas
-                        </button>
-
-                        {/* Despesas com Submenu */}
-                        <div style={{position:'relative', flexShrink:0}}>
-                            <button
-                                onClick={(e) => toggleSubmenu('despesas', e)}
-                                style={btnStyle(['cartoes','fixos','variaveis','extras'].includes(telaAtiva))}
-                            >
-                                💸 Despesas ▾
-                            </button>
-                            {submenuAberto === 'despesas' && (
-                                <div style={dropStyle} onClick={e => e.stopPropagation()}>
-                                    {[
-                                        {id:'cartoes', label:'💳 Cartões'},
-                                        {id:'fixos', label:'🏠 Gastos Fixos'},
-                                        {id:'variaveis', label:'📊 Gastos Variáveis'},
-                                        {id:'extras', label:'⚡ Gastos Extras'},
-                                    ].map(item => (
-                                        <div key={item.id}
-                                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
-                                            onMouseLeave={e => e.currentTarget.style.background = item.id === telaAtiva ? 'rgba(16,185,129,0.1)' : 'transparent'}
-                                            onClick={(e) => { e.stopPropagation(); setTelaAtiva(item.id); setSubmenuAberto(null); }}
-                                            style={itemStyle(telaAtiva === item.id)}>
-                                            {item.label}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <button onClick={(e) => { e.stopPropagation(); setTelaAtiva('farol'); setSubmenuAberto(null); }} style={btnStyle(telaAtiva === 'farol')}>
-                            🚦 Farol
-                        </button>
-
-                    </div>
-                );
-            };
 
             // Screens
             const Dashboard = () => {
