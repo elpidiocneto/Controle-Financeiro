@@ -764,9 +764,7 @@
 
 
         // Componente Menu de Navegação (escopo global)
-        const MenuNavegacao = ({ telaAtiva, setTelaAtiva, isUserAdmin }) => {
-            const [sub, setSub] = React.useState(null);
-
+        const MenuNavegacao = ({ telaAtiva, setTelaAtiva, isUserAdmin, sub, setSub }) => {
             const toggle = (nome) => setSub(prev => prev === nome ? null : nome);
 
             const btn = (ativo) => ({
@@ -875,6 +873,7 @@
             });
             const [mesAtual, setMesAtual] = useState('jan');
             const [telaAtiva, setTelaAtiva] = useState('dashboard');
+            const [subMenu, setSubMenu] = useState(null);
             const [modalAberto, setModalAberto] = useState(null);
             const [itemEditando, setItemEditando] = useState(null);
             const [tipoEditando, setTipoEditando] = useState(null);
@@ -9304,7 +9303,7 @@
                         zIndex: 40
                     }} className="sticky-desktop top-[57px] md:top-[57px]">
                         <div className="max-w-7xl mx-auto px-2 md:px-4 py-2" style={{overflow:'visible', position:'relative'}}>
-                            <MenuNavegacao telaAtiva={telaAtiva} setTelaAtiva={setTelaAtiva} isUserAdmin={isUserAdmin} />
+                            <MenuNavegacao telaAtiva={telaAtiva} setTelaAtiva={setTelaAtiva} isUserAdmin={isUserAdmin} sub={subMenu} setSub={setSubMenu} />
                         </div>
                     </div>
 
