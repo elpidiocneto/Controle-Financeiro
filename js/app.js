@@ -9831,7 +9831,7 @@
                             <FormCompraParcelada />
                         </Modal>
                     )}
-                    </div> {/* fim conteudo principal */}
+                    </div>
                 </div>
             );
         }
