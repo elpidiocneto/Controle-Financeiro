@@ -9049,6 +9049,19 @@
                             </select>
                         </div>
                     </div>
+
+                    {/* MENU DE NAVEGAÇÃO - dentro do header, sempre visível */}
+                    <div style={{
+                        background: 'linear-gradient(90deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)',
+                        borderBottom: '1px solid rgba(99,102,241,0.3)',
+                        position: 'sticky', top: '57px', zIndex: 45,
+                        overflow: 'visible'
+                    }}>
+                        <div style={{maxWidth:'1280px', margin:'0 auto', padding:'4px 16px', overflow:'visible', position:'relative'}}>
+                            <MenuNavegacao telaAtiva={telaAtiva} setTelaAtiva={setTelaAtiva} isUserAdmin={isUserAdmin} />
+                        </div>
+                    </div>
+
                     {/* CONTEÚDO PRINCIPAL - oculto se trial expirou */}
                     <div className="main-content-area" style={{display: (!isUserAdmin && planoInfo.plano === 'trial' && planoInfo.expirado) ? 'none' : 'block'}}>
 
@@ -9070,19 +9083,6 @@
                         </div>
                     </div>
 
-                    {/* MENU PRINCIPAL - NO LUGAR DO HEADER */}
-                    <div style={{
-                        background: 'linear-gradient(90deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)',
-                        borderBottom: '1px solid rgba(99,102,241,0.3)',
-                        boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
-                        overflow: 'visible',
-                        position: 'relative',
-                        zIndex: 40
-                    }} className="sticky-desktop top-[57px] md:top-[57px]">
-                        <div className="max-w-7xl mx-auto px-2 md:px-4 py-2" style={{overflow:'visible', position:'relative'}}>
-                            <MenuNavegacao telaAtiva={telaAtiva} setTelaAtiva={setTelaAtiva} isUserAdmin={isUserAdmin} />
-                        </div>
-                    </div>
 
                     {/* Content */}
                     <div className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 main-content animate-in">
