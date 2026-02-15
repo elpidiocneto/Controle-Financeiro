@@ -8,7 +8,7 @@
     <!-- Bibliotecas Externas -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Babel não necessário: app.js pré-compilado -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -30,7 +30,8 @@
     <script src="js/firebase-config.js"></script>
     
     <!-- Aplicação Principal -->
+    <script src="js/logo.js"></script>
     <script src="js/menu.js"></script>
-    <script src="js/app.js" type="text/babel"></script>
+    <script src="js/app-compiled.js"></script>
 </body>
 </html>
