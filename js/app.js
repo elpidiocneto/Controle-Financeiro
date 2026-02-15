@@ -9330,7 +9330,6 @@
                             <MenuNavegacao telaAtiva={telaAtiva} setTelaAtiva={setTelaAtiva} isUserAdmin={isUserAdmin} />
                         </div>
                     </div>
-                    </div>
 
                     {/* Content */}
                     <div className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 main-content animate-in">
