@@ -59,7 +59,7 @@ window.MenuNavegacao = function MenuNavegacao({ telaAtiva, setTelaAtiva, isUserA
     const h = React.createElement;
 
     // Quais rotas pertencem a cada grupo
-    const isSimulacoes = ['planejamento-compra','planejamento-simulador','planejamento-timeline'].includes(telaAtiva);
+    const isSimulacoes = ['planejamento-compra','planejamento-simulador'].includes(telaAtiva);
     const isOrcamento  = ['planejamento-orcamento','planejamento-premes'].includes(telaAtiva);
     const isMetas      = ['planejamento-metas','planejamento-dividas'].includes(telaAtiva);
 
@@ -93,7 +93,7 @@ window.MenuNavegacao = function MenuNavegacao({ telaAtiva, setTelaAtiva, isUserA
 
         // ── Dropdown Planejar (4 itens)
         sub === 'plan' && h('div', {onClick: e=>e.stopPropagation(), style:dropStyle},
-            h('div', {onClick:()=>navegar('planejamento'),         style:itemStyle(telaAtiva==='planejamento')},         '🏥 Diagnóstico'),
+            h('div', {onClick:()=>navegar('planejamento'),         style:itemStyle(telaAtiva==='planejamento' || telaAtiva==='planejamento-timeline')},         '🏥 Diagnóstico'),
             h('div', {style:separador}),
             h('div', {onClick:()=>navegar('planejamento-orcamento'), style:itemStyle(isOrcamento)},                      '📊 Orçamento'),
             h('div', {style:separador}),

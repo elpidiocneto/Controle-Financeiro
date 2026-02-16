@@ -5103,7 +5103,7 @@ function App({
   };
   const TelaPlanejamento = () => {
     // Controlar aba via telaAtiva do menu
-    const abaAtiva = telaAtiva === 'planejamento-orcamento' || telaAtiva === 'planejamento-premes' ? 'orcamento' : telaAtiva === 'planejamento-metas' || telaAtiva === 'planejamento-dividas' ? 'metas' : telaAtiva === 'planejamento-compra' || telaAtiva === 'planejamento-simulador' || telaAtiva === 'planejamento-timeline' ? 'simulacoes' : 'diagnostico';
+    const abaAtiva = telaAtiva === 'planejamento-orcamento' || telaAtiva === 'planejamento-premes' ? 'orcamento' : telaAtiva === 'planejamento-metas' || telaAtiva === 'planejamento-dividas' ? 'metas' : telaAtiva === 'planejamento-compra' || telaAtiva === 'planejamento-simulador' ? 'simulacoes' : 'diagnostico';
     const subAba = telaAtiva === 'planejamento-premes' ? 'premes' : telaAtiva === 'planejamento-dividas' ? 'dividas' : telaAtiva === 'planejamento-compra' ? 'compra' : telaAtiva === 'planejamento-simulador' ? 'simulador' : telaAtiva === 'planejamento-timeline' ? 'timeline' : null;
 
     // Estados do Simulador
@@ -5403,12 +5403,160 @@ function App({
       window.__diagCtx = {
         scoreSaude, scoreInfo, saldo, totais, orcamento,
         dentroOrcamento, reservaEmergencia, setReservaEmergencia,
-        mesAtual, anoAtual,
+        mesAtual, anoAtual, subAba, setTelaAtiva,
+        metasFinanceiras, dividas,
       };
       return window.DiagnosticoComponent
         ? window.DiagnosticoComponent()
         : /*#__PURE__*/React.createElement('div', {style:{padding:'20px',color:'#999'}}, 'Carregando diagnóstico...');
-    })(), abaAtiva === 'orcamento' && /*#__PURE__*/React.createElement("div", {
+    })(), abaAtiva === 'metasanuais' && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setModalAberto('metas'),
+    className: "px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+  }, "\uD83D\uDCDD Editar Metas")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-4 gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-xl shadow-lg p-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-gray-600"
+  }, "Total Planejado (Ano)"), /*#__PURE__*/React.createElement("div", {
+    className: "text-2xl font-bold text-blue-600"
+  }, "R$ ", (metas.jan + metas.fev + metas.mar + metas.abr + metas.mai + metas.jun + metas.jul + metas.ago + metas.set + metas.out + metas.nov + metas.dez).toFixed(2))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-xl shadow-lg p-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-gray-600"
+  }, "Gasto (at\xE9 ", mesAtual.toUpperCase(), ")"), /*#__PURE__*/React.createElement("div", {
+    className: "text-2xl font-bold text-purple-600"
+  }, "R$ ", ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1).reduce((sum, mes) => sum + calcularTotais(mes).total, 0).toFixed(2))), (() => {
+    const totalMetaAteAgora = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1).reduce((sum, mes) => sum + (metas[mes] || 0), 0);
+    const totalGastoAteAgora = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1).reduce((sum, mes) => sum + calcularTotais(mes).total, 0);
+    const diferenca = totalMetaAteAgora - totalGastoAteAgora;
+    const dentroMeta = diferenca >= 0;
+    return /*#__PURE__*/React.createElement("div", {
+      className: `rounded-xl shadow-lg p-6 ${dentroMeta ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-red-500 to-red-600'} text-white`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-sm opacity-90"
+    }, dentroMeta ? 'Economia' : 'Excesso'), /*#__PURE__*/React.createElement("div", {
+      className: "text-2xl font-bold"
+    }, "R$ ", Math.abs(diferenca).toFixed(2)), /*#__PURE__*/React.createElement("div", {
+      className: "text-sm mt-2"
+    }, dentroMeta ? '✅ Abaixo da meta' : '⚠️ Acima da meta'));
+  })(), (() => {
+    const mesesAteAgora = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1);
+    const mesesNoTarget = mesesAteAgora.filter(mes => {
+      const meta = metas[mes] || 0;
+      const gasto = calcularTotais(mes).total;
+      return gasto <= meta;
+    }).length;
+    return /*#__PURE__*/React.createElement("div", {
+      className: "bg-white rounded-xl shadow-lg p-6"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-sm text-gray-600"
+    }, "Performance"), /*#__PURE__*/React.createElement("div", {
+      className: "text-2xl font-bold text-green-600"
+    }, mesesNoTarget, "/", mesesAteAgora.length), /*#__PURE__*/React.createElement("div", {
+      className: "text-sm text-gray-500 mt-2"
+    }, "Meses no target (", (mesesNoTarget / mesesAteAgora.length * 100).toFixed(0), "%)"));
+  })()), /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-xl shadow-lg p-6"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-gray-800 mb-4"
+  }, "Metas por M\xEAs"), /*#__PURE__*/React.createElement("div", {
+    className: "overflow-x-auto"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "w-full"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
+    className: "border-b-2 border-gray-200"
+  }, /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-2 px-4 font-bold text-gray-700"
+  }, "M\xEAs"), /*#__PURE__*/React.createElement("th", {
+    className: "text-right py-2 px-4 font-bold text-gray-700"
+  }, "Meta"), /*#__PURE__*/React.createElement("th", {
+    className: "text-right py-2 px-4 font-bold text-gray-700"
+  }, "Real"), /*#__PURE__*/React.createElement("th", {
+    className: "text-right py-2 px-4 font-bold text-gray-700"
+  }, "Diferen\xE7a"), /*#__PURE__*/React.createElement("th", {
+    className: "text-center py-2 px-4 font-bold text-gray-700"
+  }, "Status"), /*#__PURE__*/React.createElement("th", {
+    className: "text-right py-2 px-4 font-bold text-gray-700"
+  }, "%"))), /*#__PURE__*/React.createElement("tbody", null, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].map(mes => {
+    const meta = metas[mes] || 0;
+    const real = calcularTotais(mes).total;
+    const diferenca = meta - real;
+    const percentual = meta > 0 ? real / meta * 100 : 0;
+    const dentroMeta = real <= meta && real > 0;
+    const pendente = real === 0;
+    return /*#__PURE__*/React.createElement("tr", {
+      key: mes,
+      className: `border-b border-gray-100 hover:bg-gray-50 ${mes === mesAtual ? 'bg-blue-50' : ''}`
+    }, /*#__PURE__*/React.createElement("td", {
+      className: "py-2 px-4"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "font-semibold uppercase"
+    }, mes), mes === mesAtual && /*#__PURE__*/React.createElement("span", {
+      className: "ml-2 text-xs bg-blue-600 text-white px-2 py-1 rounded"
+    }, "Atual")), /*#__PURE__*/React.createElement("td", {
+      className: "text-right py-2 px-4 text-blue-600 font-semibold"
+    }, "R$ ", meta.toFixed(2)), /*#__PURE__*/React.createElement("td", {
+      className: "text-right py-2 px-4 font-semibold"
+    }, "R$ ", real.toFixed(2)), /*#__PURE__*/React.createElement("td", {
+      className: `text-right py-2 px-4 font-bold ${diferenca >= 0 ? 'text-green-600' : 'text-red-600'}`
+    }, diferenca >= 0 ? '+' : '', "R$ ", diferenca.toFixed(2)), /*#__PURE__*/React.createElement("td", {
+      className: "text-center py-2 px-4 text-2xl"
+    }, pendente ? '⏳' : dentroMeta ? '✅' : '❌'), /*#__PURE__*/React.createElement("td", {
+      className: `text-right py-2 px-4 font-bold ${dentroMeta ? 'text-green-600' : pendente ? 'text-gray-400' : 'text-red-600'}`
+    }, percentual.toFixed(0), "%"));
+  }))))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-xl shadow-lg p-6"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-gray-800 mb-4"
+  }, "Evolu\xE7\xE3o Anual"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].map(mes => {
+    const meta = metas[mes] || 0;
+    const real = calcularTotais(mes).total;
+    const maxValor = Math.max(meta, real, 1);
+    const larguraMeta = meta / maxValor * 100;
+    const larguraReal = real / maxValor * 100;
+    return /*#__PURE__*/React.createElement("div", {
+      key: mes
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-3 mb-1"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "font-semibold uppercase text-gray-700 w-12"
+    }, mes), /*#__PURE__*/React.createElement("div", {
+      className: "flex-1 relative h-10"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "absolute top-0 left-0 h-4 bg-blue-200 rounded",
+      style: {
+        width: `${larguraMeta}%`
+      },
+      title: `Meta: R$ ${meta.toFixed(2)}`
+    }), /*#__PURE__*/React.createElement("div", {
+      className: `absolute top-5 left-0 h-4 rounded ${real <= meta ? 'bg-green-500' : 'bg-red-500'}`,
+      style: {
+        width: `${larguraReal}%`
+      },
+      title: `Real: R$ ${real.toFixed(2)}`
+    }))));
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-3 mt-3 text-sm"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-4 h-4 bg-blue-200 rounded"
+  }), /*#__PURE__*/React.createElement("span", null, "Meta Planejada")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-4 h-4 bg-green-500 rounded"
+  }), /*#__PURE__*/React.createElement("span", null, "Gasto Real (Dentro)")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-4 h-4 bg-red-500 rounded"
+  }), /*#__PURE__*/React.createElement("span", null, "Gasto Real (Acima)")))));, abaAtiva === 'orcamento' && /*#__PURE__*/React.createElement("div", {
       className: "space-y-3"
     }, /*#__PURE__*/React.createElement("div", {
       style: {display:'flex', gap:'8px', marginBottom:'4px'}
@@ -6613,354 +6761,7 @@ function App({
       className: "font-bold text-gray-800"
     }, "Combo Perfeito"), /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-gray-600"
-    }, "+20% renda, -20% gastos"))))), (abaAtiva === 'simulacoes' && !subAba) && /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {display:'flex', gap:'8px', marginBottom:'4px'}
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-compra'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='compra'?'#6366f1':'#f3f4f6', color: subAba==='compra'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "🛒 Simul. Compra"), /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-simulador'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='simulador'?'#6366f1':'#f3f4f6', color: subAba==='simulador'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "🎲 Simulador"), /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-timeline'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='timeline'?'#6366f1':'#f3f4f6', color: subAba==='timeline'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "📈 Timeline")),/*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
-      className: "text-lg font-bold text-gray-800"
-    }, "\uD83D\uDCC8 Linha do Tempo Financeira"), /*#__PURE__*/React.createElement("p", {
-      className: "text-gray-600"
-    }, "Visualize sua jornada financeira e proje\xE7\xF5es futuras")), /*#__PURE__*/React.createElement("div", {
-      style: {
-        background: 'linear-gradient(135deg, #6366f1 0%, #10b981 100%)',
-        borderRadius: '16px',
-        boxShadow: '0 8px 24px rgba(99,102,241,0.3)',
-        padding: '1.5rem',
-        color: '#fff'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center gap-3 mb-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-xl"
-    }, "\uD83D\uDCCD"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", {
-      className: "text-xl font-bold"
-    }, "Voc\xEA est\xE1 aqui"), /*#__PURE__*/React.createElement("p", {
-      className: "text-sm opacity-90"
-    }, new Date().toLocaleDateString('pt-BR', {
-      month: 'long',
-      year: 'numeric'
-    })))), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-2 md:grid-cols-4 gap-4"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-75"
-    }, "Score"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold"
-    }, scoreSaude.score)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-75"
-    }, "Saldo Mensal"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold"
-    }, "R$ ", saldo.saldo.toFixed(0))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-75"
-    }, "Metas Ativas"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold"
-    }, metasFinanceiras.filter(m => !m.concluida).length)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-75"
-    }, "D\xEDvidas"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold"
-    }, dividas.length)))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h4", {
-      className: "text-lg font-bold text-gray-800 mb-3"
-    }, "\uD83D\uDDD3\uFE0F Pr\xF3ximos Marcos"), /*#__PURE__*/React.createElement("div", {
-      className: "relative"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500"
-    }), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-4"
-    }, metasFinanceiras.filter(m => !m.concluida && m.dataMeta).sort((a, b) => new Date(a.dataMeta) - new Date(b.dataMeta)).slice(0, 5).map(meta => {
-      const progresso = meta.valorAtual / meta.valor * 100;
-      const dataMeta = new Date(meta.dataMeta);
-      const hoje = new Date();
-      const diasRestantes = Math.ceil((dataMeta - hoje) / (1000 * 60 * 60 * 24));
-      return /*#__PURE__*/React.createElement("div", {
-        key: meta.id,
-        className: "relative flex items-start gap-4"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "relative z-10 w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-2xl"
-      }, "\uD83C\uDFAF"), /*#__PURE__*/React.createElement("div", {
-        className: "flex-1 bg-blue-50 rounded-lg p-4"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between items-start mb-2"
-      }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h5", {
-        className: "font-bold text-gray-800"
-      }, meta.titulo), /*#__PURE__*/React.createElement("p", {
-        className: "text-sm text-gray-600"
-      }, dataMeta.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
-      }), diasRestantes > 0 && ` • ${diasRestantes} dias restantes`)), /*#__PURE__*/React.createElement("span", {
-        className: "px-3 py-1 bg-blue-600 text-white rounded-full text-sm font-semibold"
-      }, progresso.toFixed(0), "%")), /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center gap-2"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex-1 bg-white rounded-full h-3"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "bg-blue-600 h-3 rounded-full transition-all",
-        style: {
-          width: `${Math.min(progresso, 100)}%`
-        }
-      })), /*#__PURE__*/React.createElement("span", {
-        className: "text-sm font-semibold text-gray-700"
-      }, "R$ ", meta.valorAtual.toFixed(0), " / R$ ", meta.valor.toFixed(0)))));
-    }), dividas.length > 0 && estrategias && estrategias.disponivel > 0 && /*#__PURE__*/React.createElement("div", {
-      className: "relative flex items-start gap-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "relative z-10 w-16 h-16 bg-green-600 rounded-full flex items-center justify-center text-2xl"
-    }, "\u2705"), /*#__PURE__*/React.createElement("div", {
-      className: "flex-1 bg-green-50 rounded-lg p-4"
-    }, /*#__PURE__*/React.createElement("h5", {
-      className: "font-bold text-gray-800"
-    }, "Todas as D\xEDvidas Quitadas"), /*#__PURE__*/React.createElement("p", {
-      className: "text-sm text-gray-600 mb-2"
-    }, (() => {
-      const meses = Math.min(estrategias.bolaDeNeve.meses, estrategias.avalanche.meses);
-      const dataQuita = new Date();
-      dataQuita.setMonth(dataQuita.getMonth() + meses);
-      return dataQuita.toLocaleDateString('pt-BR', {
-        month: 'long',
-        year: 'numeric'
-      });
-    })()), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "font-semibold"
-    }, "Estrat\xE9gia recomendada:"), ' ', estrategias.avalanche.jurosTotal < estrategias.bolaDeNeve.jurosTotal ? '⚡ Avalanche (economia máxima)' : '🔴 Bola de Neve (motivação)'))), scoreSaude.percentualReserva < 100 && /*#__PURE__*/React.createElement("div", {
-      className: "relative flex items-start gap-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "relative z-10 w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center text-2xl"
-    }, "\uD83C\uDD98"), /*#__PURE__*/React.createElement("div", {
-      className: "flex-1 bg-purple-50 rounded-lg p-4"
-    }, /*#__PURE__*/React.createElement("h5", {
-      className: "font-bold text-gray-800"
-    }, "Reserva de Emerg\xEAncia Completa"), /*#__PURE__*/React.createElement("p", {
-      className: "text-sm text-gray-600 mb-2"
-    }, saldo.positivo && saldo.saldo > 0 ? (() => {
-      const falta = scoreSaude.reservaIdeal - scoreSaude.reservaAtual;
-      const mesesRestantes = Math.ceil(falta / saldo.saldo);
-      const dataCompleta = new Date();
-      dataCompleta.setMonth(dataCompleta.getMonth() + mesesRestantes);
-      return dataCompleta.toLocaleDateString('pt-BR', {
-        month: 'long',
-        year: 'numeric'
-      });
-    })() : 'Defina seu saldo para calcular'), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center gap-2"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex-1 bg-white rounded-full h-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-purple-600 h-3 rounded-full",
-      style: {
-        width: `${Math.min(scoreSaude.percentualReserva, 100)}%`
-      }
-    })), /*#__PURE__*/React.createElement("span", {
-      className: "text-sm font-semibold text-gray-700"
-    }, scoreSaude.percentualReserva.toFixed(0), "%")))), scoreSaude.score < 100 && /*#__PURE__*/React.createElement("div", {
-      className: "relative flex items-start gap-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "relative z-10 w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center text-2xl"
-    }, "\uD83C\uDFC6"), /*#__PURE__*/React.createElement("div", {
-      className: "flex-1 bg-yellow-50 rounded-lg p-4"
-    }, /*#__PURE__*/React.createElement("h5", {
-      className: "font-bold text-gray-800"
-    }, "Score de Sa\xFAde 100"), /*#__PURE__*/React.createElement("p", {
-      className: "text-sm text-gray-600 mb-2"
-    }, "Meta de excel\xEAncia financeira"), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "font-semibold"
-    }, "Faltam:"), " ", 100 - scoreSaude.score, " pontos"))))), metasFinanceiras.filter(m => !m.concluida && m.dataMeta).length === 0 && dividas.length === 0 && scoreSaude.percentualReserva >= 100 && scoreSaude.score >= 100 && /*#__PURE__*/React.createElement("div", {
-      className: "text-center py-12"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-xl mb-4"
-    }, "\uD83C\uDF89"), /*#__PURE__*/React.createElement("h4", {
-      className: "text-xl font-bold text-gray-800 mb-2"
-    }, "Parab\xE9ns!"), /*#__PURE__*/React.createElement("p", {
-      className: "text-gray-600"
-    }, "Voc\xEA alcan\xE7ou todos os marcos financeiros!"))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-gradient-to-r from-green-600 to-teal-600 rounded-xl shadow-lg p-6 text-white"
-    }, /*#__PURE__*/React.createElement("h4", {
-      className: "text-xl font-bold mb-4"
-    }, "\uD83D\uDCB0 Proje\xE7\xE3o de Patrim\xF4nio"), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-1 md:grid-cols-3 gap-3"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-75"
-    }, "1 Ano"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold"
-    }, "R$ ", (reservaEmergencia + (saldo.positivo ? saldo.saldo * 12 : 0)).toFixed(0)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-90 mt-1"
-    }, saldo.positivo ? `+R$ ${(saldo.saldo * 12).toFixed(0)} acumulado` : 'Sem acúmulo')), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-75"
-    }, "3 Anos"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold"
-    }, "R$ ", (reservaEmergencia + (saldo.positivo ? saldo.saldo * 36 : 0)).toFixed(0)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-90 mt-1"
-    }, saldo.positivo ? `+R$ ${(saldo.saldo * 36).toFixed(0)} acumulado` : 'Sem acúmulo')), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-75"
-    }, "5 Anos"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold"
-    }, "R$ ", (reservaEmergencia + (saldo.positivo ? saldo.saldo * 60 : 0)).toFixed(0)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-90 mt-1"
-    }, saldo.positivo ? `+R$ ${(saldo.saldo * 60).toFixed(0)} acumulado` : 'Sem acúmulo'))), /*#__PURE__*/React.createElement("div", {
-      className: "mt-4 p-3 bg-white bg-opacity-20 rounded backdrop-blur-sm text-sm"
-    }, "\u26A0\uFE0F Proje\xE7\xE3o considerando economia mensal constante, sem investimentos ou infla\xE7\xE3o"))), abaAtiva === 'metasanuais' && /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-end"
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('metas'),
-      className: "px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
-    }, "\uD83D\uDCDD Editar Metas")), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-1 md:grid-cols-4 gap-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "Total Planejado (Ano)"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-blue-600"
-    }, "R$ ", (metas.jan + metas.fev + metas.mar + metas.abr + metas.mai + metas.jun + metas.jul + metas.ago + metas.set + metas.out + metas.nov + metas.dez).toFixed(2))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "Gasto (at\xE9 ", mesAtual.toUpperCase(), ")"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-purple-600"
-    }, "R$ ", ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1).reduce((sum, mes) => sum + calcularTotais(mes).total, 0).toFixed(2))), (() => {
-      const totalMetaAteAgora = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1).reduce((sum, mes) => sum + (metas[mes] || 0), 0);
-      const totalGastoAteAgora = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1).reduce((sum, mes) => sum + calcularTotais(mes).total, 0);
-      const diferenca = totalMetaAteAgora - totalGastoAteAgora;
-      const dentroMeta = diferenca >= 0;
-      return /*#__PURE__*/React.createElement("div", {
-        className: `rounded-xl shadow-lg p-6 ${dentroMeta ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-red-500 to-red-600'} text-white`
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm opacity-90"
-      }, dentroMeta ? 'Economia' : 'Excesso'), /*#__PURE__*/React.createElement("div", {
-        className: "text-2xl font-bold"
-      }, "R$ ", Math.abs(diferenca).toFixed(2)), /*#__PURE__*/React.createElement("div", {
-        className: "text-sm mt-2"
-      }, dentroMeta ? '✅ Abaixo da meta' : '⚠️ Acima da meta'));
-    })(), (() => {
-      const mesesAteAgora = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].slice(0, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].indexOf(mesAtual) + 1);
-      const mesesNoTarget = mesesAteAgora.filter(mes => {
-        const meta = metas[mes] || 0;
-        const gasto = calcularTotais(mes).total;
-        return gasto <= meta;
-      }).length;
-      return /*#__PURE__*/React.createElement("div", {
-        className: "bg-white rounded-xl shadow-lg p-6"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-gray-600"
-      }, "Performance"), /*#__PURE__*/React.createElement("div", {
-        className: "text-2xl font-bold text-green-600"
-      }, mesesNoTarget, "/", mesesAteAgora.length), /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-gray-500 mt-2"
-      }, "Meses no target (", (mesesNoTarget / mesesAteAgora.length * 100).toFixed(0), "%)"));
-    })()), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h3", {
-      className: "text-xl font-bold text-gray-800 mb-4"
-    }, "Metas por M\xEAs"), /*#__PURE__*/React.createElement("div", {
-      className: "overflow-x-auto"
-    }, /*#__PURE__*/React.createElement("table", {
-      className: "w-full"
-    }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
-      className: "border-b-2 border-gray-200"
-    }, /*#__PURE__*/React.createElement("th", {
-      className: "text-left py-2 px-4 font-bold text-gray-700"
-    }, "M\xEAs"), /*#__PURE__*/React.createElement("th", {
-      className: "text-right py-2 px-4 font-bold text-gray-700"
-    }, "Meta"), /*#__PURE__*/React.createElement("th", {
-      className: "text-right py-2 px-4 font-bold text-gray-700"
-    }, "Real"), /*#__PURE__*/React.createElement("th", {
-      className: "text-right py-2 px-4 font-bold text-gray-700"
-    }, "Diferen\xE7a"), /*#__PURE__*/React.createElement("th", {
-      className: "text-center py-2 px-4 font-bold text-gray-700"
-    }, "Status"), /*#__PURE__*/React.createElement("th", {
-      className: "text-right py-2 px-4 font-bold text-gray-700"
-    }, "%"))), /*#__PURE__*/React.createElement("tbody", null, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].map(mes => {
-      const meta = metas[mes] || 0;
-      const real = calcularTotais(mes).total;
-      const diferenca = meta - real;
-      const percentual = meta > 0 ? real / meta * 100 : 0;
-      const dentroMeta = real <= meta && real > 0;
-      const pendente = real === 0;
-      return /*#__PURE__*/React.createElement("tr", {
-        key: mes,
-        className: `border-b border-gray-100 hover:bg-gray-50 ${mes === mesAtual ? 'bg-blue-50' : ''}`
-      }, /*#__PURE__*/React.createElement("td", {
-        className: "py-2 px-4"
-      }, /*#__PURE__*/React.createElement("span", {
-        className: "font-semibold uppercase"
-      }, mes), mes === mesAtual && /*#__PURE__*/React.createElement("span", {
-        className: "ml-2 text-xs bg-blue-600 text-white px-2 py-1 rounded"
-      }, "Atual")), /*#__PURE__*/React.createElement("td", {
-        className: "text-right py-2 px-4 text-blue-600 font-semibold"
-      }, "R$ ", meta.toFixed(2)), /*#__PURE__*/React.createElement("td", {
-        className: "text-right py-2 px-4 font-semibold"
-      }, "R$ ", real.toFixed(2)), /*#__PURE__*/React.createElement("td", {
-        className: `text-right py-2 px-4 font-bold ${diferenca >= 0 ? 'text-green-600' : 'text-red-600'}`
-      }, diferenca >= 0 ? '+' : '', "R$ ", diferenca.toFixed(2)), /*#__PURE__*/React.createElement("td", {
-        className: "text-center py-2 px-4 text-2xl"
-      }, pendente ? '⏳' : dentroMeta ? '✅' : '❌'), /*#__PURE__*/React.createElement("td", {
-        className: `text-right py-2 px-4 font-bold ${dentroMeta ? 'text-green-600' : pendente ? 'text-gray-400' : 'text-red-600'}`
-      }, percentual.toFixed(0), "%"));
-    }))))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h3", {
-      className: "text-xl font-bold text-gray-800 mb-4"
-    }, "Evolu\xE7\xE3o Anual"), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'].map(mes => {
-      const meta = metas[mes] || 0;
-      const real = calcularTotais(mes).total;
-      const maxValor = Math.max(meta, real, 1);
-      const larguraMeta = meta / maxValor * 100;
-      const larguraReal = real / maxValor * 100;
-      return /*#__PURE__*/React.createElement("div", {
-        key: mes
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center gap-3 mb-1"
-      }, /*#__PURE__*/React.createElement("span", {
-        className: "font-semibold uppercase text-gray-700 w-12"
-      }, mes), /*#__PURE__*/React.createElement("div", {
-        className: "flex-1 relative h-10"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "absolute top-0 left-0 h-4 bg-blue-200 rounded",
-        style: {
-          width: `${larguraMeta}%`
-        },
-        title: `Meta: R$ ${meta.toFixed(2)}`
-      }), /*#__PURE__*/React.createElement("div", {
-        className: `absolute top-5 left-0 h-4 rounded ${real <= meta ? 'bg-green-500' : 'bg-red-500'}`,
-        style: {
-          width: `${larguraReal}%`
-        },
-        title: `Real: R$ ${real.toFixed(2)}`
-      }))));
-    })), /*#__PURE__*/React.createElement("div", {
-      className: "flex gap-3 mt-3 text-sm"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center gap-2"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "w-4 h-4 bg-blue-200 rounded"
-    }), /*#__PURE__*/React.createElement("span", null, "Meta Planejada")), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center gap-2"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "w-4 h-4 bg-green-500 rounded"
-    }), /*#__PURE__*/React.createElement("span", null, "Gasto Real (Dentro)")), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center gap-2"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "w-4 h-4 bg-red-500 rounded"
-    }), /*#__PURE__*/React.createElement("span", null, "Gasto Real (Acima)"))))));
+    }, "+20% renda, -20% gastos")))))
   };
   const TelaFarol = () => {
     const [filtroStatus, setFiltroStatus] = useState('todos');
