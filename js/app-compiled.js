@@ -5556,7 +5556,8 @@ function App({
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("div", {
     className: "w-4 h-4 bg-red-500 rounded"
-  }), /*#__PURE__*/React.createElement("span", null, "Gasto Real (Acima)")))));, abaAtiva === 'orcamento' && /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("span", null, "Gasto Real (Acima)"))))))),
+  abaAtiva === 'orcamento' && /*#__PURE__*/React.createElement("div", {
       className: "space-y-3"
     }, /*#__PURE__*/React.createElement("div", {
       style: {display:'flex', gap:'8px', marginBottom:'4px'}
