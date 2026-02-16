@@ -16,7 +16,6 @@ window.MenuNavegacao = function MenuNavegacao({ telaAtiva, setTelaAtiva, isUserA
         setSub(nome);
     };
 
-    // Fechar ao clicar fora
     React.useEffect(() => {
         if (!sub) return;
         const fechar = () => setSub(null);
@@ -27,13 +26,13 @@ window.MenuNavegacao = function MenuNavegacao({ telaAtiva, setTelaAtiva, isUserA
     const planAtivo = telaAtiva && telaAtiva.startsWith('planejamento');
     const despAtivo = ['cartoes','fixos','variaveis','extras'].includes(telaAtiva);
 
-    const corBtn = (ativo) => ativo ? '#fff' : 'rgba(255,255,255,0.7)';
+    const corBtn   = (ativo) => ativo ? '#fff' : 'rgba(255,255,255,0.7)';
     const bordaBtn = (ativo) => ativo ? '2px solid #10b981' : '2px solid transparent';
     const btnStyle = (ativo) => ({
         padding:'7px 14px', border:'none', cursor:'pointer', borderRadius:'8px',
         fontSize:'0.82rem', fontWeight:'600', whiteSpace:'nowrap',
-        background: 'transparent', color: corBtn(ativo), borderBottom: bordaBtn(ativo),
-        transition: 'all 0.15s'
+        background:'transparent', color:corBtn(ativo), borderBottom:bordaBtn(ativo),
+        transition:'all 0.15s'
     });
     const btnDropStyle = (ativo, aberto) => ({
         ...btnStyle(ativo),
@@ -52,17 +51,25 @@ window.MenuNavegacao = function MenuNavegacao({ telaAtiva, setTelaAtiva, isUserA
         fontWeight: ativo ? '700' : '400',
         borderLeft: ativo ? '3px solid #10b981' : '3px solid transparent',
         background: ativo ? 'rgba(16,185,129,0.1)' : 'transparent',
-        transition: 'background 0.1s',
+        transition:'background 0.1s',
     });
+    // Separador visual entre grupos
+    const separador = { borderTop:'1px solid rgba(255,255,255,0.1)', margin:'4px 0' };
 
     const h = React.createElement;
 
+    // Quais rotas pertencem a cada grupo
+    const isSimulacoes = ['planejamento-compra','planejamento-simulador','planejamento-timeline'].includes(telaAtiva);
+    const isOrcamento  = ['planejamento-orcamento','planejamento-premes'].includes(telaAtiva);
+    const isMetas      = ['planejamento-metas','planejamento-dividas'].includes(telaAtiva);
+
     return h('div', {style:{display:'flex', alignItems:'center', gap:'2px', overflowX:'auto', scrollbarWidth:'none'}},
 
-        h('button', {onClick: ()=>navegar('dashboard'), style: btnStyle(telaAtiva==='dashboard')}, '📊 Dashboard'),
+        h('button', {onClick:()=>navegar('dashboard'), style:btnStyle(telaAtiva==='dashboard')}, '📊 Dashboard'),
 
-        isUserAdmin && h('button', {onClick: ()=>navegar('admin'), style: btnStyle(telaAtiva==='admin')}, '👑 Admin'),
+        isUserAdmin && h('button', {onClick:()=>navegar('admin'), style:btnStyle(telaAtiva==='admin')}, '👑 Admin'),
 
+        // ── Planejar ▾
         h('div', {style:{position:'relative', flexShrink:0}},
             h('button', {
                 ref: planRef,
@@ -71,8 +78,9 @@ window.MenuNavegacao = function MenuNavegacao({ telaAtiva, setTelaAtiva, isUserA
             }, '📋 Planejar ▾')
         ),
 
-        h('button', {onClick: ()=>navegar('receitas'), style: btnStyle(telaAtiva==='receitas')}, '💰 Receitas'),
+        h('button', {onClick:()=>navegar('receitas'), style:btnStyle(telaAtiva==='receitas')}, '💰 Receitas'),
 
+        // ── Despesas ▾
         h('div', {style:{position:'relative', flexShrink:0}},
             h('button', {
                 ref: despRef,
@@ -81,25 +89,25 @@ window.MenuNavegacao = function MenuNavegacao({ telaAtiva, setTelaAtiva, isUserA
             }, '💸 Despesas ▾')
         ),
 
-        h('button', {onClick: ()=>navegar('farol'), style: btnStyle(telaAtiva==='farol')}, '🚦 Farol'),
+        h('button', {onClick:()=>navegar('farol'), style:btnStyle(telaAtiva==='farol')}, '🚦 Farol'),
 
-        // Dropdowns renderizados no final - position:fixed ignora qualquer overflow pai
-        sub === 'plan' && h('div', {onClick: e => e.stopPropagation(), style: dropStyle},
-            h('div', {onClick: ()=>navegar('planejamento'), style: itemStyle(telaAtiva==='planejamento')}, '🏥 Diagnóstico'),
-            h('div', {onClick: ()=>navegar('planejamento-orcamento'), style: itemStyle(telaAtiva==='planejamento-orcamento')}, '📊 Orçamento'),
-            h('div', {onClick: ()=>navegar('planejamento-premes'), style: itemStyle(telaAtiva==='planejamento-premes')}, '📝 Pré-Mês'),
-            h('div', {onClick: ()=>navegar('planejamento-metas'), style: itemStyle(telaAtiva==='planejamento-metas')}, '🎯 Metas'),
-            h('div', {onClick: ()=>navegar('planejamento-dividas'), style: itemStyle(telaAtiva==='planejamento-dividas')}, '💳 Dívidas'),
-            h('div', {onClick: ()=>navegar('planejamento-compra'), style: itemStyle(telaAtiva==='planejamento-compra')}, '🛒 Simul. Compra'),
-            h('div', {onClick: ()=>navegar('planejamento-simulador'), style: itemStyle(telaAtiva==='planejamento-simulador')}, '🎲 Simulador'),
-            h('div', {onClick: ()=>navegar('planejamento-timeline'), style: itemStyle(telaAtiva==='planejamento-timeline')}, '📈 Timeline')
+        // ── Dropdown Planejar (4 itens)
+        sub === 'plan' && h('div', {onClick: e=>e.stopPropagation(), style:dropStyle},
+            h('div', {onClick:()=>navegar('planejamento'),         style:itemStyle(telaAtiva==='planejamento')},         '🏥 Diagnóstico'),
+            h('div', {style:separador}),
+            h('div', {onClick:()=>navegar('planejamento-orcamento'), style:itemStyle(isOrcamento)},                      '📊 Orçamento'),
+            h('div', {style:separador}),
+            h('div', {onClick:()=>navegar('planejamento-metas'),    style:itemStyle(isMetas)},                           '🎯 Metas'),
+            h('div', {style:separador}),
+            h('div', {onClick:()=>navegar('planejamento-compra'),   style:itemStyle(isSimulacoes)},                      '🎲 Simulações')
         ),
 
-        sub === 'desp' && h('div', {onClick: e => e.stopPropagation(), style: dropStyle},
-            h('div', {onClick: ()=>navegar('cartoes'), style: itemStyle(telaAtiva==='cartoes')}, '💳 Cartões'),
-            h('div', {onClick: ()=>navegar('fixos'), style: itemStyle(telaAtiva==='fixos')}, '🏠 Gastos Fixos'),
-            h('div', {onClick: ()=>navegar('variaveis'), style: itemStyle(telaAtiva==='variaveis')}, '📊 Gastos Variáveis'),
-            h('div', {onClick: ()=>navegar('extras'), style: itemStyle(telaAtiva==='extras')}, '⚡ Gastos Extras')
+        // ── Dropdown Despesas (4 itens)
+        sub === 'desp' && h('div', {onClick: e=>e.stopPropagation(), style:dropStyle},
+            h('div', {onClick:()=>navegar('cartoes'),   style:itemStyle(telaAtiva==='cartoes')},   '💳 Cartões'),
+            h('div', {onClick:()=>navegar('fixos'),     style:itemStyle(telaAtiva==='fixos')},     '🏠 Gastos Fixos'),
+            h('div', {onClick:()=>navegar('variaveis'), style:itemStyle(telaAtiva==='variaveis')}, '📊 Gastos Variáveis'),
+            h('div', {onClick:()=>navegar('extras'),    style:itemStyle(telaAtiva==='extras')},    '⚡ Gastos Extras')
         )
     );
 };
