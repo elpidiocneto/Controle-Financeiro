@@ -5556,7 +5556,7 @@ function App({
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("div", {
     className: "w-4 h-4 bg-red-500 rounded"
-  }), /*#__PURE__*/React.createElement("span", null, "Gasto Real (Acima)"))))))),
+  }), /*#__PURE__*/React.createElement("span", null, "Gasto Real (Acima)")))),
   abaAtiva === 'orcamento' && /*#__PURE__*/React.createElement("div", {
       className: "space-y-3"
     }, /*#__PURE__*/React.createElement("div", {
@@ -6762,7 +6762,7 @@ function App({
       className: "font-bold text-gray-800"
     }, "Combo Perfeito"), /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-gray-600"
-    }, "+20% renda, -20% gastos")))))
+    }, "+20% renda, -20% gastos")))))))
   };
   const TelaFarol = () => {
     const [filtroStatus, setFiltroStatus] = useState('todos');
