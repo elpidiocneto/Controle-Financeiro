@@ -5611,14 +5611,14 @@ function App({
       className: "text-right"
     }, /*#__PURE__*/React.createElement("div", {
       className: `text-2xl font-bold ${totais.cartoes <= orcamento.cartoes ? 'text-green-600' : 'text-red-600'}`
-    }, (totais.cartoes / orcamento.cartoes * 100).toFixed(0), "%"), /*#__PURE__*/React.createElement("div", {
+    }, (orcamento.cartoes > 0 ? totais.cartoes / orcamento.cartoes * 100 : 0).toFixed(0), "%"), /*#__PURE__*/React.createElement("div", {
       className: `text-sm ${orcamento.cartoes - totais.cartoes >= 0 ? 'text-green-600' : 'text-red-600'}`
     }, orcamento.cartoes - totais.cartoes >= 0 ? '✅' : '⚠️', " R$ ", Math.abs(orcamento.cartoes - totais.cartoes).toFixed(2)))), /*#__PURE__*/React.createElement("div", {
       className: "w-full bg-gray-200 rounded-full h-4"
     }, /*#__PURE__*/React.createElement("div", {
       className: `h-4 rounded-full ${totais.cartoes <= orcamento.cartoes ? 'bg-green-500' : 'bg-red-500'}`,
       style: {
-        width: `${Math.min(totais.cartoes / orcamento.cartoes * 100, 100)}%`
+        width: `${orcamento.cartoes > 0 ? Math.min(totais.cartoes / orcamento.cartoes * 100, 100) : 0}%`
       }
     }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       className: "flex justify-between items-center mb-2"
@@ -5630,14 +5630,14 @@ function App({
       className: "text-right"
     }, /*#__PURE__*/React.createElement("div", {
       className: `text-2xl font-bold ${totais.fixos <= orcamento.fixos ? 'text-green-600' : 'text-red-600'}`
-    }, (totais.fixos / orcamento.fixos * 100).toFixed(0), "%"), /*#__PURE__*/React.createElement("div", {
+    }, (orcamento.fixos > 0 ? totais.fixos / orcamento.fixos * 100 : 0).toFixed(0), "%"), /*#__PURE__*/React.createElement("div", {
       className: `text-sm ${orcamento.fixos - totais.fixos >= 0 ? 'text-green-600' : 'text-red-600'}`
     }, orcamento.fixos - totais.fixos >= 0 ? '✅' : '⚠️', " R$ ", Math.abs(orcamento.fixos - totais.fixos).toFixed(2)))), /*#__PURE__*/React.createElement("div", {
       className: "w-full bg-gray-200 rounded-full h-4"
     }, /*#__PURE__*/React.createElement("div", {
       className: `h-4 rounded-full ${totais.fixos <= orcamento.fixos ? 'bg-green-500' : 'bg-red-500'}`,
       style: {
-        width: `${Math.min(totais.fixos / orcamento.fixos * 100, 100)}%`
+        width: `${orcamento.fixos > 0 ? Math.min(totais.fixos / orcamento.fixos * 100, 100) : 0}%`
       }
     }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       className: "flex justify-between items-center mb-2"
