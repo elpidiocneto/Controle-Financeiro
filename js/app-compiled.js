@@ -5822,363 +5822,287 @@ function App({
     }, totais.total <= totalPlanejado ? '✅ Dentro do Planejado!' : '⚠️ Acima do Planejado'), /*#__PURE__*/React.createElement("div", {
       className: "text-center text-sm mt-2"
     }, "Diferen\xE7a: R$ ", Math.abs(totalPlanejado - totais.total).toFixed(2))))),
-  (abaAtiva === 'metas' && !subAba) && /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {display:'flex', gap:'8px', marginBottom:'4px'}
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-metas'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba!=='dividas'?'#6366f1':'#f3f4f6', color: subAba!=='dividas'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "🎯 Metas"), /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-dividas'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='dividas'?'#6366f1':'#f3f4f6', color: subAba==='dividas'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "💳 Dívidas")),/*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between items-center"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
-      className: "text-lg font-bold text-gray-800"
-    }, "\uD83C\uDFAF Suas Metas Financeiras"), /*#__PURE__*/React.createElement("p", {
-      className: "text-gray-600"
-    }, "Defina e acompanhe seus objetivos")), /*#__PURE__*/React.createElement("button", {
-      onClick: () => {
-        setModalAberto('novaMeta');
-      },
-      className: "px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
-    }, "\u2795 Nova Meta")), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-1 md:grid-cols-4 gap-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "Total em Metas"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-blue-600"
-    }, "R$ ", totalMetasValor.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-500 mt-1"
-    }, metasFinanceiras.filter(m => !m.concluida).length, " ativas")), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "J\xE1 Acumulado"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-green-600"
-    }, "R$ ", totalMetasAtual.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-500 mt-1"
-    }, percentualMetasGeral.toFixed(0), "% do total")), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "Falta Acumular"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-orange-600"
-    }, "R$ ", (totalMetasValor - totalMetasAtual).toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-500 mt-1"
-    }, (100 - percentualMetasGeral).toFixed(0), "% restante")), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "Conclu\xEDdas"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-purple-600"
-    }, metasConcluidas.length), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-500 mt-1"
-    }, "\uD83C\uDF89 Objetivos alcan\xE7ados"))), metasFinanceiras.length === 0 ? /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-12 text-center"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-xl mb-4"
-    }, "\uD83C\uDFAF"), /*#__PURE__*/React.createElement("h3", {
-      className: "text-xl font-bold text-gray-800 mb-2"
-    }, "Nenhuma meta cadastrada"), /*#__PURE__*/React.createElement("p", {
-      className: "text-gray-600 mb-3"
-    }, "Comece definindo seus objetivos financeiros!"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => {
-        setModalAberto('novaMeta');
-      },
-      className: "px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
-    }, "\u2795 Criar Primeira Meta")) : /*#__PURE__*/React.createElement(React.Fragment, null, metasCurtoPrazo.length > 0 && /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h4", {
-      className: "text-lg font-bold text-gray-800 mb-4"
-    }, "\u26A1 Curto Prazo (at\xE9 1 ano)"), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, metasCurtoPrazo.map(meta => {
-      const progresso = meta.valorAtual / meta.valor * 100;
-      return /*#__PURE__*/React.createElement("div", {
-        key: meta.id,
-        className: "border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between items-start mb-3"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex-1"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center gap-2 mb-1"
-      }, /*#__PURE__*/React.createElement("h5", {
-        className: "font-bold text-gray-800"
-      }, meta.titulo), /*#__PURE__*/React.createElement("span", {
-        className: "px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded font-semibold"
-      }, meta.categoria)), /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-gray-600"
-      }, "Meta: R$ ", meta.valor.toFixed(2), " \u2022 Atual: R$ ", meta.valorAtual.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-        className: "flex gap-2"
-      }, /*#__PURE__*/React.createElement("button", {
-        onClick: () => {
-          const valor = prompt('Digite o valor acumulado:', meta.valorAtual);
-          if (valor !== null) atualizarProgressoMeta(meta.id, valor);
-        },
-        className: "px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200",
-        title: "Atualizar progresso"
-      }, "\uD83D\uDCB0"), /*#__PURE__*/React.createElement("button", {
-        onClick: () => concluirMeta(meta.id),
-        className: "px-3 py-1 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200",
-        title: "Marcar como conclu\xEDda"
-      }, "\u2713"), /*#__PURE__*/React.createElement("button", {
-        onClick: () => deletarMeta(meta.id),
-        className: "px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200",
-        title: "Excluir"
-      }, "\uD83D\uDDD1\uFE0F"))), /*#__PURE__*/React.createElement("div", {
-        className: "mb-2"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between text-sm mb-1"
-      }, /*#__PURE__*/React.createElement("span", {
-        className: "text-gray-600"
-      }, "Progresso"), /*#__PURE__*/React.createElement("span", {
-        className: "font-bold text-blue-600"
-      }, progresso.toFixed(0), "%")), /*#__PURE__*/React.createElement("div", {
-        className: "w-full bg-gray-200 rounded-full h-3"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all",
-        style: {
-          width: `${Math.min(progresso, 100)}%`
-        }
-      }))), meta.valorAtual < meta.valor && /*#__PURE__*/React.createElement("div", {
-        className: "mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm font-semibold text-blue-800 mb-2"
-      }, "\uD83D\uDCB0 Plano de Investimento:"), (() => {
-        const falta = meta.valor - meta.valorAtual;
+// Novo bloco Metas redesenhado - 3 colunas profissionais
+(abaAtiva === 'metas' && !subAba) && /*#__PURE__*/React.createElement("div", {
+  className: "space-y-3"
+}, /*#__PURE__*/React.createElement("div", {
+  style: {display:'flex', gap:'8px', marginBottom:'16px'}
+}, /*#__PURE__*/React.createElement("button", {
+  onClick: ()=>setTelaAtiva('planejamento-metas'),
+  style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background:'#6366f1', color:'#fff', transition:'all 0.15s'}
+}, "🎯 Metas"), /*#__PURE__*/React.createElement("button", {
+  onClick: ()=>setTelaAtiva('planejamento-dividas'),
+  style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background:'#f3f4f6', color:'#6b7280', transition:'all 0.15s'}
+}, "💳 Dívidas")),
 
-        // Calcular meses baseado na data meta ou prazo
-        let mesesParaCalculo;
-        let mensagemData = '';
-        if (meta.dataMeta) {
-          const hoje = new Date();
-          const dataFim = new Date(meta.dataMeta);
-          const diffTime = dataFim - hoje;
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          mesesParaCalculo = Math.max(1, Math.ceil(diffDays / 30));
-          mensagemData = ` (até ${dataFim.toLocaleDateString('pt-BR', {
-            month: 'long',
-            year: 'numeric'
-          })})`;
-        } else {
-          mesesParaCalculo = 12; // padrão curto prazo
-          mensagemData = ' (sem data definida)';
-        }
-        const porMes = falta / mesesParaCalculo;
-        const porSemana = porMes / 4;
-        const porDia = porMes / 30;
-        return /*#__PURE__*/React.createElement("div", {
-          className: "space-y-1 text-xs text-blue-700"
-        }, /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCC5 ", /*#__PURE__*/React.createElement("span", {
-          className: "font-bold"
-        }, "Por m\xEAs:"), " R$ ", porMes.toFixed(2)), /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCC6 ", /*#__PURE__*/React.createElement("span", {
-          className: "font-bold"
-        }, "Por semana:"), " R$ ", porSemana.toFixed(2)), /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCCC ", /*#__PURE__*/React.createElement("span", {
-          className: "font-bold"
-        }, "Por dia:"), " R$ ", porDia.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-          className: "mt-2 text-blue-600"
-        }, "\u23F1\uFE0F Para alcan\xE7ar em ", mesesParaCalculo, " ", mesesParaCalculo === 1 ? 'mês' : 'meses', mensagemData));
-      })()));
-    }))), metasMedioPrazo.length > 0 && /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h4", {
-      className: "text-lg font-bold text-gray-800 mb-4"
-    }, "\uD83D\uDCC5 M\xE9dio Prazo (1-5 anos)"), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, metasMedioPrazo.map(meta => {
-      const progresso = meta.valorAtual / meta.valor * 100;
-      return /*#__PURE__*/React.createElement("div", {
-        key: meta.id,
-        className: "border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between items-start mb-3"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex-1"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center gap-2 mb-1"
-      }, /*#__PURE__*/React.createElement("h5", {
-        className: "font-bold text-gray-800"
-      }, meta.titulo), /*#__PURE__*/React.createElement("span", {
-        className: "px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-semibold"
-      }, meta.categoria)), /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-gray-600"
-      }, "Meta: R$ ", meta.valor.toFixed(2), " \u2022 Atual: R$ ", meta.valorAtual.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-        className: "flex gap-2"
-      }, /*#__PURE__*/React.createElement("button", {
-        onClick: () => {
-          const valor = prompt('Digite o valor acumulado:', meta.valorAtual);
-          if (valor !== null) atualizarProgressoMeta(meta.id, valor);
-        },
-        className: "px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200"
-      }, "\uD83D\uDCB0"), /*#__PURE__*/React.createElement("button", {
-        onClick: () => concluirMeta(meta.id),
-        className: "px-3 py-1 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200"
-      }, "\u2713"), /*#__PURE__*/React.createElement("button", {
-        onClick: () => deletarMeta(meta.id),
-        className: "px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200"
-      }, "\uD83D\uDDD1\uFE0F"))), /*#__PURE__*/React.createElement("div", {
-        className: "mb-2"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between text-sm mb-1"
-      }, /*#__PURE__*/React.createElement("span", {
-        className: "text-gray-600"
-      }, "Progresso"), /*#__PURE__*/React.createElement("span", {
-        className: "font-bold text-green-600"
-      }, progresso.toFixed(0), "%")), /*#__PURE__*/React.createElement("div", {
-        className: "w-full bg-gray-200 rounded-full h-3"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all",
-        style: {
-          width: `${Math.min(progresso, 100)}%`
-        }
-      }))), meta.valorAtual < meta.valor && /*#__PURE__*/React.createElement("div", {
-        className: "mt-3 p-3 bg-green-50 border border-green-200 rounded-lg"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm font-semibold text-green-800 mb-2"
-      }, "\uD83D\uDCB0 Plano de Investimento:"), (() => {
-        const falta = meta.valor - meta.valorAtual;
+// GRID 3 COLUNAS
+/*#__PURE__*/React.createElement("div", {
+  style: {display:'grid', gridTemplateColumns:'1fr 1.5fr 1fr', gap:'16px', alignItems:'start'}
+},
 
-        // Calcular meses baseado na data meta ou prazo
-        let mesesParaCalculo;
-        if (meta.dataMeta) {
-          const hoje = new Date();
-          const dataFim = new Date(meta.dataMeta);
-          const diffTime = dataFim - hoje;
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          mesesParaCalculo = Math.max(1, Math.ceil(diffDays / 30));
-        } else {
-          mesesParaCalculo = 60; // padrão médio prazo
+// ═══════════════════════════════════════════════════════════
+// COLUNA ESQUERDA: Resumo + Ação
+// ═══════════════════════════════════════════════════════════
+/*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'14px'}},
+  
+  // Card: Progresso Geral (escuro)
+  /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: percentualMetasGeral >= 75 
+        ? 'linear-gradient(135deg, #064e3b, #065f46)'
+        : percentualMetasGeral >= 40
+          ? 'linear-gradient(135deg, #1e1b4b, #312e81)'
+          : 'linear-gradient(135deg, #78350f, #92400e)',
+      borderRadius:'16px',
+      padding:'20px',
+      border: percentualMetasGeral >= 75 ? '1px solid rgba(16,185,129,0.3)' : percentualMetasGeral >= 40 ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(245,158,11,0.3)',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+      color:'#fff'
+    }
+  },
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', fontWeight:'800', letterSpacing:'1.1px', textTransform:'uppercase', color:'rgba(255,255,255,0.5)', marginBottom:'12px'}}, 
+      '🎯 Progresso Geral'
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', fontWeight:'900', marginBottom:'8px'}},
+      percentualMetasGeral.toFixed(0) + '%'
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', opacity:0.85, marginBottom:'14px'}},
+      'das metas ativas'
+    ),
+    // Barra de progresso
+    /*#__PURE__*/React.createElement("div", {style:{height:'8px', background:'rgba(255,255,255,0.15)', borderRadius:'4px', overflow:'hidden', marginBottom:'14px'}},
+      /*#__PURE__*/React.createElement("div", {
+        style:{
+          height:'100%',
+          width: percentualMetasGeral + '%',
+          background:'#fff',
+          borderRadius:'4px',
+          transition:'width 0.8s ease'
         }
-        const porMes = falta / mesesParaCalculo;
-        const porSemana = porMes / 4;
-        const porDia = porMes / 30;
-        return /*#__PURE__*/React.createElement("div", {
-          className: "space-y-1 text-xs text-green-700"
-        }, /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCC5 ", /*#__PURE__*/React.createElement("span", {
-          className: "font-bold"
-        }, "Por m\xEAs:"), " R$ ", porMes.toFixed(2)), /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCC6 ", /*#__PURE__*/React.createElement("span", {
-          className: "font-bold"
-        }, "Por semana:"), " R$ ", porSemana.toFixed(2)), /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCCC ", /*#__PURE__*/React.createElement("span", {
-          className: "font-bold"
-        }, "Por dia:"), " R$ ", porDia.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-          className: "mt-2 text-green-600"
-        }, "\u23F1\uFE0F Para alcan\xE7ar em ", mesesParaCalculo, " ", mesesParaCalculo === 1 ? 'mês' : 'meses', meta.dataMeta && ` (até ${new Date(meta.dataMeta).toLocaleDateString('pt-BR', {
-          month: 'long',
-          year: 'numeric'
-        })})`));
-      })()));
-    }))), metasLongoPrazo.length > 0 && /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h4", {
-      className: "text-lg font-bold text-gray-800 mb-4"
-    }, "\uD83C\uDFC6 Longo Prazo (5+ anos)"), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, metasLongoPrazo.map(meta => {
-      const progresso = meta.valorAtual / meta.valor * 100;
-      return /*#__PURE__*/React.createElement("div", {
-        key: meta.id,
-        className: "border-2 border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between items-start mb-3"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex-1"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center gap-2 mb-1"
-      }, /*#__PURE__*/React.createElement("h5", {
-        className: "font-bold text-gray-800"
-      }, meta.titulo), /*#__PURE__*/React.createElement("span", {
-        className: "px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded font-semibold"
-      }, meta.categoria)), /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-gray-600"
-      }, "Meta: R$ ", meta.valor.toFixed(2), " \u2022 Atual: R$ ", meta.valorAtual.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-        className: "flex gap-2"
-      }, /*#__PURE__*/React.createElement("button", {
-        onClick: () => {
-          const valor = prompt('Digite o valor acumulado:', meta.valorAtual);
-          if (valor !== null) atualizarProgressoMeta(meta.id, valor);
-        },
-        className: "px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200"
-      }, "\uD83D\uDCB0"), /*#__PURE__*/React.createElement("button", {
-        onClick: () => concluirMeta(meta.id),
-        className: "px-3 py-1 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200"
-      }, "\u2713"), /*#__PURE__*/React.createElement("button", {
-        onClick: () => deletarMeta(meta.id),
-        className: "px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200"
-      }, "\uD83D\uDDD1\uFE0F"))), /*#__PURE__*/React.createElement("div", {
-        className: "mb-2"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between text-sm mb-1"
-      }, /*#__PURE__*/React.createElement("span", {
-        className: "text-gray-600"
-      }, "Progresso"), /*#__PURE__*/React.createElement("span", {
-        className: "font-bold text-purple-600"
-      }, progresso.toFixed(0), "%")), /*#__PURE__*/React.createElement("div", {
-        className: "w-full bg-gray-200 rounded-full h-3"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all",
-        style: {
-          width: `${Math.min(progresso, 100)}%`
-        }
-      }))), meta.valorAtual < meta.valor && /*#__PURE__*/React.createElement("div", {
-        className: "mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm font-semibold text-purple-800 mb-2"
-      }, "\uD83D\uDCB0 Plano de Investimento:"), (() => {
-        const falta = meta.valor - meta.valorAtual;
+      })
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{borderTop:'1px solid rgba(255,255,255,0.15)', paddingTop:'14px', display:'flex', justifyContent:'space-between', fontSize:'0.75rem'}},
+      /*#__PURE__*/React.createElement("div", null,
+        /*#__PURE__*/React.createElement("div", {style:{opacity:0.6, marginBottom:'3px'}}, 'Acumulado'),
+        /*#__PURE__*/React.createElement("div", {style:{fontWeight:'700'}}, 'R$ ' + totalMetasAtual.toFixed(0))
+      ),
+      /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
+        /*#__PURE__*/React.createElement("div", {style:{opacity:0.6, marginBottom:'3px'}}, 'Objetivo'),
+        /*#__PURE__*/React.createElement("div", {style:{fontWeight:'700'}}, 'R$ ' + totalMetasValor.toFixed(0))
+      )
+    )
+  ),
+  
+  // Card: Estatísticas
+  /*#__PURE__*/React.createElement("div", {
+    style: {background:'#fff', borderRadius:'16px', padding:'20px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}
+  },
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', fontWeight:'800', letterSpacing:'1.1px', textTransform:'uppercase', color:'#6b7280', marginBottom:'14px'}}, 
+      '📊 Estatísticas'
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center'}},
+        /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.78rem', color:'#6b7280'}}, 'Metas Ativas'),
+        /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.2rem', fontWeight:'900', color:'#6366f1'}}, 
+          metasFinanceiras.filter(m => !m.concluida).length
+        )
+      ),
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center'}},
+        /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.78rem', color:'#6b7280'}}, 'Concluídas'),
+        /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.2rem', fontWeight:'900', color:'#10b981'}}, 
+          metasConcluidas.length
+        )
+      ),
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center'}},
+        /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.78rem', color:'#6b7280'}}, 'Falta Acumular'),
+        /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.2rem', fontWeight:'900', color:'#f59e0b'}}, 
+          'R$ ' + (totalMetasValor - totalMetasAtual).toFixed(0)
+        )
+      )
+    )
+  ),
 
-        // Calcular meses baseado na data meta ou prazo
-        let mesesParaCalculo;
-        if (meta.dataMeta) {
-          const hoje = new Date();
-          const dataFim = new Date(meta.dataMeta);
-          const diffTime = dataFim - hoje;
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          mesesParaCalculo = Math.max(1, Math.ceil(diffDays / 30));
-        } else {
-          mesesParaCalculo = 120; // padrão longo prazo
-        }
-        const porMes = falta / mesesParaCalculo;
-        const porSemana = porMes / 4;
-        const porDia = porMes / 30;
-        return /*#__PURE__*/React.createElement("div", {
-          className: "space-y-1 text-xs text-purple-700"
-        }, /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCC5 ", /*#__PURE__*/React.createElement("span", {
-          className: "font-bold"
-        }, "Por m\xEAs:"), " R$ ", porMes.toFixed(2)), /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCC6 ", /*#__PURE__*/React.createElement("span", {
-          className: "font-bold"
-        }, "Por semana:"), " R$ ", porSemana.toFixed(2)), /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCCC ", /*#__PURE__*/React.createElement("span", {
-          className: "font-bold"
-        }, "Por dia:"), " R$ ", porDia.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-          className: "mt-2 text-purple-600"
-        }, "\u23F1\uFE0F Para alcan\xE7ar em ", mesesParaCalculo, " ", mesesParaCalculo === 1 ? 'mês' : 'meses', meta.dataMeta && ` (até ${new Date(meta.dataMeta).toLocaleDateString('pt-BR', {
-          month: 'long',
-          year: 'numeric'
-        })})`));
-      })()));
-    }))), metasConcluidas.length > 0 && /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h4", {
-      className: "text-lg font-bold text-gray-800 mb-4"
-    }, "\uD83C\uDF89 Metas Conclu\xEDdas"), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-2"
-    }, metasConcluidas.map(meta => /*#__PURE__*/React.createElement("div", {
-      key: meta.id,
-      className: "flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex-1"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "font-semibold text-green-800 line-through"
-    }, meta.titulo), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-green-600"
-    }, "R$ ", meta.valor.toFixed(2), " \u2713")), /*#__PURE__*/React.createElement("button", {
-      onClick: () => deletarMeta(meta.id),
-      className: "px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200"
-    }, "\uD83D\uDDD1\uFE0F"))))))), (abaAtiva === 'metas' && subAba === 'dividas') && /*#__PURE__*/React.createElement("div", {
+  // Botão Nova Meta
+  /*#__PURE__*/React.createElement("button", {
+    onClick: () => setModalAberto('novaMeta'),
+    style: {
+      width:'100%', padding:'14px', border:'none', borderRadius:'12px',
+      background:'linear-gradient(135deg, #6366f1, #8b5cf6)', 
+      color:'#fff', fontSize:'0.85rem', fontWeight:'700',
+      cursor:'pointer', boxShadow:'0 4px 12px rgba(99,102,241,0.3)',
+      transition:'all 0.2s'
+    }
+  }, '➕ Nova Meta')
+),
+
+// ═══════════════════════════════════════════════════════════
+// COLUNA CENTRAL: Lista de Metas
+// ═══════════════════════════════════════════════════════════
+/*#__PURE__*/React.createElement("div", {
+  style: {background:'#fff', borderRadius:'16px', padding:'20px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}
+},
+  /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'18px'}},
+    /*#__PURE__*/React.createElement("h3", {style:{fontSize:'0.9rem', fontWeight:'800', color:'#111827'}}, '🎯 Suas Metas'),
+    metasFinanceiras.filter(m => !m.concluida).length > 0 && /*#__PURE__*/React.createElement("span", {
+      style:{fontSize:'0.68rem', fontWeight:'700', padding:'3px 10px', borderRadius:'20px', background:'#ede9fe', color:'#5b21b6'}
+    }, metasFinanceiras.filter(m => !m.concluida).length + ' ativas')
+  ),
+  
+  metasFinanceiras.length === 0
+    ? /*#__PURE__*/React.createElement("div", {style:{textAlign:'center', padding:'40px 20px', color:'#d1d5db'}},
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, '🎯'),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'600', color:'#9ca3af', marginBottom:'6px'}}, 
+          'Nenhuma meta cadastrada'
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', color:'#d1d5db'}}, 
+          'Comece definindo seus objetivos financeiros'
+        )
+      )
+    : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
+        ...metasFinanceiras.filter(m => !m.concluida).map((meta, idx) => {
+          const progresso = meta.valor > 0 ? (meta.valorAtual || 0) / meta.valor * 100 : 0;
+          const falta = Math.max(0, meta.valor - (meta.valorAtual || 0));
+          return /*#__PURE__*/React.createElement("div", {
+            key: meta.id,
+            style: {
+              background:'#fafafa',
+              borderRadius:'12px',
+              padding:'14px',
+              border:'1px solid #e5e7eb',
+              transition:'all 0.2s',
+              cursor:'pointer'
+            },
+            onClick: () => {
+              setItemEditando(meta);
+              setTipoEditando('meta');
+              setModalAberto('editar');
+            }
+          },
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px'}},
+              /*#__PURE__*/React.createElement("div", {style:{flex:1}},
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:'#111827', marginBottom:'4px'}}, 
+                  meta.titulo
+                ),
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af'}},
+                  'R$ ' + (meta.valorAtual || 0).toFixed(0) + ' de R$ ' + meta.valor.toFixed(0)
+                )
+              ),
+              /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.1rem', fontWeight:'900', color:'#6366f1'}},
+                  progresso.toFixed(0) + '%'
+                ),
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', color:'#9ca3af', marginTop:'2px'}},
+                  meta.prazo === 'curto' ? '📅 Curto' : meta.prazo === 'medio' ? '📅 Médio' : '📅 Longo'
+                )
+              )
+            ),
+            // Barra de progresso
+            /*#__PURE__*/React.createElement("div", {style:{height:'6px', background:'#e5e7eb', borderRadius:'3px', overflow:'hidden', marginBottom:'8px'}},
+              /*#__PURE__*/React.createElement("div", {
+                style:{
+                  height:'100%',
+                  width: Math.min(100, progresso) + '%',
+                  background: progresso >= 75 ? '#10b981' : progresso >= 40 ? '#6366f1' : '#f59e0b',
+                  borderRadius:'3px',
+                  transition:'width 0.6s ease'
+                }
+              })
+            ),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#6b7280'}},
+              'Faltam: R$ ' + falta.toFixed(0)
+            )
+          );
+        })
+      )
+),
+
+// ═══════════════════════════════════════════════════════════
+// COLUNA DIREITA: Dicas + Por Prazo
+// ═══════════════════════════════════════════════════════════
+/*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'14px'}},
+  
+  // Card: Distribuição por Prazo
+  /*#__PURE__*/React.createElement("div", {
+    style: {background:'#fff', borderRadius:'16px', padding:'20px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}
+  },
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', fontWeight:'800', letterSpacing:'1.1px', textTransform:'uppercase', color:'#6b7280', marginBottom:'14px'}}, 
+      '📅 Por Prazo'
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'10px'}},
+      // Curto prazo
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
+        /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#10b981', flexShrink:0}}),
+        /*#__PURE__*/React.createElement("div", {style:{flex:1}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Curto Prazo'),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:'#111827'}},
+            metasCurtoPrazo.length + ' ' + (metasCurtoPrazo.length === 1 ? 'meta' : 'metas')
+          )
+        )
+      ),
+      // Médio prazo
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
+        /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#6366f1', flexShrink:0}}),
+        /*#__PURE__*/React.createElement("div", {style:{flex:1}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Médio Prazo'),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:'#111827'}},
+            metasMedioPrazo.length + ' ' + (metasMedioPrazo.length === 1 ? 'meta' : 'metas')
+          )
+        )
+      ),
+      // Longo prazo
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
+        /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#8b5cf6', flexShrink:0}}),
+        /*#__PURE__*/React.createElement("div", {style:{flex:1}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Longo Prazo'),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:'#111827'}},
+            metasLongoPrazo.length + ' ' + (metasLongoPrazo.length === 1 ? 'meta' : 'metas')
+          )
+        )
+      )
+    )
+  ),
+  
+  // Card: Dica
+  /*#__PURE__*/React.createElement("div", {
+    style: {
+      background:'linear-gradient(135deg, #dbeafe, #bfdbfe)',
+      borderRadius:'16px',
+      padding:'16px',
+      border:'1px solid #bfdbfe'
+    }
+  },
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:'#1e40af', marginBottom:'6px'}}, 
+      '💡 Dica'
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#1e3a8a', lineHeight:1.5}},
+      metasFinanceiras.filter(m => !m.concluida).length > 0
+        ? percentualMetasGeral >= 50
+          ? 'Você está no caminho certo! Continue guardando mensalmente para alcançar suas metas.'
+          : 'Defina um valor mensal para cada meta e torne o hábito de poupar automático.'
+        : 'Comece definindo suas metas financeiras: viagem, casa própria, reserva de emergência ou investimento.'
+    )
+  ),
+  
+  // Card: Metas Concluídas
+  metasConcluidas.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background:'linear-gradient(135deg, #d1fae5, #a7f3d0)',
+      borderRadius:'16px',
+      padding:'16px',
+      border:'1px solid #a7f3d0'
+    }
+  },
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:'#065f46', marginBottom:'6px'}}, 
+      '🎉 ' + metasConcluidas.length + ' ' + (metasConcluidas.length === 1 ? 'Meta Concluída' : 'Metas Concluídas')
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#047857', lineHeight:1.5}},
+      'Parabéns! Continue definindo novos objetivos.'
+    )
+  )
+)
+
+)),
+  (abaAtiva === 'metas' && subAba === 'dividas') && /*#__PURE__*/React.createElement("div", {
       className: "space-y-3"
     }, /*#__PURE__*/React.createElement("div", {
       style: {display:'flex', gap:'8px', marginBottom:'4px'}
@@ -6625,7 +6549,8 @@ function App({
       className: "flex items-start gap-2"
     }, /*#__PURE__*/React.createElement("div", {
       className: "text-lg"
-    }, "\u2705"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Considere sua reserva de emerg\xEAncia:"), " N\xE3o comprometa seu fundo de emerg\xEAncia"))))), (abaAtiva === 'simulacoes' && subAba === 'simulador') && /*#__PURE__*/React.createElement("div", {
+    }, "\u2705"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Considere sua reserva de emerg\xEAncia:"), " N\xE3o comprometa seu fundo de emerg\xEAncia"))),
+(abaAtiva === 'simulacoes' && subAba === 'simulador') && /*#__PURE__*/React.createElement("div", {
       className: "space-y-3"
     }, /*#__PURE__*/React.createElement("div", {
       style: {display:'flex', gap:'8px', marginBottom:'4px'}
@@ -6823,7 +6748,7 @@ function App({
       className: "font-bold text-gray-800"
     }, "Combo Perfeito"), /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-gray-600"
-    }, "+20% renda, -20% gastos")))))
+    }, "+20% renda, -20% gastos")))))))
   };
   const TelaFarol = () => {
     const [filtroStatus, setFiltroStatus] = useState('todos');
