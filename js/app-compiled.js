@@ -5515,6 +5515,15 @@ function App({
   (abaAtiva === 'orcamento' && subAba === 'premes') && /*#__PURE__*/React.createElement("div", {
       className: "space-y-3"
     }, /*#__PURE__*/React.createElement("div", {
+      style: {display:'flex', gap:'8px', marginBottom:'4px'}
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: ()=>setTelaAtiva('planejamento-orcamento'),
+      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: !subAba||subAba===null?'#6366f1':'#f3f4f6', color: !subAba||subAba===null?'#fff':'#6b7280', transition:'all 0.15s'}
+    }, "📊 Orçamento"), /*#__PURE__*/React.createElement("button", {
+      onClick: ()=>setTelaAtiva('planejamento-premes'),
+      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='premes'?'#6366f1':'#f3f4f6', color: subAba==='premes'?'#fff':'#6b7280', transition:'all 0.15s'}
+    }, "📝 Pré-Mês")),
+    /*#__PURE__*/React.createElement("div", {
       className: "flex justify-end"
     }, /*#__PURE__*/React.createElement("button", {
       onClick: () => setModalAberto('novoPlanejado'),
@@ -5980,6 +5989,15 @@ function App({
     }, "\uD83D\uDDD1\uFE0F"))))))), (abaAtiva === 'metas' && subAba === 'dividas') && /*#__PURE__*/React.createElement("div", {
       className: "space-y-3"
     }, /*#__PURE__*/React.createElement("div", {
+      style: {display:'flex', gap:'8px', marginBottom:'4px'}
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: ()=>setTelaAtiva('planejamento-metas'),
+      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: !subAba||subAba===null?'#6366f1':'#f3f4f6', color: !subAba||subAba===null?'#fff':'#6b7280', transition:'all 0.15s'}
+    }, "🎯 Metas"), /*#__PURE__*/React.createElement("button", {
+      onClick: ()=>setTelaAtiva('planejamento-dividas'),
+      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='dividas'?'#6366f1':'#f3f4f6', color: subAba==='dividas'?'#fff':'#6b7280', transition:'all 0.15s'}
+    }, "💳 Dívidas")),
+    /*#__PURE__*/React.createElement("div", {
       className: "flex justify-between items-center"
     }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
       className: "text-lg font-bold text-gray-800"
@@ -6162,10 +6180,8 @@ function App({
     }, "🛒 Simul. Compra"), /*#__PURE__*/React.createElement("button", {
       onClick: ()=>setTelaAtiva('planejamento-simulador'),
       style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='simulador'?'#6366f1':'#f3f4f6', color: subAba==='simulador'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "🎲 Simulador"), /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-timeline'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='timeline'?'#6366f1':'#f3f4f6', color: subAba==='timeline'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "📈 Timeline")),/*#__PURE__*/React.createElement("div", {
+    }, "🎲 Simulador")),
+    /*#__PURE__*/React.createElement("div", {
       className: "flex justify-between items-center mb-4"
     }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
       className: "text-lg font-bold text-gray-800"
@@ -6427,10 +6443,8 @@ function App({
     }, "🛒 Simul. Compra"), /*#__PURE__*/React.createElement("button", {
       onClick: ()=>setTelaAtiva('planejamento-simulador'),
       style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='simulador'?'#6366f1':'#f3f4f6', color: subAba==='simulador'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "🎲 Simulador"), /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-timeline'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='timeline'?'#6366f1':'#f3f4f6', color: subAba==='timeline'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "📈 Timeline")),/*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    }, "🎲 Simulador")),
+    /*#__PURE__*/React.createElement("div", {
       className: "text-lg font-bold text-gray-800"
     }, "\uD83C\uDFB2 Simulador de Cen\xE1rios"), /*#__PURE__*/React.createElement("p", {
       className: "text-gray-600"
@@ -6617,7 +6631,7 @@ function App({
       className: "font-bold text-gray-800"
     }, "Combo Perfeito"), /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-gray-600"
-    }, "+20% renda, -20% gastos"))))))
+    }, "+20% renda, -20% gastos")))))
   };
   const TelaFarol = () => {
     const [filtroStatus, setFiltroStatus] = useState('todos');
