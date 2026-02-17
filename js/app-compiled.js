@@ -4980,127 +4980,194 @@ function App({
     }, "\uD83D\uDDD1\uFE0F")))))));
   };
   const TelaReceitas = () => {
+    const mesesOrdem = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const mesesNome  = {jan:'Jan',fev:'Fev',mar:'Mar',abr:'Abr',mai:'Mai',jun:'Jun',jul:'Jul',ago:'Ago',set:'Set',out:'Out',nov:'Nov',dez:'Dez'};
+    const catIcone   = {'Salário':'💼','Freelance':'🖥️','Investimento':'📈','Aluguel':'🏠','Bônus':'🎯','13º Salário':'🎁','Pensão':'👨‍👩‍👧','Outros':'💰'};
+
     const receitasDoMes = receitas.filter(r => r.mes === mesAtual && r.ano === anoAtual);
-    const totalMes = receitasDoMes.reduce((sum, r) => sum + r.valor, 0);
-    return /*#__PURE__*/React.createElement("div", {
-      className: "space-y-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between items-center mb-4"
-    }, /*#__PURE__*/React.createElement("h2", {
-      className: "text-lg font-bold text-gray-800"
-    }, "\uD83D\uDCB0 Receitas e Ganhos"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('novaReceita'),
-      className: "px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
-    }, "\u2795 Nova Receita")), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-1 md:grid-cols-3 gap-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-90"
-    }, "RECEITAS"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold mt-2"
-    }, "R$ ", saldo.receitas.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-6 text-white"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-90"
-    }, "DESPESAS"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold mt-2"
-    }, "R$ ", saldo.despesas.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-      className: `rounded-xl shadow-lg p-6 text-white ${saldo.positivo ? 'bg-gradient-to-br from-blue-500 to-blue-600' : 'bg-gradient-to-br from-orange-500 to-orange-600'}`
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-90"
-    }, "SALDO"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold mt-2"
-    }, saldo.positivo ? '+' : '-', " R$ ", Math.abs(saldo.saldo).toFixed(2)))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between items-center mb-3"
-    }, /*#__PURE__*/React.createElement("h3", {
-      className: "text-lg font-bold text-gray-800"
-    }, "Receitas de ", mesAtual.toUpperCase()), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-green-600"
-    }, "R$ ", totalMes.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-2"
-    }, receitasDoMes.length === 0 ? /*#__PURE__*/React.createElement("div", {
-      className: "text-center py-12 text-gray-500"
-    }, "Nenhuma receita registrada neste m\xEAs.", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('novaReceita'),
-      className: "mt-4 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
-    }, "\u2795 Adicionar Primeira Receita")) : receitasDoMes.map(receita => /*#__PURE__*/React.createElement("div", {
-      key: receita.id,
-      className: "flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex-1"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center gap-3"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "font-semibold text-gray-800"
-    }, receita.categoria), receita.descricao && /*#__PURE__*/React.createElement("span", {
-      className: "text-sm text-gray-500"
-    }, "\u2022 ", receita.descricao), /*#__PURE__*/React.createElement("span", {
-      className: `px-2 py-1 rounded text-xs font-bold ${receita.ano === 2026 ? 'bg-blue-100 text-blue-700' : receita.ano === 2025 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'}`
-    }, receita.ano)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-500 mt-1"
-    }, receita.data)), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center gap-2"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-green-600"
-    }, "R$ ", receita.valor.toLocaleString('pt-BR', {
-      minimumFractionDigits: 2
-    })), /*#__PURE__*/React.createElement("button", {
-      onClick: () => {
-        setItemEditando(receita);
-        setTipoEditando('receita');
-        setModalAberto('editar');
-      },
-      className: "px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm font-semibold",
-      title: "Editar receita"
-    }, "\u270F\uFE0F"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => duplicarReceita(receita),
-      className: "px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm font-semibold",
-      title: "Duplicar receita"
-    }, "\uD83D\uDCCB"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => deletarReceita(receita.id),
-      className: "px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm",
-      title: "Excluir receita"
-    }, "\uD83D\uDDD1\uFE0F")))))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h3", {
-      className: "text-lg font-bold text-gray-800 mb-4"
-    }, "\uD83D\uDCCA Receitas vs Despesas"), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-4"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between mb-2"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "text-sm font-semibold text-green-600"
-    }, "Receitas"), /*#__PURE__*/React.createElement("span", {
-      className: "text-sm font-semibold"
-    }, "R$ ", saldo.receitas.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-      className: "w-full bg-gray-200 rounded-full h-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-green-500 h-6 rounded-full transition-all flex items-center justify-end pr-2",
-      style: {
-        width: saldo.receitas > 0 ? '100%' : '0%'
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "text-xs text-white font-bold"
-    }, "100%")))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between mb-2"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "text-sm font-semibold text-red-600"
-    }, "Despesas"), /*#__PURE__*/React.createElement("span", {
-      className: "text-sm font-semibold"
-    }, "R$ ", saldo.despesas.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-      className: "w-full bg-gray-200 rounded-full h-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-red-500 h-6 rounded-full transition-all flex items-center justify-end pr-2",
-      style: {
-        width: saldo.receitas > 0 ? `${saldo.despesas / saldo.receitas * 100}%` : '0%'
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "text-xs text-white font-bold"
-    }, saldo.receitas > 0 ? (saldo.despesas / saldo.receitas * 100).toFixed(0) : 0, "%")))))));
+    const totalMes      = receitasDoMes.reduce((s,r) => s + r.valor, 0);
+    const receitasAno   = receitas.filter(r => r.ano === anoAtual);
+    const totalAno      = receitasAno.reduce((s,r) => s + r.valor, 0);
+
+    const idxAtual  = mesesOrdem.indexOf(mesAtual);
+    const ultimos6  = Array.from({length:6}, (_,i) => {
+      const idx   = (idxAtual - 5 + i + 12) % 12;
+      const mes   = mesesOrdem[idx];
+      const total = receitas.filter(r => r.mes === mes && r.ano === anoAtual).reduce((s,r) => s + r.valor, 0);
+      return { mes, label: mesesNome[mes], total, atual: mes === mesAtual };
+    });
+    const maxBar      = Math.max(...ultimos6.map(m => m.total), 1);
+    const mediaUlt6   = ultimos6.reduce((s,m) => s + m.total, 0) / 6;
+    const variacaoMes = mediaUlt6 > 0 ? (totalMes - mediaUlt6) / mediaUlt6 * 100 : 0;
+
+    const porCat  = receitasDoMes.reduce((acc,r) => { acc[r.categoria] = (acc[r.categoria]||0) + r.valor; return acc; }, {});
+    const catList = Object.entries(porCat).sort((a,b) => b[1]-a[1]);
+
+    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'240px 1fr 220px', gap:'16px', alignItems:'start'}},
+
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'14px'}},
+
+        /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(150deg,#064e3b 0%,#065f46 60%,#047857 100%)', borderRadius:'16px', padding:'22px', color:'#fff', boxShadow:'0 6px 28px rgba(6,78,59,0.4)', border:'1px solid rgba(16,185,129,0.25)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'10px'}}, mesAtual.toUpperCase() + " \xB7 " + anoAtual),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', opacity:0.7, marginBottom:'4px'}}, "Total do m\xEAs"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'2rem', fontWeight:'900', lineHeight:1, marginBottom:'16px'}}, "R$ " + totalMes.toLocaleString('pt-BR',{minimumFractionDigits:2})),
+          /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', borderTop:'1px solid rgba(255,255,255,0.12)', paddingTop:'14px'}},
+            /*#__PURE__*/React.createElement("div", null,
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.62rem', opacity:0.55, marginBottom:'3px'}}, "Lan\xE7amentos"),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'1rem', fontWeight:'800'}}, receitasDoMes.length)
+            ),
+            /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.62rem', opacity:0.55, marginBottom:'3px'}}, "vs m\xE9dia"),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'1rem', fontWeight:'800', color: variacaoMes >= 0 ? '#86efac' : '#fca5a5'}}, (variacaoMes >= 0 ? '+' : '') + variacaoMes.toFixed(1) + '%')
+            )
+          )
+        ),
+
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'14px', padding:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 10px rgba(0,0,0,0.04)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'10px'}}, "\uD83D\uDCC5 Acumulado " + anoAtual),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.4rem', fontWeight:'900', color:'#065f46'}}, "R$ " + totalAno.toLocaleString('pt-BR',{minimumFractionDigits:2})),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'3px'}}, receitasAno.length + " lan\xE7amentos no ano")
+        ),
+
+        catList.length > 0 && /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'14px', padding:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 10px rgba(0,0,0,0.04)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'14px'}}, "\uD83E\uDD67 Por Categoria"),
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'11px'}},
+            ...catList.map(([cat, val]) =>
+              /*#__PURE__*/React.createElement("div", {key:cat},
+                /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', marginBottom:'4px', alignItems:'center'}},
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'6px'}},
+                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.85rem'}}, catIcone[cat] || '\uD83D\uDCB0'),
+                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'600', color:'#374151'}}, cat)
+                  ),
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', fontWeight:'800', color:'#065f46'}}, (totalMes > 0 ? val/totalMes*100 : 0).toFixed(0) + "%")
+                ),
+                /*#__PURE__*/React.createElement("div", {style:{height:'4px', background:'#f0fdf4', borderRadius:'2px', overflow:'hidden'}},
+                  /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:(totalMes > 0 ? val/totalMes*100 : 0)+'%', background:'linear-gradient(90deg,#10b981,#34d399)', borderRadius:'2px', transition:'width .6s ease'}})
+                )
+              )
+            )
+          )
+        ),
+
+        /*#__PURE__*/React.createElement("button", {
+          onClick: () => setModalAberto('novaReceita'),
+          style:{width:'100%', padding:'13px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontSize:'0.83rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 14px rgba(16,185,129,0.35)', letterSpacing:'0.3px'}
+        }, "\u2795 Nova Receita")
+      ),
+
+      /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
+        /*#__PURE__*/React.createElement("div", {style:{padding:'18px 22px', borderBottom:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center'}},
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:'#111827'}}, "Receitas de " + mesAtual.charAt(0).toUpperCase() + mesAtual.slice(1)),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}}, receitasDoMes.length === 0 ? "Nenhum lan\xE7amento ainda" : receitasDoMes.length + " " + (receitasDoMes.length === 1 ? "lan\xE7amento" : "lan\xE7amentos"))
+          ),
+          receitasDoMes.length > 0 && /*#__PURE__*/React.createElement("div", {style:{fontWeight:'900', fontSize:'1.15rem', color:'#10b981'}}, "R$ " + totalMes.toLocaleString('pt-BR',{minimumFractionDigits:2}))
+        ),
+
+        receitasDoMes.length === 0 && /*#__PURE__*/React.createElement("div", {style:{padding:'60px 20px', textAlign:'center'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83D\uDCB0"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, "Nenhuma receita em " + mesAtual.charAt(0).toUpperCase() + mesAtual.slice(1)),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:'#d1d5db', marginBottom:'22px'}}, "Registre sal\xE1rio, freelance, b\xF4nus ou qualquer entrada"),
+          /*#__PURE__*/React.createElement("button", {
+            onClick: () => setModalAberto('novaReceita'),
+            style:{padding:'10px 26px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontSize:'0.82rem', fontWeight:'700', cursor:'pointer', boxShadow:'0 3px 10px rgba(16,185,129,0.3)'}
+          }, "\u2795 Registrar Receita")
+        ),
+
+        receitasDoMes.length > 0 && /*#__PURE__*/React.createElement("div", {style:{maxHeight:'500px', overflowY:'auto'}},
+          ...receitasDoMes.sort((a,b) => (b.data||'').localeCompare(a.data||'')).map((receita, idx) =>
+            /*#__PURE__*/React.createElement("div", {
+              key: receita.id,
+              style:{display:'flex', alignItems:'center', gap:'14px', padding:'13px 22px', borderBottom: idx < receitasDoMes.length-1 ? '1px solid #f9fafb' : 'none', transition:'background .15s'},
+              onMouseEnter: e => { e.currentTarget.style.background = '#fafafa'; },
+              onMouseLeave: e => { e.currentTarget.style.background = 'transparent'; }
+            },
+              /*#__PURE__*/React.createElement("div", {style:{width:'42px', height:'42px', borderRadius:'11px', background:'#ecfdf5', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:'1.15rem', border:'1px solid #d1fae5'}}, catIcone[receita.categoria] || '\uD83D\uDCB0'),
+              /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
+                /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'8px', marginBottom:'3px'}},
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.85rem', fontWeight:'700', color:'#111827'}}, receita.categoria),
+                  receita.descricao && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.73rem', color:'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'180px'}}, "\xB7 " + receita.descricao)
+                ),
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:'#d1d5db'}}, receita.data || '')
+              ),
+              /*#__PURE__*/React.createElement("div", {style:{fontWeight:'900', fontSize:'0.95rem', color:'#059669', flexShrink:0, marginRight:'8px'}}, "R$ " + receita.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})),
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px', flexShrink:0}},
+                /*#__PURE__*/React.createElement("button", {onClick:()=>{ setItemEditando(receita); setTipoEditando('receita'); setModalAberto('editar'); }, title:"Editar", style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
+                /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarReceita(receita), title:"Duplicar", style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
+                /*#__PURE__*/React.createElement("button", {onClick:()=>deletarReceita(receita.id), title:"Excluir", style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+              )
+            )
+          )
+        ),
+
+        receitasDoMes.length > 1 && /*#__PURE__*/React.createElement("div", {style:{padding:'13px 22px', borderTop:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fafafa'}},
+          /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'600', color:'#6b7280'}}, "Total de " + receitasDoMes.length + " receitas"),
+          /*#__PURE__*/React.createElement("span", {style:{fontSize:'1rem', fontWeight:'900', color:'#059669'}}, "R$ " + totalMes.toLocaleString('pt-BR',{minimumFractionDigits:2}))
+        )
+      ),
+
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'14px'}},
+
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'14px', padding:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 10px rgba(0,0,0,0.04)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'14px'}}, "\uD83D\uDCCA \xDAltimos 6 Meses"),
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'flex-end', gap:'5px', height:'72px', marginBottom:'8px'}},
+            ...ultimos6.map(m =>
+              /*#__PURE__*/React.createElement("div", {key:m.mes, style:{flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-end', height:'100%'}},
+                m.total > 0
+                  ? /*#__PURE__*/React.createElement("div", {title:"R$ " + m.total.toFixed(2), style:{width:'100%', height: Math.max(4, m.total/maxBar*68)+'px', background: m.atual ? 'linear-gradient(180deg,#10b981,#059669)' : '#bbf7d0', borderRadius:'4px 4px 0 0', transition:'height .5s ease', boxShadow: m.atual ? '0 2px 8px rgba(16,185,129,0.4)' : 'none'}})
+                  : /*#__PURE__*/React.createElement("div", {style:{width:'100%', height:'3px', background:'#f3f4f6', borderRadius:'2px'}})
+              )
+            )
+          ),
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px'}},
+            ...ultimos6.map(m =>
+              /*#__PURE__*/React.createElement("div", {key:m.mes, style:{flex:1, textAlign:'center', fontSize:'0.58rem', fontWeight: m.atual ? '800' : '500', color: m.atual ? '#059669' : '#9ca3af'}}, m.label)
+            )
+          )
+        ),
+
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'14px', padding:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 10px rgba(0,0,0,0.04)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'10px'}}, "\uD83D\uDCD0 M\xE9dia Mensal"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.15rem', fontWeight:'900', color:'#111827', marginBottom:'8px'}}, "R$ " + mediaUlt6.toLocaleString('pt-BR',{minimumFractionDigits:2})),
+          /*#__PURE__*/React.createElement("div", {style:{display:'inline-flex', alignItems:'center', gap:'5px', padding:'3px 10px', borderRadius:'20px', fontSize:'0.7rem', fontWeight:'700', background: variacaoMes >= 0 ? '#ecfdf5' : '#fff1f2', color: variacaoMes >= 0 ? '#059669' : '#e11d48'}},
+            variacaoMes >= 0 ? '\u25B2' : '\u25BC', " " + Math.abs(variacaoMes).toFixed(1) + "% este m\xEAs"
+          )
+        ),
+
+        saldo.receitas > 0 && /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'14px', padding:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 10px rgba(0,0,0,0.04)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'12px'}}, "\u2696\uFE0F Comprometimento"),
+          (function() {
+            var pct = saldo.receitas > 0 ? saldo.despesas / saldo.receitas * 100 : 0;
+            var cor = pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#10b981';
+            var bg  = pct > 90 ? '#fff1f2' : pct > 70 ? '#fffbeb' : '#f0fdf4';
+            return /*#__PURE__*/React.createElement("div", null,
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', marginBottom:'8px'}},
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.73rem', color:'#6b7280'}}, "Despesas / Receita"),
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.92rem', fontWeight:'900', color:cor}}, pct.toFixed(0) + "%")
+              ),
+              /*#__PURE__*/React.createElement("div", {style:{height:'7px', background:'#f3f4f6', borderRadius:'4px', overflow:'hidden', marginBottom:'10px'}},
+                /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:Math.min(100,pct)+'%', background:cor, borderRadius:'4px', transition:'width .6s ease'}})
+              ),
+              /*#__PURE__*/React.createElement("div", {style:{padding:'8px 10px', borderRadius:'8px', background:bg, fontSize:'0.7rem', color:cor, fontWeight:'600'}},
+                pct > 90 ? "\uD83D\uDD34 Comprometimento cr\xEDtico"
+                  : pct > 70 ? "\uD83D\uDFE1 Pouca margem para poupar"
+                  : "\uD83D\uDFE2 Boa margem de poupan\xE7a"
+              )
+            );
+          })()
+        ),
+
+        /*#__PURE__*/React.createElement("div", {
+          style:{borderRadius:'14px', padding:'16px', background: saldo.positivo ? 'linear-gradient(135deg,#ecfdf5,#d1fae5)' : 'linear-gradient(135deg,#fff1f2,#ffe4e6)', border: saldo.positivo ? '1px solid #a7f3d0' : '1px solid #fecdd3'}
+        },
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color: saldo.positivo ? '#065f46' : '#be123c', marginBottom:'10px'}}, saldo.positivo ? "\u2705 Sobra do M\xEAs" : "\u26A0\uFE0F D\xE9ficit do M\xEAs"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.4rem', fontWeight:'900', color: saldo.positivo ? '#059669' : '#e11d48'}}, "R$ " + Math.abs(saldo.saldo).toLocaleString('pt-BR',{minimumFractionDigits:2})),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color: saldo.positivo ? '#065f46' : '#be123c', marginTop:'5px', opacity:0.8}}, saldo.positivo ? "Dispon\xEDvel para poupar ou investir" : "Receitas menores que as despesas")
+        )
+      )
+    );
   };
+
   const TelaPlanejamento = () => {
     // Controlar aba via telaAtiva do menu
     const abaAtiva = telaAtiva === 'planejamento-orcamento' || telaAtiva === 'planejamento-premes' ? 'orcamento' : telaAtiva === 'planejamento-metas' || telaAtiva === 'planejamento-dividas' ? 'metas' : telaAtiva === 'planejamento-compra' || telaAtiva === 'planejamento-simulador' ? 'simulacoes' : 'diagnostico';
