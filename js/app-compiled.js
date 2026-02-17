@@ -5410,108 +5410,300 @@ function App({
         ? window.DiagnosticoComponent()
         : /*#__PURE__*/React.createElement('div', {style:{padding:'20px',color:'#999'}}, 'Carregando diagnóstico...');
     })(),
-  (abaAtiva === 'orcamento' && !subAba) && /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {display:'flex', gap:'8px', marginBottom:'4px'}
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-orcamento'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: !subAba||subAba===null?'#6366f1':'#f3f4f6', color: !subAba||subAba===null?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "📊 Orçamento"), /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-premes'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='premes'?'#6366f1':'#f3f4f6', color: subAba==='premes'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "📝 Pré-Mês")),
-    /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-end"
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('orcamento'),
-      className: "px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
-    }, "\u2699\uFE0F Definir Or\xE7amento")), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-1 md:grid-cols-3 gap-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "Or\xE7ado"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold text-blue-600"
-    }, "R$ ", orcadoTotal.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "Gasto"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold text-purple-600"
-    }, "R$ ", gastadoTotal.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-      className: `rounded-xl shadow-lg p-6 ${dentroOrcamento ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-red-500 to-red-600'} text-white`
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-90"
-    }, dentroOrcamento ? 'Sobrou' : 'Excedeu'), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold"
-    }, "R$ ", Math.abs(diferenca).toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm mt-2"
-    }, dentroOrcamento ? '✅ Dentro do orçamento' : '⚠️ Acima do orçamento'))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h3", {
-      className: "text-xl font-bold text-gray-800 mb-3"
-    }, "Por Categoria"), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between items-center mb-2"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "font-bold text-gray-800"
-    }, "\uD83D\uDCB3 Cart\xF5es"), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "R$ ", totais.cartoes.toFixed(2), " / R$ ", orcamento.cartoes.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-      className: "text-right"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: `text-2xl font-bold ${totais.cartoes <= orcamento.cartoes ? 'text-green-600' : 'text-red-600'}`
-    }, (orcamento.cartoes > 0 ? totais.cartoes / orcamento.cartoes * 100 : 0).toFixed(0), "%"), /*#__PURE__*/React.createElement("div", {
-      className: `text-sm ${orcamento.cartoes - totais.cartoes >= 0 ? 'text-green-600' : 'text-red-600'}`
-    }, orcamento.cartoes - totais.cartoes >= 0 ? '✅' : '⚠️', " R$ ", Math.abs(orcamento.cartoes - totais.cartoes).toFixed(2)))), /*#__PURE__*/React.createElement("div", {
-      className: "w-full bg-gray-200 rounded-full h-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: `h-4 rounded-full ${totais.cartoes <= orcamento.cartoes ? 'bg-green-500' : 'bg-red-500'}`,
-      style: {
-        width: `${orcamento.cartoes > 0 ? Math.min(totais.cartoes / orcamento.cartoes * 100, 100) : 0}%`
+// Novo bloco Orçamento redesenhado - 3 colunas profissionais
+(abaAtiva === 'orcamento' && !subAba) && /*#__PURE__*/React.createElement("div", {
+  className: "space-y-3"
+}, /*#__PURE__*/React.createElement("div", {
+  style: {display:'flex', gap:'8px', marginBottom:'16px'}
+}, /*#__PURE__*/React.createElement("button", {
+  onClick: ()=>setTelaAtiva('planejamento-orcamento'),
+  style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background:'#6366f1', color:'#fff', transition:'all 0.15s'}
+}, "📊 Orçamento"), /*#__PURE__*/React.createElement("button", {
+  onClick: ()=>setTelaAtiva('planejamento-premes'),
+  style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background:'#f3f4f6', color:'#6b7280', transition:'all 0.15s'}
+}, "📝 Pré-Mês")),
+
+// GRID 3 COLUNAS
+/*#__PURE__*/React.createElement("div", {
+  style: {display:'grid', gridTemplateColumns:'1fr 1.5fr 1fr', gap:'16px', alignItems:'start'}
+},
+
+// ═══════════════════════════════════════════════════════════
+// COLUNA ESQUERDA: Resumo + Ação
+// ═══════════════════════════════════════════════════════════
+/*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'14px'}},
+  
+  // Card: Status Orçamento (escuro)
+  /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: dentroOrcamento 
+        ? 'linear-gradient(135deg, #064e3b, #065f46)' 
+        : 'linear-gradient(135deg, #7f1d1d, #991b1b)',
+      borderRadius:'16px',
+      padding:'20px',
+      border: dentroOrcamento ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)',
+      boxShadow: dentroOrcamento ? '0 4px 20px rgba(16,185,129,0.25)' : '0 4px 20px rgba(239,68,68,0.25)',
+      color:'#fff'
+    }
+  },
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', fontWeight:'800', letterSpacing:'1.1px', textTransform:'uppercase', color:'rgba(255,255,255,0.5)', marginBottom:'12px'}}, 
+      dentroOrcamento ? '✅ Status Orçamento' : '⚠️ Status Orçamento'
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'2.2rem', fontWeight:'900', marginBottom:'8px'}},
+      'R$ ' + Math.abs(diferenca).toFixed(0)
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', opacity:0.85}},
+      dentroOrcamento ? 'Ainda disponível' : 'Acima do orçado'
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{borderTop:'1px solid rgba(255,255,255,0.15)', marginTop:'14px', paddingTop:'14px', display:'flex', justifyContent:'space-between', fontSize:'0.75rem'}},
+      /*#__PURE__*/React.createElement("div", null,
+        /*#__PURE__*/React.createElement("div", {style:{opacity:0.6, marginBottom:'3px'}}, 'Orçado'),
+        /*#__PURE__*/React.createElement("div", {style:{fontWeight:'700'}}, 'R$ ' + orcadoTotal.toFixed(0))
+      ),
+      /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
+        /*#__PURE__*/React.createElement("div", {style:{opacity:0.6, marginBottom:'3px'}}, 'Gasto'),
+        /*#__PURE__*/React.createElement("div", {style:{fontWeight:'700'}}, 'R$ ' + gastadoTotal.toFixed(0))
+      )
+    )
+  ),
+  
+  // Card: Taxa de Utilização
+  /*#__PURE__*/React.createElement("div", {
+    style: {background:'#fff', borderRadius:'16px', padding:'20px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}
+  },
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', fontWeight:'800', letterSpacing:'1.1px', textTransform:'uppercase', color:'#6b7280', marginBottom:'14px'}}, 
+      '📊 Utilização'
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'16px'}},
+      // Gauge circular
+      /*#__PURE__*/React.createElement("svg", {width:90, height:90, viewBox:"0 0 90 90", style:{flexShrink:0}},
+        /*#__PURE__*/React.createElement("circle", {cx:45, cy:45, r:35, fill:'none', stroke:'#f3f4f6', strokeWidth:8}),
+        orcadoTotal > 0 && /*#__PURE__*/React.createElement("circle", {
+          cx:45, cy:45, r:35, fill:'none', 
+          stroke: dentroOrcamento ? '#10b981' : '#ef4444',
+          strokeWidth:8,
+          strokeDasharray: `${Math.min(100, gastadoTotal/orcadoTotal*100)/100*220} 220`,
+          strokeDashoffset:55,
+          strokeLinecap:'round'
+        }),
+        /*#__PURE__*/React.createElement("text", {x:45, y:48, textAnchor:'middle', fontSize:'18', fontWeight:'900', fill: dentroOrcamento ? '#10b981' : '#ef4444'},
+          orcadoTotal > 0 ? Math.min(100, gastadoTotal/orcadoTotal*100).toFixed(0) : '0'
+        ),
+        /*#__PURE__*/React.createElement("text", {x:45, y:58, textAnchor:'middle', fontSize:'8', fill:'#9ca3af'}, '%')
+      ),
+      /*#__PURE__*/React.createElement("div", {style:{flex:1}},
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:'#374151', marginBottom:'6px'}},
+          orcadoTotal > 0 
+            ? `R$ ${gastadoTotal.toFixed(2)} de R$ ${orcadoTotal.toFixed(2)}` 
+            : 'Orçamento não definido'
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', fontWeight:'700', color: dentroOrcamento ? '#10b981' : '#ef4444'}},
+          orcadoTotal > 0
+            ? (dentroOrcamento ? '✅ No limite' : '🚨 Estourado')
+            : '⚠️ Configure seu orçamento'
+        )
+      )
+    )
+  ),
+
+  // Botão Definir Orçamento
+  /*#__PURE__*/React.createElement("button", {
+    onClick: () => setModalAberto('orcamento'),
+    style: {
+      width:'100%', padding:'14px', border:'none', borderRadius:'12px',
+      background:'linear-gradient(135deg, #6366f1, #8b5cf6)', 
+      color:'#fff', fontSize:'0.85rem', fontWeight:'700',
+      cursor:'pointer', boxShadow:'0 4px 12px rgba(99,102,241,0.3)',
+      transition:'all 0.2s'
+    }
+  }, '⚙️ ' + (orcadoTotal > 0 ? 'Ajustar Orçamento' : 'Definir Orçamento'))
+),
+
+// ═══════════════════════════════════════════════════════════
+// COLUNA CENTRAL: Detalhamento por Categoria
+// ═══════════════════════════════════════════════════════════
+/*#__PURE__*/React.createElement("div", {
+  style: {background:'#fff', borderRadius:'16px', padding:'20px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}
+},
+  /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'18px'}},
+    /*#__PURE__*/React.createElement("h3", {style:{fontSize:'0.9rem', fontWeight:'800', color:'#111827'}}, '📋 Detalhamento'),
+    orcadoTotal > 0 && /*#__PURE__*/React.createElement("span", {
+      style:{fontSize:'0.68rem', fontWeight:'700', padding:'3px 10px', borderRadius:'20px', 
+        background: dentroOrcamento ? '#d1fae5' : '#fee2e2',
+        color: dentroOrcamento ? '#065f46' : '#991b1b'
       }
-    }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between items-center mb-2"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "font-bold text-gray-800"
-    }, "\uD83C\uDFE0 Gastos Fixos"), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "R$ ", totais.fixos.toFixed(2), " / R$ ", orcamento.fixos.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-      className: "text-right"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: `text-2xl font-bold ${totais.fixos <= orcamento.fixos ? 'text-green-600' : 'text-red-600'}`
-    }, (orcamento.fixos > 0 ? totais.fixos / orcamento.fixos * 100 : 0).toFixed(0), "%"), /*#__PURE__*/React.createElement("div", {
-      className: `text-sm ${orcamento.fixos - totais.fixos >= 0 ? 'text-green-600' : 'text-red-600'}`
-    }, orcamento.fixos - totais.fixos >= 0 ? '✅' : '⚠️', " R$ ", Math.abs(orcamento.fixos - totais.fixos).toFixed(2)))), /*#__PURE__*/React.createElement("div", {
-      className: "w-full bg-gray-200 rounded-full h-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: `h-4 rounded-full ${totais.fixos <= orcamento.fixos ? 'bg-green-500' : 'bg-red-500'}`,
-      style: {
-        width: `${orcamento.fixos > 0 ? Math.min(totais.fixos / orcamento.fixos * 100, 100) : 0}%`
-      }
-    }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between items-center mb-2"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "font-bold text-gray-800"
-    }, "\uD83D\uDCCA Gastos Vari\xE1veis"), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "R$ ", totais.variaveis.toFixed(2), " / R$ ", orcamento.variaveis.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-      className: "text-right"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: `text-2xl font-bold ${totais.variaveis <= orcamento.variaveis ? 'text-green-600' : 'text-red-600'}`
-    }, orcamento.variaveis > 0 ? (totais.variaveis / orcamento.variaveis * 100).toFixed(0) : 0, "%"), /*#__PURE__*/React.createElement("div", {
-      className: `text-sm ${orcamento.variaveis - totais.variaveis >= 0 ? 'text-green-600' : 'text-red-600'}`
-    }, orcamento.variaveis - totais.variaveis >= 0 ? '✅' : '⚠️', " R$ ", Math.abs(orcamento.variaveis - totais.variaveis).toFixed(2)))), /*#__PURE__*/React.createElement("div", {
-      className: "w-full bg-gray-200 rounded-full h-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: `h-4 rounded-full ${totais.variaveis <= orcamento.variaveis ? 'bg-green-500' : 'bg-red-500'}`,
-      style: {
-        width: orcamento.variaveis > 0 ? `${Math.min(totais.variaveis / orcamento.variaveis * 100, 100)}%` : '0%'
-      }
-    })))))),
+    }, (gastadoTotal/orcadoTotal*100).toFixed(0) + '% usado')
+  ),
+  
+  // Cartões
+  /*#__PURE__*/React.createElement("div", {style:{marginBottom:'20px'}},
+    /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}},
+      /*#__PURE__*/React.createElement("div", null,
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:'#111827'}}, '💳 Cartões'),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}},
+          'R$ ' + totais.cartoes.toFixed(2) + ' / R$ ' + orcamento.cartoes.toFixed(2)
+        )
+      ),
+      /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.1rem', fontWeight:'900', color: totais.cartoes <= orcamento.cartoes ? '#10b981' : '#ef4444'}},
+          orcamento.cartoes > 0 ? (totais.cartoes/orcamento.cartoes*100).toFixed(0) + '%' : '—'
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', fontWeight:'600', color: orcamento.cartoes - totais.cartoes >= 0 ? '#10b981' : '#ef4444'}},
+          orcamento.cartoes - totais.cartoes >= 0 ? '✅' : '⚠️'
+        )
+      )
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{height:'6px', background:'#f3f4f6', borderRadius:'3px', overflow:'hidden'}},
+      /*#__PURE__*/React.createElement("div", {
+        style:{
+          height:'100%',
+          width: orcamento.cartoes > 0 ? Math.min(100, totais.cartoes/orcamento.cartoes*100) + '%' : '0%',
+          background: totais.cartoes <= orcamento.cartoes ? '#10b981' : '#ef4444',
+          borderRadius:'3px',
+          transition:'width 0.6s ease'
+        }
+      })
+    )
+  ),
+  
+  // Fixos
+  /*#__PURE__*/React.createElement("div", {style:{marginBottom:'20px'}},
+    /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}},
+      /*#__PURE__*/React.createElement("div", null,
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:'#111827'}}, '🏠 Gastos Fixos'),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}},
+          'R$ ' + totais.fixos.toFixed(2) + ' / R$ ' + orcamento.fixos.toFixed(2)
+        )
+      ),
+      /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.1rem', fontWeight:'900', color: totais.fixos <= orcamento.fixos ? '#10b981' : '#ef4444'}},
+          orcamento.fixos > 0 ? (totais.fixos/orcamento.fixos*100).toFixed(0) + '%' : '—'
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', fontWeight:'600', color: orcamento.fixos - totais.fixos >= 0 ? '#10b981' : '#ef4444'}},
+          orcamento.fixos - totais.fixos >= 0 ? '✅' : '⚠️'
+        )
+      )
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{height:'6px', background:'#f3f4f6', borderRadius:'3px', overflow:'hidden'}},
+      /*#__PURE__*/React.createElement("div", {
+        style:{
+          height:'100%',
+          width: orcamento.fixos > 0 ? Math.min(100, totais.fixos/orcamento.fixos*100) + '%' : '0%',
+          background: totais.fixos <= orcamento.fixos ? '#10b981' : '#ef4444',
+          borderRadius:'3px',
+          transition:'width 0.6s ease'
+        }
+      })
+    )
+  ),
+  
+  // Variáveis
+  /*#__PURE__*/React.createElement("div", null,
+    /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}},
+      /*#__PURE__*/React.createElement("div", null,
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:'#111827'}}, '📊 Gastos Variáveis'),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}},
+          'R$ ' + totais.variaveis.toFixed(2) + ' / R$ ' + orcamento.variaveis.toFixed(2)
+        )
+      ),
+      /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.1rem', fontWeight:'900', color: totais.variaveis <= orcamento.variaveis ? '#10b981' : '#ef4444'}},
+          orcamento.variaveis > 0 ? (totais.variaveis/orcamento.variaveis*100).toFixed(0) + '%' : '—'
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', fontWeight:'600', color: orcamento.variaveis - totais.variaveis >= 0 ? '#10b981' : '#ef4444'}},
+          orcamento.variaveis - totais.variaveis >= 0 ? '✅' : '⚠️'
+        )
+      )
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{height:'6px', background:'#f3f4f6', borderRadius:'3px', overflow:'hidden'}},
+      /*#__PURE__*/React.createElement("div", {
+        style:{
+          height:'100%',
+          width: orcamento.variaveis > 0 ? Math.min(100, totais.variaveis/orcamento.variaveis*100) + '%' : '0%',
+          background: totais.variaveis <= orcamento.variaveis ? '#10b981' : '#ef4444',
+          borderRadius:'3px',
+          transition:'width 0.6s ease'
+        }
+      })
+    )
+  )
+),
+
+// ═══════════════════════════════════════════════════════════
+// COLUNA DIREITA: Insights + Composição
+// ═══════════════════════════════════════════════════════════
+/*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'14px'}},
+  
+  // Card: Composição do Orçamento
+  /*#__PURE__*/React.createElement("div", {
+    style: {background:'#fff', borderRadius:'16px', padding:'20px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}
+  },
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', fontWeight:'800', letterSpacing:'1.1px', textTransform:'uppercase', color:'#6b7280', marginBottom:'14px'}}, 
+      '🥧 Composição'
+    ),
+    orcadoTotal > 0 
+      ? /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'10px'}},
+          // Cartões %
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
+            /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#6366f1', flexShrink:0}}),
+            /*#__PURE__*/React.createElement("div", {style:{flex:1}},
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Cartões'),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:'#111827'}},
+                (orcamento.cartoes/orcadoTotal*100).toFixed(0) + '%'
+              )
+            )
+          ),
+          // Fixos %
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
+            /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#8b5cf6', flexShrink:0}}),
+            /*#__PURE__*/React.createElement("div", {style:{flex:1}},
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Fixos'),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:'#111827'}},
+                (orcamento.fixos/orcadoTotal*100).toFixed(0) + '%'
+              )
+            )
+          ),
+          // Variáveis %
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
+            /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#10b981', flexShrink:0}}),
+            /*#__PURE__*/React.createElement("div", {style:{flex:1}},
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Variáveis'),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:'#111827'}},
+                (orcamento.variaveis/orcadoTotal*100).toFixed(0) + '%'
+              )
+            )
+          )
+        )
+      : /*#__PURE__*/React.createElement("div", {style:{textAlign:'center', padding:'20px 0', color:'#d1d5db'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'2rem', marginBottom:'8px'}}, '📋'),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem'}}, 'Defina seu orçamento')
+        )
+  ),
+  
+  // Card: Dicas
+  /*#__PURE__*/React.createElement("div", {
+    style: {
+      background:'linear-gradient(135deg, #fef3c7, #fde68a)',
+      borderRadius:'16px',
+      padding:'16px',
+      border:'1px solid #fde68a'
+    }
+  },
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:'#92400e', marginBottom:'6px'}}, 
+      '💡 Dica'
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#78350f', lineHeight:1.5}},
+      dentroOrcamento
+        ? 'Você está dentro do orçamento! Continue monitorando seus gastos para manter o controle.'
+        : orcadoTotal > 0
+          ? 'Atenção: você ultrapassou o orçamento. Revise seus gastos e ajuste o planejamento.'
+          : 'Defina um orçamento para cada categoria e acompanhe seus gastos mensais.'
+    )
+  )
+)
+
+)),
+
   (abaAtiva === 'orcamento' && subAba === 'premes') && /*#__PURE__*/React.createElement("div", {
       className: "space-y-3"
     }, /*#__PURE__*/React.createElement("div", {
