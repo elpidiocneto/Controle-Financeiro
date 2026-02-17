@@ -4061,924 +4061,599 @@ function App({
     }, "\uD83D\uDD04 Atualizar Lista")));
   };
   const TelaCartoes = () => {
-    // Calcular status da fatura para cada cartão
     const calcularStatusFatura = (cartao, mes) => {
       const hoje = new Date().getDate();
-      const diaFechamento = cartao.diaFechamento || cartao.vencimento - 7;
-      if (hoje <= diaFechamento) {
-        return 'ABERTA';
-      } else if (hoje > diaFechamento && hoje <= cartao.vencimento) {
-        return 'FECHADA';
-      } else {
-        return 'VENCIDA';
-      }
+      const diaFech = cartao.diaFechamento || cartao.vencimento - 7;
+      if (hoje <= diaFech) return 'ABERTA';
+      if (hoje <= cartao.vencimento) return 'FECHADA';
+      return 'VENCIDA';
     };
-
-    // Calcular projeção de 6 meses
     const calcularProjecao = cartao => {
-      const mesesOrdem = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-      const mesAtualIndex = mesesOrdem.indexOf(mesAtual);
-      const projecao = [];
-      for (let i = 0; i < 6; i++) {
-        const mesIndex = (mesAtualIndex + i) % 12;
-        const mes = mesesOrdem[mesIndex];
-        const parcelasDoMes = calcularParcelasCartao(cartao.nome, mes);
-        const valoresAno = cartao.valores?.[anoAtual] || {};
-        const valorBase = valoresAno[mes] || 0;
-        const valorParcelas = parcelasDoMes.reduce((sum, c) => sum + c.valorParcela, 0);
-        const total = valorBase + valorParcelas;
-        projecao.push({
-          mes: mes.toUpperCase(),
-          valor: total
-        });
-      }
-      return projecao;
+      const mesesOrdem = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+      const idx = mesesOrdem.indexOf(mesAtual);
+      return Array.from({length:6}, (_,i) => {
+        const mes = mesesOrdem[(idx+i)%12];
+        const base = (cartao.valores?.[anoAtual]||{})[mes]||0;
+        const parc = calcularParcelasCartao(cartao.nome, mes).reduce((s,c)=>s+c.valorParcela,0);
+        return { label: mes.charAt(0).toUpperCase()+mes.slice(1), valor: base+parc, atual: i===0 };
+      });
     };
 
-    // Calcular totais por cartão para os cards
-    const totaisPorCartao = {};
-    let totalGeralMes = 0;
-    let totalDivida = 0;
-    let totalLimites = 0;
+    let totalGeralMes=0, totalDivida=0, totalLimites=0;
+    const mesesOrdem=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const totaisPorCartao={};
     cartoes.forEach(cartao => {
-      const parcelasCartao = calcularParcelasCartao(cartao.nome, mesAtual);
-      const valoresAno = cartao.valores?.[anoAtual] || {};
-      const valorBase = valoresAno[mesAtual] || 0;
-      const valorParcelas = parcelasCartao.reduce((sum, c) => sum + c.valorParcela, 0);
-      const valorTotal = valorBase + valorParcelas;
-      totaisPorCartao[cartao.nome] = valorTotal;
-      totalGeralMes += valorTotal;
-
-      // Calcular dívida de TODOS os cartões (com ou sem limite)
-      const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-      let gastoTotal = 0;
-      let pagoTotal = 0;
-      meses.forEach(mes => {
-        const val = parseFloat(valoresAno[mes]) || 0;
-        const parc = calcularParcelasCartao(cartao.nome, mes).reduce((s, c) => s + parseFloat(c.valorParcela || 0), 0);
-        const total = val + parc;
-        gastoTotal += total;
-        const st = getStatusFarol(cartao.nome, mes);
-        if (st === 'PAGO') {
-          pagoTotal += total;
-        } else if (typeof st === 'number') {
-          pagoTotal += parseFloat(st) || 0;
-        }
+      const valAno=cartao.valores?.[anoAtual]||{};
+      const base=valAno[mesAtual]||0;
+      const parc=calcularParcelasCartao(cartao.nome,mesAtual).reduce((s,c)=>s+c.valorParcela,0);
+      const tot=base+parc;
+      totaisPorCartao[cartao.nome]=tot;
+      totalGeralMes+=tot;
+      let gasto=0,pago=0;
+      mesesOrdem.forEach(mes=>{
+        const v=parseFloat(valAno[mes])||0;
+        const p=calcularParcelasCartao(cartao.nome,mes).reduce((s,c)=>s+parseFloat(c.valorParcela||0),0);
+        gasto+=v+p;
+        const st=getStatusFarol(cartao.nome,mes);
+        if(st==='PAGO') pago+=v+p;
+        else if(typeof st==='number') pago+=parseFloat(st)||0;
       });
-      const div = Math.max(gastoTotal - pagoTotal, 0);
-      if (div > 0) {
-        console.log(`💳 ${cartao.nome}: Gasto=${gastoTotal.toFixed(2)} Pago=${pagoTotal.toFixed(2)} Dívida=${div.toFixed(2)}`);
-      }
-      totalDivida += div;
-
-      // Somar limites apenas dos cartões que têm limite definido
-      if (cartao.limite > 0) {
-        totalLimites += cartao.limite;
-      }
+      totalDivida+=Math.max(gasto-pago,0);
+      if(cartao.limite>0) totalLimites+=cartao.limite;
     });
-    console.log(`🔴 DÍVIDA TOTAL: R$ ${totalDivida.toFixed(2)} (${totalLimites > 0 ? (totalDivida / totalLimites * 100).toFixed(0) : 0}% dos limites)`);
-    return /*#__PURE__*/React.createElement("div", {
-      className: "space-y-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between items-center mb-4"
-    }, /*#__PURE__*/React.createElement("h2", {
-      className: "text-lg font-bold text-gray-800"
-    }, "\uD83D\uDCB3 Cart\xF5es de Cr\xE9dito - ", mesAtual.toUpperCase(), " / ", anoAtual), /*#__PURE__*/React.createElement("div", {
-      className: "flex gap-2"
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('compraParcelada'),
-      className: "px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 text-sm"
-    }, "\uD83D\uDED2 Nova Compra Parcelada"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('novoCartao'),
-      className: "px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 text-sm"
-    }, "\u2795 Novo Cart\xE3o"))), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-2 md:grid-cols-6 gap-2"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-md p-3 cursor-pointer transition-transform hover:scale-105"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-white/80 text-xs font-semibold mb-1"
-    }, "\uD83D\uDCB3 TOTAL M\xCAS"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold text-white"
-    }, "R$ ", totalGeralMes.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-white/70 text-xs mt-0.5"
-    }, mesAtual.toUpperCase(), "/", anoAtual)), Object.entries(totaisPorCartao).sort((a, b) => b[1] - a[1]) // Ordena por valor (maior primeiro)
-    .map(([nomeCartao, valor]) => {
-      const percentual = totalGeralMes > 0 ? valor / totalGeralMes * 100 : 0;
-      const cartao = cartoes.find(c => c.nome === nomeCartao);
-      const limite = cartao?.limite || 0;
-      return /*#__PURE__*/React.createElement("div", {
-        key: nomeCartao,
-        className: "bg-white rounded-lg shadow-md p-3 cursor-pointer transition-all hover:shadow-lg hover:scale-105 border border-gray-200",
-        onClick: () => {
-          const elemento = document.getElementById(`cartao-${nomeCartao}`);
-          if (elemento) {
-            elemento.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center'
-            });
-            elemento.style.transform = 'scale(1.02)';
-            setTimeout(() => {
-              elemento.style.transform = 'scale(1)';
-            }, 300);
-          }
-        }
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-gray-600 text-xs font-semibold mb-1 truncate"
-      }, nomeCartao), /*#__PURE__*/React.createElement("div", {
-        className: "text-lg font-bold text-blue-600"
-      }, "R$ ", valor.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between items-center mt-0.5"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-blue-600 text-xs font-semibold"
-      }, percentual.toFixed(0), "%"), limite > 0 && /*#__PURE__*/React.createElement("div", {
-        className: "text-gray-500 text-xs",
-        title: "Limite do cart\xE3o"
-      }, "Lim: ", limite.toFixed(0))), limite > 0 && /*#__PURE__*/React.createElement("div", {
-        className: "mt-1.5"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "w-full bg-gray-200 rounded-full h-1"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: `h-1 rounded-full ${valor / limite * 100 > 80 ? 'bg-red-500' : valor / limite * 100 > 60 ? 'bg-yellow-500' : 'bg-green-500'}`,
-        style: {
-          width: `${Math.min(valor / limite * 100, 100)}%`
-        }
-      }))));
-    }), /*#__PURE__*/React.createElement("div", {
-      className: "bg-gradient-to-br from-red-600 to-red-700 rounded-lg shadow-md p-3 transition-transform hover:scale-105"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-white/80 text-xs font-semibold mb-1"
-    }, "\uD83D\uDD34 D\xCDVIDA TOTAL"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold text-white"
-    }, "R$ ", totalDivida.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-white/70 text-xs mt-0.5"
-    }, totalLimites > 0 ? `${(totalDivida / totalLimites * 100).toFixed(0)}% limites` : 'Ano completo'))), cartoes.map(cartao => {
-      const parcelasCartao = calcularParcelasCartao(cartao.nome, mesAtual);
-      const valoresAno = cartao.valores?.[anoAtual] || {};
-      const valorBase = valoresAno[mesAtual] || 0;
-      const valorParcelas = parcelasCartao.reduce((sum, c) => sum + c.valorParcela, 0);
-      const valorTotal = valorBase + valorParcelas;
-      const statusFatura = calcularStatusFatura(cartao, mesAtual);
-      const limite = cartao.limite || 0;
 
-      // Calcular limite disponível real (TODOS OS MESES)
-      const calcularLimiteDisponivel = () => {
-        const mesesOrdem = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-        console.log(`\n💳 ========== CÁLCULO LIMITE: ${cartao.nome} ==========`);
+    return /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'16px'}},
 
-        // 1. VALORES BASE: Somar valores cadastrados em cada mês
-        let totalValoresBase = 0;
-        mesesOrdem.forEach(mes => {
-          const valorMes = valoresAno[mes] || 0;
-          if (valorMes > 0) {
-            console.log(`  📅 ${mes.toUpperCase()}: Valor base = R$ ${valorMes.toFixed(2)}`);
-            totalValoresBase += valorMes;
-          }
-        });
-        console.log(`  ✅ Total valores base: R$ ${totalValoresBase.toFixed(2)}`);
+      // Header + ações
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center'}},
+        /*#__PURE__*/React.createElement("div", null,
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1rem', fontWeight:'800', color:'#111827'}}, "\uD83D\uDCB3 Cart\xF5es de Cr\xE9dito"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.72rem', color:'#9ca3af'}}, mesAtual.toUpperCase() + " \xB7 " + anoAtual + " \xB7 " + cartoes.length + " cart\xE3o" + (cartoes.length!==1?"es":""))
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'8px'}},
+          /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('compraParcelada'), style:{padding:'9px 16px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontSize:'0.78rem', fontWeight:'700', cursor:'pointer', boxShadow:'0 3px 10px rgba(16,185,129,0.3)'}}, "\uD83D\uDED2 Compra Parcelada"),
+          /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoCartao'), style:{padding:'9px 16px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#3b82f6,#2563eb)', color:'#fff', fontSize:'0.78rem', fontWeight:'700', cursor:'pointer', boxShadow:'0 3px 10px rgba(59,130,246,0.3)'}}, "\u2795 Novo Cart\xE3o")
+        )
+      ),
 
-        // 2. PARCELAS: Somar todas as parcelas de TODOS os meses
-        let totalParcelas = 0;
-        mesesOrdem.forEach(mes => {
-          const parcelasDoMes = calcularParcelasCartao(cartao.nome, mes);
-          const valorParcelasMes = parcelasDoMes.reduce((sum, c) => sum + c.valorParcela, 0);
-          if (valorParcelasMes > 0) {
-            console.log(`  📦 ${mes.toUpperCase()}: Parcelas = R$ ${valorParcelasMes.toFixed(2)} (${parcelasDoMes.length} parcelas)`);
-            totalParcelas += valorParcelasMes;
-          }
-        });
-        console.log(`  ✅ Total parcelas: R$ ${totalParcelas.toFixed(2)}`);
+      // Faixa de resumo — 3 métricas
+      /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'12px'}},
+        /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(135deg,#1e40af,#2563eb)', borderRadius:'14px', padding:'18px', color:'#fff', boxShadow:'0 4px 16px rgba(37,99,235,0.3)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'rgba(255,255,255,0.5)', marginBottom:'8px'}}, "\uD83D\uDCB3 Total do M\xEAs"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.6rem', fontWeight:'900', marginBottom:'3px'}}, "R$ " + totalGeralMes.toFixed(2)),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', opacity:0.65}}, cartoes.length + " cart\xF5es ativos")
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(135deg,#7f1d1d,#dc2626)', borderRadius:'14px', padding:'18px', color:'#fff', boxShadow:'0 4px 16px rgba(220,38,38,0.3)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'rgba(255,255,255,0.5)', marginBottom:'8px'}}, "\uD83D\uDD34 D\xEDvida Total"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.6rem', fontWeight:'900', marginBottom:'3px'}}, "R$ " + totalDivida.toFixed(2)),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', opacity:0.65}}, totalLimites>0 ? (totalDivida/totalLimites*100).toFixed(0)+"% dos limites" : "Ano completo")
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'14px', padding:'18px', border:'1px solid #e5e7eb', boxShadow:'0 2px 10px rgba(0,0,0,0.04)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'8px'}}, "\uD83C\uDFAF Limite Total"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.6rem', fontWeight:'900', color:'#111827', marginBottom:'3px'}}, totalLimites>0 ? "R$ "+totalLimites.toFixed(0) : "—"),
+          totalLimites>0 && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af'}}, "Dispon\xEDvel: R$ "+(Math.max(totalLimites-totalDivida,0)).toFixed(0))
+        )
+      ),
 
-        // 3. TOTAL GASTO (Base + Parcelas)
-        const totalGasto = totalValoresBase + totalParcelas;
-        console.log(`  💰 TOTAL GASTO NO ANO: R$ ${totalGasto.toFixed(2)}`);
+      // Cards individuais por cartão
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
+        cartoes.length===0
+          ? /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', padding:'50px 20px', textAlign:'center', border:'1px solid #e5e7eb'}},
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83D\uDCB3"),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'700', color:'#9ca3af', marginBottom:'16px'}}, "Nenhum cart\xE3o cadastrado"),
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoCartao'), style:{padding:'10px 24px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#3b82f6,#2563eb)', color:'#fff', fontSize:'0.82rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar Cart\xE3o")
+            )
+          : cartoes.map(cartao => {
+              const valAno=cartao.valores?.[anoAtual]||{};
+              const valorBase=valAno[mesAtual]||0;
+              const parcelasCartao=calcularParcelasCartao(cartao.nome,mesAtual);
+              const valorParcelas=parcelasCartao.reduce((s,c)=>s+c.valorParcela,0);
+              const valorTotal=valorBase+valorParcelas;
+              const statusFatura=calcularStatusFatura(cartao,mesAtual);
+              const limite=cartao.limite||0;
+              const projecao=calcularProjecao(cartao);
+              const maxProj=Math.max(...projecao.map(p=>p.valor),1);
 
-        // 4. PAGAMENTOS: Subtrair valores já pagos (libera o limite)
-        let totalPago = 0;
-        mesesOrdem.forEach(mes => {
-          const status = getStatusFarol(cartao.nome, mes);
-          const valorMes = valoresAno[mes] || 0;
-          const parcelasDoMes = calcularParcelasCartao(cartao.nome, mes);
-          const valorParcelasMes = parcelasDoMes.reduce((sum, c) => sum + c.valorParcela, 0);
-          const totalMes = valorMes + valorParcelasMes;
-          if (status === 'PAGO') {
-            // Pagamento integral (libera valor base + parcelas)
-            console.log(`  ✅ ${mes.toUpperCase()}: PAGO INTEGRAL = R$ ${totalMes.toFixed(2)}`);
-            totalPago += totalMes;
-          } else if (typeof status === 'number') {
-            // Pagamento parcial
-            console.log(`  💵 ${mes.toUpperCase()}: PAGO PARCIAL = R$ ${status.toFixed(2)}`);
-            totalPago += status;
-          }
-        });
-        console.log(`  ✅ Total pago (libera limite): R$ ${totalPago.toFixed(2)}`);
+              return /*#__PURE__*/React.createElement("div", {
+                key: cartao.id,
+                id: "cartao-"+cartao.nome,
+                style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', overflow:'hidden', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', transition:'transform 0.3s ease'}
+              },
+                // Header do cartão
+                /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'16px 20px', borderBottom:'1px solid #f3f4f6'}},
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'12px'}},
+                    /*#__PURE__*/React.createElement("div", {style:{width:'40px', height:'40px', borderRadius:'10px', background:'linear-gradient(135deg,#1e40af,#3b82f6)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem'}}, "\uD83D\uDCB3"),
+                    /*#__PURE__*/React.createElement("div", null,
+                      /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'800', color:'#111827'}}, cartao.nome),
+                      /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:'#9ca3af'}}, "\uD83D\uDCC5 Fecha dia "+cartao.diaFechamento + " \xB7 Vence dia "+cartao.vencimento)
+                    )
+                  ),
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
+                    /*#__PURE__*/React.createElement("span", {
+                      style:{padding:'4px 10px', borderRadius:'20px', fontSize:'0.68rem', fontWeight:'700',
+                        background: statusFatura==='ABERTA'?'#dbeafe': statusFatura==='FECHADA'?'#d1fae5':'#fff1f2',
+                        color:      statusFatura==='ABERTA'?'#1e40af': statusFatura==='FECHADA'?'#065f46':'#be123c'}
+                    }, statusFatura==='ABERTA'?'\u23F3 Aberta': statusFatura==='FECHADA'?'\u2705 Fechada':'\u26A0\uFE0F Vencida'),
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(cartao);setTipoEditando('cartao');setModalAberto('editar');}, style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarCartao(cartao), style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>deletarCartao(cartao.id), style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                  )
+                ),
 
-        // 5. USADO = Total Gasto - Total Pago
-        const usado = totalGasto - totalPago;
-        console.log(`  🔴 USADO (Gasto - Pago): R$ ${usado.toFixed(2)}`);
+                // Corpo: 3 colunas
+                /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'0', borderBottom:'1px solid #f3f4f6'}},
 
-        // 6. DISPONÍVEL = Limite - Usado
-        const disponivel = limite > 0 ? Math.max(limite - usado, 0) : 0;
-        const percentualUsado = limite > 0 ? usado / limite * 100 : 0;
-        console.log(`  📊 LIMITE: R$ ${limite.toFixed(2)}`);
-        console.log(`  🟢 DISPONÍVEL: R$ ${disponivel.toFixed(2)}`);
-        console.log(`  📈 PERCENTUAL USADO: ${percentualUsado.toFixed(1)}%`);
-        console.log(`  ========================================\n`);
-        return {
-          totalCadastrado: totalValoresBase,
-          totalParcelas: totalParcelas,
-          totalGasto: totalGasto,
-          totalPago: totalPago,
-          usado: usado,
-          disponivel: disponivel,
-          percentual: percentualUsado
-        };
-      };
-      const limiteInfo = calcularLimiteDisponivel();
-      const projecao = calcularProjecao(cartao);
-      return /*#__PURE__*/React.createElement("div", {
-        key: cartao.id,
-        id: `cartao-${cartao.nome}`,
-        className: "bg-white rounded-xl shadow-lg p-4",
-        style: {
-          transition: 'transform 0.3s ease'
-        }
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between items-start mb-4"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex-1"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center gap-2 mb-2"
-      }, /*#__PURE__*/React.createElement("span", {
-        className: "text-lg font-bold text-gray-800"
-      }, cartao.nome), /*#__PURE__*/React.createElement("span", {
-        className: `px-2 py-1 rounded text-xs font-bold ${statusFatura === 'ABERTA' ? 'bg-blue-100 text-blue-700' : statusFatura === 'FECHADA' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`
-      }, statusFatura === 'ABERTA' ? '⏳ FATURA ABERTA' : statusFatura === 'FECHADA' ? '✅ FATURA FECHADA' : '⚠️ VENCIDA')), /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-gray-500 space-y-1"
-      }, /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCC5 Fecha dia ", cartao.diaFechamento || cartao.vencimento - 7, " \u2022 Vence dia ", cartao.vencimento), valorParcelas > 0 && /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCE6 ", parcelasCartao.length, " parcela(s) ativas: R$ ", valorParcelas.toFixed(2)))), /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center gap-2"
-      }, /*#__PURE__*/React.createElement("button", {
-        onClick: () => {
-          setItemEditando(cartao);
-          setTipoEditando('cartao');
-          setModalAberto('editar');
-        },
-        className: "px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm"
-      }, "\u270F\uFE0F"), /*#__PURE__*/React.createElement("button", {
-        onClick: () => duplicarCartao(cartao),
-        className: "px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm"
-      }, "\uD83D\uDCCB"), /*#__PURE__*/React.createElement("button", {
-        onClick: () => deletarCartao(cartao.id),
-        className: "px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
-      }, "\uD83D\uDDD1\uFE0F"))), /*#__PURE__*/React.createElement("div", {
-        className: "grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "bg-blue-50 rounded-lg p-3 border border-blue-200"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-xs text-gray-600 mb-1"
-      }, "\uD83D\uDCB3 FATURA ", mesAtual.toUpperCase()), /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center gap-2 mb-2"
-      }, /*#__PURE__*/React.createElement("input", {
-        type: "number",
-        step: "0.01",
-        value: valorBase,
-        onChange: e => editarValorCartao(cartao.id, mesAtual, e.target.value),
-        className: "flex-1 px-2 py-1 border border-gray-300 rounded text-sm text-right",
-        placeholder: "Base"
-      }), /*#__PURE__*/React.createElement("span", {
-        className: "text-xs text-gray-500"
-      }, "+"), /*#__PURE__*/React.createElement("span", {
-        className: "text-sm text-gray-600"
-      }, valorParcelas.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-        className: "text-xl font-bold text-blue-600"
-      }, "R$ ", valorTotal.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-        className: "bg-gray-50 rounded-lg p-3 border border-gray-200"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-xs text-gray-600 mb-3"
-      }, "\uD83C\uDFAF LIMITE"), limite > 0 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-        className: "space-y-2 mb-3"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between text-sm"
-      }, /*#__PURE__*/React.createElement("span", {
-        className: "text-gray-600"
-      }, "Limite Total:"), /*#__PURE__*/React.createElement("span", {
-        className: "font-semibold text-gray-800"
-      }, "R$ ", limite.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between text-sm"
-      }, /*#__PURE__*/React.createElement("span", {
-        className: "text-gray-600"
-      }, "Limite Utilizado:"), /*#__PURE__*/React.createElement("span", {
-        className: "font-semibold text-red-600"
-      }, "R$ ", limiteInfo.usado.toFixed(2))), /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between text-sm border-t pt-2"
-      }, /*#__PURE__*/React.createElement("span", {
-        className: "text-gray-600 font-semibold"
-      }, "Limite Dispon\xEDvel:"), /*#__PURE__*/React.createElement("span", {
-        className: "font-bold text-green-600"
-      }, "R$ ", limiteInfo.disponivel.toFixed(2)))), /*#__PURE__*/React.createElement("div", {
-        className: "w-full bg-gray-200 rounded-full h-3"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: `h-3 rounded-full transition-all ${limiteInfo.percentual > 80 ? 'bg-red-500' : limiteInfo.percentual > 50 ? 'bg-yellow-500' : 'bg-green-500'}`,
-        style: {
-          width: `${Math.min(limiteInfo.percentual, 100)}%`
-        }
-      }))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-gray-500 mb-1"
-      }, "N\xE3o definido"), /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-blue-600 font-semibold"
-      }, "Gasto atual: R$ ", valorTotal.toFixed(2)), /*#__PURE__*/React.createElement("button", {
-        onClick: () => {
-          const novoLimite = prompt('Defina o limite do cartão:', '10000');
-          if (novoLimite && !isNaN(novoLimite)) {
-            const cartoesAtualizados = cartoes.map(c => c.id === cartao.id ? {
-              ...c,
-              limite: parseFloat(novoLimite)
-            } : c);
-            console.log('✅ Atualizando limite:', novoLimite);
-            setCartoes(cartoesAtualizados);
-            // Força salvamento imediato
-            localStorage.setItem('cartoes', JSON.stringify(cartoesAtualizados));
-            alert(`✅ Limite definido: R$ ${parseFloat(novoLimite).toFixed(2)}`);
-          }
-        },
-        className: "mt-2 text-xs px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-      }, "\u2795 Definir Limite"))), parcelasCartao.length > 0 && /*#__PURE__*/React.createElement("div", {
-        className: "bg-green-50 rounded-lg p-3 border border-green-200"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-xs text-gray-600 mb-2"
-      }, "\uD83D\uDCE6 PARCELAS ATIVAS"), /*#__PURE__*/React.createElement("div", {
-        className: "space-y-1 max-h-20 overflow-y-auto"
-      }, parcelasCartao.map((p, idx) => /*#__PURE__*/React.createElement("div", {
-        key: idx,
-        className: "text-xs text-gray-700"
-      }, p.descricao, ": ", p.parcelaAtual, "/", p.totalParcelas, " \u2022 R$ ", p.valorParcela.toFixed(2)))))), /*#__PURE__*/React.createElement("div", {
-        className: "bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-3 border border-purple-200"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-xs text-gray-600 mb-2"
-      }, "\uD83D\uDCC8 PROJE\xC7\xC3O PR\xD3XIMOS 6 MESES"), /*#__PURE__*/React.createElement("div", {
-        className: "grid grid-cols-6 gap-2"
-      }, projecao.map((p, idx) => /*#__PURE__*/React.createElement("div", {
-        key: idx,
-        className: "text-center"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-xs font-semibold text-gray-700"
-      }, p.mes), /*#__PURE__*/React.createElement("div", {
-        className: "text-sm font-bold text-purple-600"
-      }, "R$ ", p.valor.toFixed(0)))))));
-    }));
+                  // Fatura do mês
+                  /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderRight:'1px solid #f3f4f6'}},
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'10px'}}, "\uD83D\uDCB3 Fatura "+mesAtual.toUpperCase()),
+                    /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}},
+                      /*#__PURE__*/React.createElement("input", {
+                        type:"number", step:"0.01", value:valorBase,
+                        onChange: e=>editarValorCartao(cartao.id, mesAtual, e.target.value),
+                        style:{width:'90px', padding:'6px 8px', border:'2px solid #e5e7eb', borderRadius:'8px', fontSize:'0.82rem', textAlign:'right', outline:'none'}
+                      }),
+                      valorParcelas>0 && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.7rem', color:'#9ca3af'}}, "+ R$ "+valorParcelas.toFixed(2))
+                    ),
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.4rem', fontWeight:'900', color:'#1e40af'}}, "R$ "+valorTotal.toFixed(2))
+                  ),
+
+                  // Limite
+                  /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderRight:'1px solid #f3f4f6'}},
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'10px'}}, "\uD83C\uDFAF Limite"),
+                    limite>0
+                      ? /*#__PURE__*/React.createElement("div", null,
+                          /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', marginBottom:'6px'}},
+                            /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:'#6b7280'}}, "Total"),
+                            /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', fontWeight:'700', color:'#111827'}}, "R$ "+limite.toFixed(0))
+                          ),
+                          /*#__PURE__*/React.createElement("div", {style:{height:'6px', background:'#f3f4f6', borderRadius:'3px', marginBottom:'6px', overflow:'hidden'}},
+                            /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:Math.min(valorTotal/limite*100,100)+'%', background: valorTotal/limite>0.8?'#ef4444': valorTotal/limite>0.6?'#f59e0b':'#3b82f6', borderRadius:'3px', transition:'width .5s ease'}})
+                          ),
+                          /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between'}},
+                            /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:'#9ca3af'}}, "Usado: "+( valorTotal/limite*100).toFixed(0)+"%"),
+                            /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', fontWeight:'700', color:'#10b981'}}, "Livre: R$ "+Math.max(limite-valorTotal,0).toFixed(0))
+                          )
+                        )
+                      : /*#__PURE__*/React.createElement("div", null,
+                          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:'#9ca3af', marginBottom:'8px'}}, "N\xE3o definido"),
+                          /*#__PURE__*/React.createElement("button", {
+                            onClick:()=>{const v=prompt('Defina o limite:','10000');if(v&&!isNaN(v)){const upd=cartoes.map(c=>c.id===cartao.id?{...c,limite:parseFloat(v)}:c);setCartoes(upd);localStorage.setItem('cartoes',JSON.stringify(upd));}},
+                            style:{padding:'5px 12px', border:'none', borderRadius:'8px', background:'#eff6ff', color:'#3b82f6', fontSize:'0.72rem', fontWeight:'600', cursor:'pointer'}
+                          }, "\u2795 Definir")
+                        )
+                  ),
+
+                  // Parcelas ativas
+                  /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px'}},
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'10px'}}, "\uD83D\uDCE6 Parcelas Ativas"),
+                    parcelasCartao.length===0
+                      ? /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:'#d1d5db'}}, "Sem parcelas ativas")
+                      : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'5px', maxHeight:'80px', overflowY:'auto'}},
+                          ...parcelasCartao.map((p,i)=>
+                            /*#__PURE__*/React.createElement("div", {key:i, style:{display:'flex', justifyContent:'space-between', alignItems:'center'}},
+                              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.7rem', color:'#6b7280', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'100px'}}, p.descricao),
+                              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.7rem', fontWeight:'700', color:'#3b82f6', flexShrink:0}}, p.parcelaAtual+"/"+p.totalParcelas)
+                            )
+                          )
+                        )
+                  )
+                ),
+
+                // Projeção 6 meses — mini barras
+                /*#__PURE__*/React.createElement("div", {style:{padding:'12px 20px', background:'#fafafa'}},
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'700', letterSpacing:'1px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'10px'}}, "\uD83D\uDCC8 Proje\xE7\xE3o 6 Meses"),
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'8px', alignItems:'flex-end', height:'48px', marginBottom:'5px'}},
+                    ...projecao.map((p,i)=>
+                      /*#__PURE__*/React.createElement("div", {key:i, style:{flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-end', height:'100%'}},
+                        p.valor>0
+                          ? /*#__PURE__*/React.createElement("div", {
+                              title:"R$ "+p.valor.toFixed(2),
+                              style:{width:'100%', height:Math.max(3,p.valor/maxProj*42)+'px', background:p.atual?'linear-gradient(180deg,#3b82f6,#1e40af)':'#bfdbfe', borderRadius:'3px 3px 0 0', transition:'height .4s ease'}
+                            })
+                          : /*#__PURE__*/React.createElement("div", {style:{width:'100%', height:'2px', background:'#f3f4f6', borderRadius:'1px'}})
+                      )
+                    )
+                  ),
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'8px'}},
+                    ...projecao.map((p,i)=>
+                      /*#__PURE__*/React.createElement("div", {key:i, style:{flex:1, textAlign:'center', fontSize:'0.58rem', fontWeight:p.atual?'800':'500', color:p.atual?'#1e40af':'#9ca3af'}}, p.label)
+                    )
+                  )
+                )
+              );
+            })
+      )
+    );
   };
+
   const TelaGastosFixos = () => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
 
-    // FILTRAR POR MÊS E ANO ATUAL
-    const gastosDoMesAno = gastosFixos.filter(g => {
-      // Se tem mes e ano definidos, filtrar por eles
-      if (g.mes && g.ano) {
-        return g.mes === mesAtual && g.ano === anoAtual;
-      }
-      // Se não tem mes/ano, é gasto fixo permanente (aparece sempre)
+    const gastosDoMes = gastosFixos.filter(g => {
+      if (g.mes && g.ano) return g.mes === mesAtual && g.ano === anoAtual;
       return true;
     });
+    const categorias = ['TODAS', ...new Set(gastosDoMes.map(g => g.categoria))];
+    const totaisPorCat = {};
+    gastosDoMes.forEach(g => { totaisPorCat[g.categoria] = (totaisPorCat[g.categoria]||0) + g.valor; });
+    const totalGeral = gastosDoMes.reduce((s,g) => s+g.valor, 0);
+    const gastosFiltrados = categoriaFiltro==='TODAS' ? gastosDoMes : gastosDoMes.filter(g => g.categoria===categoriaFiltro);
+    const totalFiltrado = gastosFiltrados.reduce((s,g) => s+g.valor, 0);
 
-    // Categorias únicas dos gastos fixos do mês
-    const categorias = ['TODAS', ...new Set(gastosDoMesAno.map(g => g.categoria))];
-
-    // Calcular total por cada categoria
-    const totaisPorCategoria = {};
-    gastosDoMesAno.forEach(g => {
-      if (!totaisPorCategoria[g.categoria]) {
-        totaisPorCategoria[g.categoria] = 0;
-      }
-      totaisPorCategoria[g.categoria] += g.valor;
+    // Agrupar por vencimento
+    const porDia = {};
+    gastosFiltrados.forEach(g => {
+      const dia = g.vencimento || 1;
+      if (!porDia[dia]) porDia[dia] = [];
+      porDia[dia].push(g);
     });
+    const diasOrdenados = Object.keys(porDia).sort((a,b) => parseInt(a)-parseInt(b));
+    const hoje = new Date().getDate();
 
-    // Total geral
-    const totalGeral = gastosDoMesAno.reduce((sum, g) => sum + g.valor, 0);
+    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'200px 1fr', gap:'16px', alignItems:'start'}},
 
-    // Filtrar por categoria
-    const gastosFiltrados = categoriaFiltro === 'TODAS' ? gastosDoMesAno : gastosDoMesAno.filter(g => g.categoria === categoriaFiltro);
+      // COLUNA ESQUERDA — totais + filtro
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
 
-    // Calcular total por categoria
-    const totalCategoria = gastosFiltrados.reduce((sum, g) => sum + g.valor, 0);
-    return /*#__PURE__*/React.createElement("div", {
-      className: "space-y-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between items-center mb-4"
-    }, /*#__PURE__*/React.createElement("h2", {
-      className: "text-lg font-bold text-gray-800"
-    }, "\uD83C\uDFE0 Gastos Fixos - ", mesAtual.toUpperCase(), " / ", anoAtual), /*#__PURE__*/React.createElement("div", {
-      className: "flex gap-2"
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('gerenciarCategorias'),
-      className: "px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 border-2 border-gray-300"
-    }, "\uD83C\uDFF7\uFE0F Categorias"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('novoGastoFixo'),
-      className: "px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
-    }, "\u2795 Novo Gasto"))), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-2 md:grid-cols-4 gap-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: `bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl shadow-lg p-4 cursor-pointer transition-transform hover:scale-105 ${categoriaFiltro === 'TODAS' ? 'ring-4 ring-purple-300' : ''}`,
-      onClick: () => setCategoriaFiltro('TODAS')
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-white/80 text-xs font-semibold mb-1"
-    }, "\uD83D\uDCB0 TOTAL GERAL"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-white"
-    }, "R$ ", totalGeral.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-white/70 text-xs mt-1"
-    }, gastosFixos.length, " gastos")), Object.entries(totaisPorCategoria).sort((a, b) => b[1] - a[1]) // Ordena por valor (maior primeiro)
-    .map(([categoria, total]) => {
-      const quantidade = gastosFixos.filter(g => g.categoria === categoria).length;
-      const percentual = totalGeral > 0 ? total / totalGeral * 100 : 0;
-      return /*#__PURE__*/React.createElement("div", {
-        key: categoria,
-        className: `bg-white rounded-xl shadow-lg p-4 cursor-pointer transition-all hover:shadow-xl hover:scale-105 border-2 ${categoriaFiltro === categoria ? 'border-purple-500 ring-2 ring-purple-300' : 'border-gray-200'}`,
-        onClick: () => setCategoriaFiltro(categoria)
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-gray-600 text-xs font-semibold mb-1 truncate"
-      }, categoria), /*#__PURE__*/React.createElement("div", {
-        className: "text-xl font-bold text-purple-600"
-      }, "R$ ", total.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between items-center mt-1"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-gray-500 text-xs"
-      }, quantidade, " gasto", quantidade > 1 ? 's' : ''), /*#__PURE__*/React.createElement("div", {
-        className: "text-purple-600 text-xs font-semibold"
-      }, percentual.toFixed(0), "%")));
-    })), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center justify-between"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-      className: "text-sm font-semibold text-gray-700"
-    }, "\uD83D\uDD0D Mostrando: ", /*#__PURE__*/React.createElement("span", {
-      className: "text-purple-600"
-    }, categoriaFiltro))), /*#__PURE__*/React.createElement("div", {
-      className: "text-lg font-bold text-purple-600"
-    }, "R$ ", totalCategoria.toFixed(2)))), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, gastosFiltrados.length === 0 ? /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-12 text-center"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-4xl mb-3"
-    }, "\uD83D\uDD0D"), /*#__PURE__*/React.createElement("h3", {
-      className: "text-xl font-bold text-gray-800 mb-2"
-    }, "Nenhum gasto encontrado"), /*#__PURE__*/React.createElement("p", {
-      className: "text-gray-600"
-    }, categoriaFiltro === 'TODAS' ? 'Adicione seu primeiro gasto fixo!' : `Nenhum gasto na categoria "${categoriaFiltro}"`)) : (() => {
-      // Agrupar gastos por data de vencimento
-      const gastosPorData = {};
-      gastosFiltrados.forEach(gasto => {
-        const dia = gasto.vencimento;
-        if (!gastosPorData[dia]) {
-          gastosPorData[dia] = [];
-        }
-        gastosPorData[dia].push(gasto);
-      });
+        // Hero total
+        /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(150deg,#4c1d95,#6d28d9,#7c3aed)', borderRadius:'16px', padding:'20px', color:'#fff', boxShadow:'0 6px 24px rgba(109,40,217,0.4)', border:'1px solid rgba(255,255,255,0.1)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'10px'}}, "\uD83C\uDFE0 FIXOS \xB7 "+mesAtual.toUpperCase()),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.9rem', fontWeight:'900', marginBottom:'4px', lineHeight:1}}, "R$ "+totalGeral.toFixed(2)),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', opacity:0.65}}, gastosDoMes.length+" gasto"+(gastosDoMes.length!==1?"s":"")+" fixo"+(gastosDoMes.length!==1?"s":""))
+        ),
 
-      // Ordenar dias
-      const diasOrdenados = Object.keys(gastosPorData).sort((a, b) => parseInt(a) - parseInt(b));
-      return diasOrdenados.map(dia => {
-        const gastosDoDia = gastosPorData[dia];
-        const totalDia = gastosDoDia.reduce((sum, g) => sum + g.valor, 0);
-        const hoje = new Date().getDate();
-        const isHoje = parseInt(dia) === hoje;
+        // % do total de despesas
+        totais.total>0 && /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'12px', padding:'14px', border:'1px solid #e5e7eb'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'8px'}}, "\uD83D\uDCCA Do Total de Despesas"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.2rem', fontWeight:'900', color:'#6d28d9', marginBottom:'6px'}}, (totalGeral/totais.total*100).toFixed(0)+"%"),
+          /*#__PURE__*/React.createElement("div", {style:{height:'5px', background:'#f3f4f6', borderRadius:'3px', overflow:'hidden'}},
+            /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:(totalGeral/totais.total*100)+'%', background:'linear-gradient(90deg,#8b5cf6,#a78bfa)', borderRadius:'3px', transition:'width .6s ease'}})
+          )
+        ),
 
-        // Calcular dia da semana
-        const dataAtual = new Date();
-        const anoNum = dataAtual.getFullYear();
-        const mesNum = dataAtual.getMonth();
-        const dataVencimento = new Date(anoNum, mesNum, parseInt(dia));
-        const diaSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'][dataVencimento.getDay()];
-        return /*#__PURE__*/React.createElement("div", {
-          key: dia,
-          className: `flex items-start gap-3 p-3 rounded-lg transition-all ${isHoje ? 'bg-purple-50 border-2 border-purple-500' : 'bg-purple-50 border border-purple-200'}`
-        }, /*#__PURE__*/React.createElement("div", {
-          className: `flex-shrink-0 w-16 text-center ${isHoje ? 'text-purple-600' : 'text-gray-600'}`
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "text-xs font-semibold"
-        }, diaSemana), /*#__PURE__*/React.createElement("div", {
-          className: `text-2xl font-bold ${isHoje ? 'text-purple-700' : 'text-gray-700'}`
-        }, dia), isHoje && /*#__PURE__*/React.createElement("div", {
-          className: "text-xs font-bold text-purple-600"
-        }, "HOJE")), /*#__PURE__*/React.createElement("div", {
-          className: "flex-1"
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "space-y-2"
-        }, gastosDoDia.map(gasto => /*#__PURE__*/React.createElement("div", {
-          key: gasto.id,
-          className: "flex items-center justify-between bg-white rounded p-2 shadow-sm"
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "flex-1"
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "flex items-center gap-2"
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "font-semibold text-sm text-gray-800"
-        }, gasto.descricao), gasto.temporario && gasto.totalParcelas && /*#__PURE__*/React.createElement("span", {
-          className: "px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded"
-        }, gasto.parcelaAtual || 1, "/", gasto.totalParcelas)), /*#__PURE__*/React.createElement("div", {
-          className: "text-xs text-gray-500"
-        }, gasto.categoria)), /*#__PURE__*/React.createElement("div", {
-          className: "flex items-center gap-2"
-        }, /*#__PURE__*/React.createElement("input", {
-          type: "number",
-          step: "0.01",
-          value: gasto.valor,
-          onChange: e => editarValorGastoFixo(gasto.id, e.target.value),
-          className: "w-28 px-2 py-1 border border-gray-300 rounded text-right text-sm font-bold"
-        }), /*#__PURE__*/React.createElement("button", {
-          onClick: () => {
-            setItemEditando(gasto);
-            setTipoEditando('fixo');
-            setModalAberto('editar');
-          },
-          className: "px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-sm"
-        }, "\u270F\uFE0F"), /*#__PURE__*/React.createElement("button", {
-          onClick: () => duplicarGastoFixo(gasto),
-          className: "px-2 py-1 bg-purple-100 text-purple-600 rounded hover:bg-purple-200 text-sm"
-        }, "\uD83D\uDCCB"), /*#__PURE__*/React.createElement("button", {
-          onClick: () => deletarGastoFixo(gasto.id),
-          className: "px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-sm"
-        }, "\uD83D\uDDD1\uFE0F")))), /*#__PURE__*/React.createElement("div", {
-          className: "text-xs text-right font-bold text-gray-600 pt-1 border-t"
-        }, "Total do dia: R$ ", totalDia.toFixed(2)))));
-      });
-    })()));
+        // Filtro por categoria
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'12px', padding:'14px', border:'1px solid #e5e7eb'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'10px'}}, "\uD83C\uDFF7\uFE0F Categorias"),
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'5px'}},
+            ...categorias.map(cat =>
+              /*#__PURE__*/React.createElement("button", {
+                key:cat,
+                onClick:()=>setCategoriaFiltro(cat),
+                style:{
+                  width:'100%', padding:'7px 10px', border:'none', borderRadius:'8px', cursor:'pointer',
+                  textAlign:'left', fontSize:'0.75rem', fontWeight:'600',
+                  background: categoriaFiltro===cat?'#ede9fe':'transparent',
+                  color:       categoriaFiltro===cat?'#6d28d9':'#6b7280',
+                  display:'flex', justifyContent:'space-between', alignItems:'center'
+                }
+              },
+                /*#__PURE__*/React.createElement("span", null, cat==='TODAS'?'Todas':cat),
+                cat!=='TODAS' && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.7rem', fontWeight:'700', color:categoriaFiltro===cat?'#6d28d9':'#9ca3af'}},
+                  "R$ "+(totaisPorCat[cat]||0).toFixed(0)
+                )
+              )
+            )
+          )
+        ),
+
+        // Botões de ação
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Novo Gasto Fixo"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+      ),
+
+      // COLUNA DIREITA — lista por vencimento
+      /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
+
+        /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center'}},
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:'#111827'}}, categoriaFiltro==='TODAS'?"Todos os Gastos Fixos":"Gastos Fixos \xB7 "+categoriaFiltro),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}}, gastosFiltrados.length+" item"+(gastosFiltrados.length!==1?"s":"")+" \xB7 ordenados por vencimento")
+          ),
+          /*#__PURE__*/React.createElement("div", {style:{fontWeight:'900', fontSize:'1.1rem', color:'#6d28d9'}}, "R$ "+totalFiltrado.toFixed(2))
+        ),
+
+        gastosFiltrados.length===0
+          ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83C\uDFE0"),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, "Nenhum gasto fixo"),
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+            )
+          : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'580px', overflowY:'auto'}},
+              ...diasOrdenados.map(dia => {
+                const gastosDia = porDia[dia];
+                const totalDia = gastosDia.reduce((s,g)=>s+g.valor,0);
+                const isHoje = parseInt(dia)===hoje;
+                const dataObj = new Date(new Date().getFullYear(), new Date().getMonth(), parseInt(dia));
+                const diaSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','S\xE1b'][dataObj.getDay()];
+                return /*#__PURE__*/React.createElement("div", {key:dia},
+                  // Cabeçalho do dia
+                  /*#__PURE__*/React.createElement("div", {
+                    style:{
+                      display:'flex', alignItems:'center', gap:'12px', padding:'10px 20px',
+                      background: isHoje?'#ede9fe':'#f9fafb',
+                      borderBottom:'1px solid #f3f4f6'
+                    }
+                  },
+                    /*#__PURE__*/React.createElement("div", {style:{width:'48px', textAlign:'center', flexShrink:0}},
+                      /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'700', color: isHoje?'#7c3aed':'#9ca3af', textTransform:'uppercase'}}, diaSemana),
+                      /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.4rem', fontWeight:'900', color: isHoje?'#6d28d9':'#374151', lineHeight:1.1}}, dia),
+                      isHoje && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.55rem', fontWeight:'800', color:'#7c3aed', textTransform:'uppercase'}}, "Hoje")
+                    ),
+                    /*#__PURE__*/React.createElement("div", {style:{flex:1}}),
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', fontWeight:'700', color: isHoje?'#6d28d9':'#6b7280'}},
+                      "R$ "+totalDia.toFixed(2)+" \xB7 "+gastosDia.length+" item"+(gastosDia.length!==1?"s":"")
+                    )
+                  ),
+                  // Itens do dia
+                  ...gastosDia.map((gasto,idx) =>
+                    /*#__PURE__*/React.createElement("div", {
+                      key:gasto.id,
+                      style:{
+                        display:'flex', alignItems:'center', gap:'12px', padding:'11px 20px 11px 32px',
+                        borderBottom: idx<gastosDia.length-1?'1px solid #f9fafb':'none',
+                        transition:'background .15s'
+                      },
+                      onMouseEnter:e=>{e.currentTarget.style.background='#fafafa'},
+                      onMouseLeave:e=>{e.currentTarget.style.background='transparent'}
+                    },
+                      /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
+                        /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'8px'}},
+                          /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.82rem', fontWeight:'700', color:'#111827'}}, gasto.descricao),
+                          gasto.temporario && gasto.totalParcelas && /*#__PURE__*/React.createElement("span", {style:{padding:'2px 8px', borderRadius:'20px', background:'#ede9fe', color:'#6d28d9', fontSize:'0.65rem', fontWeight:'700'}}, (gasto.parcelaAtual||1)+"/"+gasto.totalParcelas)
+                        ),
+                        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:'#9ca3af', marginTop:'2px'}}, gasto.categoria)
+                      ),
+                      /*#__PURE__*/React.createElement("input", {
+                        type:"number", step:"0.01", value:gasto.valor,
+                        onChange:e=>editarValorGastoFixo(gasto.id,e.target.value),
+                        style:{width:'88px', padding:'5px 8px', border:'2px solid #e5e7eb', borderRadius:'8px', fontSize:'0.82rem', fontWeight:'700', textAlign:'right', outline:'none'}
+                      }),
+                      /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px'}},
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('fixo');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoFixo(gasto), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoFixo(gasto.id), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                      )
+                    )
+                  )
+                );
+              })
+            ),
+
+        gastosFiltrados.length>1 && /*#__PURE__*/React.createElement("div", {style:{padding:'12px 20px', borderTop:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fafafa'}},
+          /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'600', color:'#6b7280'}}, "Total \xB7 "+gastosFiltrados.length+" gastos"),
+          /*#__PURE__*/React.createElement("span", {style:{fontSize:'1rem', fontWeight:'900', color:'#6d28d9'}}, "R$ "+totalFiltrado.toFixed(2))
+        )
+      )
+    );
   };
+
   const TelaGastosVariaveis = () => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
-    const gastosDoMes = gastosVariaveis.filter(g => g.mes === mesAtual && g.ano === anoAtual);
+    const gastosDoMes = gastosVariaveis.filter(g => g.mes===mesAtual && g.ano===anoAtual);
+    const totaisPorCat = {};
+    gastosDoMes.forEach(g => { totaisPorCat[g.categoria] = (totaisPorCat[g.categoria]||0) + g.valor; });
+    const totalMes = gastosDoMes.reduce((s,g) => s+g.valor, 0);
+    const gastosFiltrados = categoriaFiltro==='TODAS' ? gastosDoMes : gastosDoMes.filter(g => g.categoria===categoriaFiltro);
+    const totalFiltrado = gastosFiltrados.reduce((s,g) => s+g.valor, 0);
+    const categorias = ['TODAS', ...Object.keys(totaisPorCat).sort((a,b)=>totaisPorCat[b]-totaisPorCat[a])];
 
-    // Calcular total por cada categoria
-    const totaisPorCategoria = {};
-    gastosDoMes.forEach(g => {
-      if (!totaisPorCategoria[g.categoria]) {
-        totaisPorCategoria[g.categoria] = 0;
-      }
-      totaisPorCategoria[g.categoria] += g.valor;
+    // Agrupar por data
+    const porData = {};
+    gastosFiltrados.forEach(g => {
+      const key = g.dataCompleta||g.data||'Sem data';
+      if (!porData[key]) porData[key] = [];
+      porData[key].push(g);
     });
-    const totalMes = gastosDoMes.reduce((sum, g) => sum + g.valor, 0);
+    const datasOrdenadas = Object.keys(porData).sort((a,b)=>a==='Sem data'?1:b==='Sem data'?-1:b.localeCompare(a));
+    const hoje = new Date();
 
-    // Filtrar por categoria
-    const gastosFiltrados = categoriaFiltro === 'TODAS' ? gastosDoMes : gastosDoMes.filter(g => g.categoria === categoriaFiltro);
-    const totalCategoria = gastosFiltrados.reduce((sum, g) => sum + g.valor, 0);
-    return /*#__PURE__*/React.createElement("div", {
-      className: "space-y-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between items-center mb-4"
-    }, /*#__PURE__*/React.createElement("h2", {
-      className: "text-lg font-bold text-gray-800"
-    }, "\uD83D\uDCCA Gastos Vari\xE1veis - ", mesAtual.toUpperCase(), " / ", anoAtual), /*#__PURE__*/React.createElement("div", {
-      className: "flex gap-2"
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => {
-        console.log('🔧 FORÇANDO MIGRAÇÃO MANUAL...');
-        const migrados = gastosVariaveis.map(gasto => {
-          if (!gasto.dataCompleta) {
-            let dataGasto;
+    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'200px 1fr', gap:'16px', alignItems:'start'}},
 
-            // 1. Tentar converter data BR
-            if (gasto.data && gasto.data.includes('/')) {
-              const [dia, mes, ano] = gasto.data.split('/');
-              dataGasto = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
-              console.log('📅 Convertendo:', gasto.data, '→', dataGasto.toISOString().split('T')[0]);
-            }
-            // 2. Fallback: usar mês/ano
-            else {
-              const anoGasto = gasto.ano || 2026;
-              const mesGasto = gasto.mes || 'jan';
-              const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-              const mesNum = meses.indexOf(mesGasto.toLowerCase());
-              dataGasto = new Date(anoGasto, mesNum >= 0 ? mesNum : 0, 1);
-              console.log('📅 Fallback:', mesGasto, anoGasto, '→', dataGasto.toISOString().split('T')[0]);
-            }
-            return {
-              ...gasto,
-              dataCompleta: dataGasto.toISOString().split('T')[0],
-              data: dataGasto.toLocaleDateString('pt-BR')
-            };
-          }
-          return gasto;
-        });
-        console.log('💾 Salvando gastos migrados...');
-        setGastosVariaveis(migrados);
-        localStorage.setItem('gastosVariaveis', JSON.stringify(migrados));
-        alert('✅ Migração concluída! Recarregue a página (F5)');
-      },
-      className: "px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 border-2 border-green-700"
-    }, "\uD83D\uDD27 Migrar Datas"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => {
-        console.log('🔍 DEBUG GASTOS VARIÁVEIS:');
-        console.log('Total de gastos:', gastosVariaveis.length);
-        gastosVariaveis.forEach((g, i) => {
-          console.log(`Gasto ${i + 1}:`, {
-            id: g.id,
-            categoria: g.categoria,
-            descricao: g.descricao,
-            valor: g.valor,
-            data: g.data,
-            dataCompleta: g.dataCompleta,
-            mes: g.mes,
-            ano: g.ano
-          });
-        });
-        alert('✅ Dados dos gastos no console (F12)');
-      },
-      className: "px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 border-2 border-blue-300"
-    }, "\uD83D\uDD0D Debug"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('gerenciarCategorias'),
-      className: "px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 border-2 border-gray-300"
-    }, "\uD83C\uDFF7\uFE0F Categorias"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('novoGastoVariavel'),
-      className: "px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700"
-    }, "\u2795 Novo Gasto"))), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-2 md:grid-cols-4 gap-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: `bg-gradient-to-br from-orange-600 to-red-600 rounded-xl shadow-lg p-4 cursor-pointer transition-transform hover:scale-105 ${categoriaFiltro === 'TODAS' ? 'ring-4 ring-orange-300' : ''}`,
-      onClick: () => setCategoriaFiltro('TODAS')
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-white/80 text-xs font-semibold mb-1"
-    }, "\uD83D\uDCB0 TOTAL DO M\xCAS"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-white"
-    }, "R$ ", totalMes.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-white/70 text-xs mt-1"
-    }, gastosDoMes.length, " gastos")), Object.entries(totaisPorCategoria).sort((a, b) => b[1] - a[1]) // Ordena por valor (maior primeiro)
-    .map(([categoria, total]) => {
-      const quantidade = gastosDoMes.filter(g => g.categoria === categoria).length;
-      const percentual = totalMes > 0 ? total / totalMes * 100 : 0;
-      return /*#__PURE__*/React.createElement("div", {
-        key: categoria,
-        className: `bg-white rounded-xl shadow-lg p-4 cursor-pointer transition-all hover:shadow-xl hover:scale-105 border-2 ${categoriaFiltro === categoria ? 'border-orange-500 ring-2 ring-orange-300' : 'border-gray-200'}`,
-        onClick: () => setCategoriaFiltro(categoria)
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-gray-600 text-xs font-semibold mb-1 truncate"
-      }, categoria), /*#__PURE__*/React.createElement("div", {
-        className: "text-xl font-bold text-orange-600"
-      }, "R$ ", total.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between items-center mt-1"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-gray-500 text-xs"
-      }, quantidade, " gasto", quantidade > 1 ? 's' : ''), /*#__PURE__*/React.createElement("div", {
-        className: "text-orange-600 text-xs font-semibold"
-      }, percentual.toFixed(0), "%")));
-    })), gastosDoMes.length > 0 && /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center justify-between"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-      className: "text-sm font-semibold text-gray-700"
-    }, "\uD83D\uDD0D Mostrando: ", /*#__PURE__*/React.createElement("span", {
-      className: "text-orange-600"
-    }, categoriaFiltro))), /*#__PURE__*/React.createElement("div", {
-      className: "text-lg font-bold text-orange-600"
-    }, "R$ ", totalCategoria.toFixed(2)))), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-4"
-    }, gastosFiltrados.length === 0 ? /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-12 text-center"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-4xl mb-3"
-    }, gastosDoMes.length === 0 ? '📊' : '🔍'), /*#__PURE__*/React.createElement("h3", {
-      className: "text-xl font-bold text-gray-800 mb-2"
-    }, gastosDoMes.length === 0 ? 'Nenhum gasto variável' : 'Nenhum gasto encontrado'), /*#__PURE__*/React.createElement("p", {
-      className: "text-gray-600"
-    }, gastosDoMes.length === 0 ? 'Adicione gastos variáveis para este mês!' : `Nenhum gasto na categoria "${categoriaFiltro}"`)) : (() => {
-      // Agrupar por CATEGORIA primeiro
-      const gastosPorCategoria = {};
-      gastosFiltrados.forEach(gasto => {
-        const cat = gasto.categoria;
-        if (!gastosPorCategoria[cat]) {
-          gastosPorCategoria[cat] = [];
-        }
-        gastosPorCategoria[cat].push(gasto);
-      });
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
 
-      // Ordenar categorias alfabeticamente
-      const categoriasOrdenadas = Object.keys(gastosPorCategoria).sort();
-      return categoriasOrdenadas.map(categoria => {
-        const gastosCategoria = gastosPorCategoria[categoria];
+        /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(150deg,#7c2d12,#c2410c,#ea580c)', borderRadius:'16px', padding:'20px', color:'#fff', boxShadow:'0 6px 24px rgba(194,65,12,0.4)', border:'1px solid rgba(255,255,255,0.1)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'10px'}}, "\uD83D\uDCCA VARI\xC1VEIS \xB7 "+mesAtual.toUpperCase()),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.9rem', fontWeight:'900', marginBottom:'4px', lineHeight:1}}, "R$ "+totalMes.toFixed(2)),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', opacity:0.65}}, gastosDoMes.length+" gasto"+(gastosDoMes.length!==1?"s":""))
+        ),
 
-        // Agrupar por DATA dentro da categoria
-        const gastosPorData = {};
-        gastosCategoria.forEach(gasto => {
-          const dataKey = gasto.dataCompleta || gasto.data || 'Sem data';
-          if (!gastosPorData[dataKey]) {
-            gastosPorData[dataKey] = [];
-          }
-          gastosPorData[dataKey].push(gasto);
-        });
+        totais.total>0 && /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'12px', padding:'14px', border:'1px solid #e5e7eb'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'8px'}}, "\uD83D\uDCCA Do Total de Despesas"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.2rem', fontWeight:'900', color:'#c2410c', marginBottom:'6px'}}, (totalMes/totais.total*100).toFixed(0)+"%"),
+          /*#__PURE__*/React.createElement("div", {style:{height:'5px', background:'#f3f4f6', borderRadius:'3px', overflow:'hidden'}},
+            /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:(totalMes/totais.total*100)+'%', background:'linear-gradient(90deg,#f97316,#fb923c)', borderRadius:'3px', transition:'width .6s ease'}})
+          )
+        ),
 
-        // Ordenar datas (mais recente primeiro)
-        const datasOrdenadas = Object.keys(gastosPorData).sort((a, b) => {
-          if (a === 'Sem data') return 1;
-          if (b === 'Sem data') return -1;
-          return b.localeCompare(a);
-        });
-        const totalCategoria = gastosCategoria.reduce((sum, g) => sum + g.valor, 0);
-        return /*#__PURE__*/React.createElement("div", {
-          key: categoria,
-          className: "bg-white rounded-xl shadow-lg overflow-hidden"
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "bg-gradient-to-r from-orange-500 to-orange-600 p-4"
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "flex items-center justify-between text-white"
-        }, /*#__PURE__*/React.createElement("h3", {
-          className: "text-lg font-bold"
-        }, "\uD83D\uDCC1 ", categoria), /*#__PURE__*/React.createElement("div", {
-          className: "text-right"
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "text-2xl font-bold"
-        }, "R$ ", totalCategoria.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-          className: "text-xs opacity-90"
-        }, gastosCategoria.length, " gasto", gastosCategoria.length > 1 ? 's' : '')))), /*#__PURE__*/React.createElement("div", {
-          className: "p-4 space-y-3"
-        }, datasOrdenadas.map(dataKey => {
-          const gastosDaData = gastosPorData[dataKey];
-          const totalData = gastosDaData.reduce((sum, g) => sum + g.valor, 0);
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'12px', padding:'14px', border:'1px solid #e5e7eb'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'10px'}}, "\uD83C\uDFF7\uFE0F Categorias"),
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'5px'}},
+            ...categorias.map(cat =>
+              /*#__PURE__*/React.createElement("button", {
+                key:cat,
+                onClick:()=>setCategoriaFiltro(cat),
+                style:{width:'100%', padding:'7px 10px', border:'none', borderRadius:'8px', cursor:'pointer', textAlign:'left', fontSize:'0.75rem', fontWeight:'600', background:categoriaFiltro===cat?'#fff7ed':'transparent', color:categoriaFiltro===cat?'#c2410c':'#6b7280', display:'flex', justifyContent:'space-between', alignItems:'center'}
+              },
+                /*#__PURE__*/React.createElement("span", null, cat==='TODAS'?'Todas':cat),
+                cat!=='TODAS' && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.7rem', fontWeight:'700', color:categoriaFiltro===cat?'#c2410c':'#9ca3af'}}, "R$ "+(totaisPorCat[cat]||0).toFixed(0))
+              )
+            )
+          )
+        ),
 
-          // Calcular informações da data
-          let diaSemana = '';
-          let diaNumero = '';
-          let dataFormatada = dataKey;
-          let isHoje = false;
-          if (dataKey !== 'Sem data') {
-            const dataObj = new Date(dataKey + 'T00:00:00');
-            const hoje = new Date();
-            isHoje = dataObj.toDateString() === hoje.toDateString();
-            diaSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'][dataObj.getDay()];
-            diaNumero = dataObj.getDate();
-            dataFormatada = dataObj.toLocaleDateString('pt-BR');
-          }
-          return /*#__PURE__*/React.createElement("div", {
-            key: dataKey,
-            className: `rounded-lg border-2 overflow-hidden ${isHoje ? 'border-orange-500 bg-orange-50' : 'border-orange-200 bg-orange-50'}`
-          }, /*#__PURE__*/React.createElement("div", {
-            className: "flex items-center gap-3 p-2 bg-white border-b border-orange-200"
-          }, /*#__PURE__*/React.createElement("div", {
-            className: `flex-shrink-0 w-14 text-center ${isHoje ? 'text-orange-600' : 'text-gray-600'}`
-          }, dataKey !== 'Sem data' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-            className: "text-xs font-semibold"
-          }, diaSemana), /*#__PURE__*/React.createElement("div", {
-            className: `text-xl font-bold ${isHoje ? 'text-orange-700' : 'text-gray-700'}`
-          }, diaNumero)) : /*#__PURE__*/React.createElement("div", {
-            className: "text-xs font-semibold text-gray-500"
-          }, "SEM DATA")), /*#__PURE__*/React.createElement("div", {
-            className: "flex-1"
-          }, /*#__PURE__*/React.createElement("div", {
-            className: "text-sm font-semibold text-gray-700"
-          }, dataFormatada), isHoje && /*#__PURE__*/React.createElement("div", {
-            className: "text-xs font-bold text-orange-600"
-          }, "HOJE")), /*#__PURE__*/React.createElement("div", {
-            className: "text-right"
-          }, /*#__PURE__*/React.createElement("div", {
-            className: "text-sm font-bold text-orange-600"
-          }, "R$ ", totalData.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-            className: "text-xs text-gray-500"
-          }, gastosDaData.length, " item", gastosDaData.length > 1 ? 's' : ''))), /*#__PURE__*/React.createElement("div", {
-            className: "divide-y divide-orange-100"
-          }, gastosDaData.map(gasto => /*#__PURE__*/React.createElement("div", {
-            key: gasto.id,
-            className: "flex items-center justify-between p-2 bg-white hover:bg-orange-50 transition-colors"
-          }, /*#__PURE__*/React.createElement("div", {
-            className: "flex-1 pl-4"
-          }, /*#__PURE__*/React.createElement("div", {
-            className: "text-sm text-gray-800"
-          }, gasto.descricao || 'Sem descrição')), /*#__PURE__*/React.createElement("div", {
-            className: "flex items-center gap-2"
-          }, /*#__PURE__*/React.createElement("div", {
-            className: "font-bold text-orange-600"
-          }, "R$ ", gasto.valor.toFixed(2)), /*#__PURE__*/React.createElement("button", {
-            onClick: () => {
-              setItemEditando(gasto);
-              setTipoEditando('variavel');
-              setModalAberto('editar');
-            },
-            className: "px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs"
-          }, "\u270F\uFE0F"), /*#__PURE__*/React.createElement("button", {
-            onClick: () => duplicarGastoVariavel(gasto),
-            className: "px-2 py-1 bg-purple-100 text-purple-600 rounded hover:bg-purple-200 text-xs"
-          }, "\uD83D\uDCCB"), /*#__PURE__*/React.createElement("button", {
-            onClick: () => deletarGastoVariavel(gasto.id),
-            className: "px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-xs"
-          }, "\uD83D\uDDD1\uFE0F"))))));
-        })));
-      });
-    })()));
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(234,88,12,0.35)'}}, "\u2795 Novo Gasto Vari\xE1vel"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+      ),
+
+      /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
+        /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center'}},
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:'#111827'}}, categoriaFiltro==='TODAS'?"Todos os Gastos Vari\xE1veis":"Gastos \xB7 "+categoriaFiltro),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}}, gastosFiltrados.length+" gasto"+(gastosFiltrados.length!==1?"s":"")+" \xB7 mais recentes primeiro")
+          ),
+          gastosFiltrados.length>0 && /*#__PURE__*/React.createElement("div", {style:{fontWeight:'900', fontSize:'1.1rem', color:'#c2410c'}}, "R$ "+totalFiltrado.toFixed(2))
+        ),
+
+        gastosFiltrados.length===0
+          ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83D\uDCCA"),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhum gasto vari\xE1vel em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+            )
+          : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
+              ...datasOrdenadas.map(dataKey => {
+                const gastosDia = porData[dataKey];
+                const totalDia = gastosDia.reduce((s,g)=>s+g.valor,0);
+                let diaSemana='', diaNum='', dataFmt=dataKey, isHoje=false;
+                if (dataKey!=='Sem data') {
+                  const d = new Date(dataKey+'T00:00:00');
+                  isHoje = d.toDateString()===hoje.toDateString();
+                  diaSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','S\xE1b'][d.getDay()];
+                  diaNum = d.getDate();
+                  dataFmt = d.toLocaleDateString('pt-BR');
+                }
+                return /*#__PURE__*/React.createElement("div", {key:dataKey},
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'12px', padding:'10px 20px', background:isHoje?'#fff7ed':'#f9fafb', borderBottom:'1px solid #f3f4f6'}},
+                    dataKey!=='Sem data'
+                      ? /*#__PURE__*/React.createElement("div", {style:{width:'48px', textAlign:'center', flexShrink:0}},
+                          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'700', color:isHoje?'#c2410c':'#9ca3af', textTransform:'uppercase'}}, diaSemana),
+                          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.4rem', fontWeight:'900', color:isHoje?'#c2410c':'#374151', lineHeight:1.1}}, diaNum),
+                          isHoje && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.55rem', fontWeight:'800', color:'#c2410c', textTransform:'uppercase'}}, "Hoje")
+                        )
+                      : /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.72rem', fontWeight:'700', color:'#9ca3af'}}, "Sem data"),
+                    /*#__PURE__*/React.createElement("div", {style:{flex:1}}),
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', fontWeight:'700', color:isHoje?'#c2410c':'#6b7280'}}, "R$ "+totalDia.toFixed(2)+" \xB7 "+gastosDia.length+" item"+(gastosDia.length!==1?"s":""))
+                  ),
+                  ...gastosDia.map((gasto,idx)=>
+                    /*#__PURE__*/React.createElement("div", {
+                      key:gasto.id,
+                      style:{display:'flex', alignItems:'center', gap:'12px', padding:'11px 20px 11px 32px', borderBottom:idx<gastosDia.length-1?'1px solid #f9fafb':'none', transition:'background .15s'},
+                      onMouseEnter:e=>{e.currentTarget.style.background='#fafafa'},
+                      onMouseLeave:e=>{e.currentTarget.style.background='transparent'}
+                    },
+                      /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
+                        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.82rem', fontWeight:'700', color:'#111827'}}, gasto.descricao||'Sem descri\xE7\xE3o'),
+                        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:'#9ca3af', marginTop:'2px'}}, gasto.categoria)
+                      ),
+                      /*#__PURE__*/React.createElement("div", {style:{fontWeight:'800', fontSize:'0.9rem', color:'#c2410c', flexShrink:0, marginRight:'8px'}}, "R$ "+gasto.valor.toFixed(2)),
+                      /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px'}},
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('variavel');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoVariavel(gasto), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoVariavel(gasto.id), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                      )
+                    )
+                  )
+                );
+              })
+            ),
+
+        gastosFiltrados.length>1 && /*#__PURE__*/React.createElement("div", {style:{padding:'12px 20px', borderTop:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fafafa'}},
+          /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'600', color:'#6b7280'}}, "Total \xB7 "+gastosFiltrados.length+" gastos"),
+          /*#__PURE__*/React.createElement("span", {style:{fontSize:'1rem', fontWeight:'900', color:'#c2410c'}}, "R$ "+totalFiltrado.toFixed(2))
+        )
+      )
+    );
   };
+
   const TelaGastosExtras = () => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
-    const gastosDoMes = gastosExtras.filter(g => g.mes === mesAtual && g.ano === anoAtual);
+    const gastosDoMes = gastosExtras.filter(g => g.mes===mesAtual && g.ano===anoAtual);
+    const totaisPorCat = {};
+    gastosDoMes.forEach(g => { totaisPorCat[g.categoria] = (totaisPorCat[g.categoria]||0) + g.valor; });
+    const totalMes = gastosDoMes.reduce((s,g) => s+g.valor, 0);
+    const gastosFiltrados = categoriaFiltro==='TODAS' ? gastosDoMes : gastosDoMes.filter(g => g.categoria===categoriaFiltro);
+    const totalFiltrado = gastosFiltrados.reduce((s,g) => s+g.valor, 0);
+    const categorias = ['TODAS', ...Object.keys(totaisPorCat).sort((a,b)=>totaisPorCat[b]-totaisPorCat[a])];
+    const sortedGastos = [...gastosFiltrados].sort((a,b) => (b.data||'').localeCompare(a.data||''));
 
-    // Calcular total por cada categoria
-    const totaisPorCategoria = {};
-    gastosDoMes.forEach(g => {
-      if (!totaisPorCategoria[g.categoria]) {
-        totaisPorCategoria[g.categoria] = 0;
-      }
-      totaisPorCategoria[g.categoria] += g.valor;
-    });
-    const totalMes = gastosDoMes.reduce((sum, g) => sum + g.valor, 0);
+    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'200px 1fr', gap:'16px', alignItems:'start'}},
 
-    // Filtrar por categoria
-    const gastosFiltrados = categoriaFiltro === 'TODAS' ? gastosDoMes : gastosDoMes.filter(g => g.categoria === categoriaFiltro);
-    const totalCategoria = gastosFiltrados.reduce((sum, g) => sum + g.valor, 0);
-    return /*#__PURE__*/React.createElement("div", {
-      className: "space-y-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between items-center mb-4"
-    }, /*#__PURE__*/React.createElement("h2", {
-      className: "text-lg font-bold text-gray-800"
-    }, "\u26A1 Gastos Extras - ", mesAtual.toUpperCase(), " / ", anoAtual), /*#__PURE__*/React.createElement("div", {
-      className: "flex gap-2"
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('gerenciarCategorias'),
-      className: "px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 border-2 border-gray-300"
-    }, "\uD83C\uDFF7\uFE0F Categorias"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalAberto('novoGastoExtra'),
-      className: "px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700"
-    }, "\u2795 Novo Gasto Extra"))), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-2 md:grid-cols-4 gap-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: `bg-gradient-to-br from-amber-600 to-yellow-600 rounded-xl shadow-lg p-4 cursor-pointer transition-transform hover:scale-105 ${categoriaFiltro === 'TODAS' ? 'ring-4 ring-amber-300' : ''}`,
-      onClick: () => setCategoriaFiltro('TODAS')
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-white/80 text-xs font-semibold mb-1"
-    }, "\u26A1 TOTAL DO M\xCAS"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-white"
-    }, "R$ ", totalMes.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-white/70 text-xs mt-1"
-    }, gastosDoMes.length, " gastos extras")), Object.entries(totaisPorCategoria).sort((a, b) => b[1] - a[1]).map(([categoria, total]) => {
-      const quantidade = gastosDoMes.filter(g => g.categoria === categoria).length;
-      const percentual = totalMes > 0 ? total / totalMes * 100 : 0;
-      return /*#__PURE__*/React.createElement("div", {
-        key: categoria,
-        className: `bg-white rounded-xl shadow-lg p-4 cursor-pointer transition-all hover:shadow-xl hover:scale-105 border-2 ${categoriaFiltro === categoria ? 'border-amber-500 ring-2 ring-amber-300' : 'border-gray-200'}`,
-        onClick: () => setCategoriaFiltro(categoria)
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-gray-600 text-xs font-semibold mb-1 truncate"
-      }, categoria), /*#__PURE__*/React.createElement("div", {
-        className: "text-xl font-bold text-amber-600"
-      }, "R$ ", total.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-        className: "flex justify-between items-center mt-1"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-gray-500 text-xs"
-      }, quantidade, " gasto", quantidade > 1 ? 's' : ''), /*#__PURE__*/React.createElement("div", {
-        className: "text-amber-600 text-xs font-semibold"
-      }, percentual.toFixed(0), "%")));
-    })), gastosDoMes.length > 0 && /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center justify-between"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-      className: "text-sm font-semibold text-gray-700"
-    }, "\uD83D\uDD0D Mostrando: ", /*#__PURE__*/React.createElement("span", {
-      className: "text-amber-600"
-    }, categoriaFiltro))), /*#__PURE__*/React.createElement("div", {
-      className: "text-lg font-bold text-amber-600"
-    }, "R$ ", totalCategoria.toFixed(2)))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "space-y-2"
-    }, gastosFiltrados.length === 0 ? /*#__PURE__*/React.createElement("div", {
-      className: "text-center py-12"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-4xl mb-3"
-    }, gastosDoMes.length === 0 ? '⚡' : '🔍'), /*#__PURE__*/React.createElement("h3", {
-      className: "text-xl font-bold text-gray-800 mb-2"
-    }, gastosDoMes.length === 0 ? 'Nenhum gasto extra' : 'Nenhum gasto encontrado'), /*#__PURE__*/React.createElement("p", {
-      className: "text-gray-600"
-    }, gastosDoMes.length === 0 ? 'Adicione gastos extras para este mês!' : `Nenhum gasto na categoria "${categoriaFiltro}"`)) : gastosFiltrados.map(gasto => /*#__PURE__*/React.createElement("div", {
-      key: gasto.id,
-      className: "flex justify-between items-center p-4 bg-amber-50 rounded-lg border border-amber-200"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex-1"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center gap-2"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "font-semibold text-gray-800"
-    }, gasto.categoria), /*#__PURE__*/React.createElement("span", {
-      className: `px-2 py-1 rounded text-xs font-bold ${gasto.ano === 2026 ? 'bg-blue-100 text-blue-700' : gasto.ano === 2025 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'}`
-    }, gasto.ano || anoAtual)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-500"
-    }, gasto.descricao, " \u2022 ", gasto.data)), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center gap-2"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold text-amber-600"
-    }, "R$ ", gasto.valor.toFixed(2)), /*#__PURE__*/React.createElement("button", {
-      onClick: () => {
-        setItemEditando(gasto);
-        setTipoEditando('extra');
-        setModalAberto('editar');
-      },
-      className: "px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm font-semibold",
-      title: "Editar gasto extra"
-    }, "\u270F\uFE0F"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => duplicarGastoExtra(gasto),
-      className: "px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 text-sm font-semibold",
-      title: "Duplicar gasto extra"
-    }, "\uD83D\uDCCB"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => deletarGastoExtra(gasto.id),
-      className: "px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm",
-      title: "Excluir gasto extra"
-    }, "\uD83D\uDDD1\uFE0F")))))));
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
+
+        /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(150deg,#78350f,#b45309,#d97706)', borderRadius:'16px', padding:'20px', color:'#fff', boxShadow:'0 6px 24px rgba(180,83,9,0.4)', border:'1px solid rgba(255,255,255,0.1)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'10px'}}, "\u26A1 EXTRAS \xB7 "+mesAtual.toUpperCase()),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.9rem', fontWeight:'900', marginBottom:'4px', lineHeight:1}}, "R$ "+totalMes.toFixed(2)),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', opacity:0.65}}, gastosDoMes.length+" gasto"+(gastosDoMes.length!==1?"s":"")+" extra"+(gastosDoMes.length!==1?"s":""))
+        ),
+
+        totais.total>0 && /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'12px', padding:'14px', border:'1px solid #e5e7eb'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'8px'}}, "\uD83D\uDCCA Do Total de Despesas"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.2rem', fontWeight:'900', color:'#b45309', marginBottom:'6px'}}, (totalMes/totais.total*100).toFixed(0)+"%"),
+          /*#__PURE__*/React.createElement("div", {style:{height:'5px', background:'#f3f4f6', borderRadius:'3px', overflow:'hidden'}},
+            /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:(totalMes/totais.total*100)+'%', background:'linear-gradient(90deg,#d97706,#fbbf24)', borderRadius:'3px', transition:'width .6s ease'}})
+          )
+        ),
+
+        Object.keys(totaisPorCat).length>0 && /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'12px', padding:'14px', border:'1px solid #e5e7eb'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'10px'}}, "\uD83C\uDFF7\uFE0F Categorias"),
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'5px'}},
+            ...categorias.map(cat =>
+              /*#__PURE__*/React.createElement("button", {
+                key:cat,
+                onClick:()=>setCategoriaFiltro(cat),
+                style:{width:'100%', padding:'7px 10px', border:'none', borderRadius:'8px', cursor:'pointer', textAlign:'left', fontSize:'0.75rem', fontWeight:'600', background:categoriaFiltro===cat?'#fffbeb':'transparent', color:categoriaFiltro===cat?'#b45309':'#6b7280', display:'flex', justifyContent:'space-between', alignItems:'center'}
+              },
+                /*#__PURE__*/React.createElement("span", null, cat==='TODAS'?'Todas':cat),
+                cat!=='TODAS' && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.7rem', fontWeight:'700', color:categoriaFiltro===cat?'#b45309':'#9ca3af'}}, "R$ "+(totaisPorCat[cat]||0).toFixed(0))
+              )
+            )
+          )
+        ),
+
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoExtra'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(217,119,6,0.35)'}}, "\u2795 Novo Gasto Extra"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+      ),
+
+      /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
+        /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center'}},
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:'#111827'}}, categoriaFiltro==='TODAS'?"Todos os Gastos Extras":"Gastos \xB7 "+categoriaFiltro),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}}, gastosFiltrados.length+" item"+(gastosFiltrados.length!==1?"s":""))
+          ),
+          gastosFiltrados.length>0 && /*#__PURE__*/React.createElement("div", {style:{fontWeight:'900', fontSize:'1.1rem', color:'#b45309'}}, "R$ "+totalFiltrado.toFixed(2))
+        ),
+
+        gastosFiltrados.length===0
+          ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\u26A1"),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhum gasto extra em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:'#d1d5db', marginBottom:'18px'}}, "Registre compras pontuais, surpresas ou gastos imprevistos"),
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoExtra'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+            )
+          : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
+              ...sortedGastos.map((gasto,idx)=>
+                /*#__PURE__*/React.createElement("div", {
+                  key:gasto.id,
+                  style:{display:'flex', alignItems:'center', gap:'14px', padding:'13px 22px', borderBottom:idx<sortedGastos.length-1?'1px solid #f9fafb':'none', transition:'background .15s'},
+                  onMouseEnter:e=>{e.currentTarget.style.background='#fafafa'},
+                  onMouseLeave:e=>{e.currentTarget.style.background='transparent'}
+                },
+                  /*#__PURE__*/React.createElement("div", {style:{width:'38px', height:'38px', borderRadius:'10px', background:'#fffbeb', border:'1px solid #fef3c7', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1rem', flexShrink:0}}, "\u26A1"),
+                  /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
+                    /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'8px', marginBottom:'2px'}},
+                      /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.85rem', fontWeight:'700', color:'#111827'}}, gasto.categoria),
+                      gasto.descricao && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.73rem', color:'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'180px'}}, "\xB7 "+gasto.descricao)
+                    ),
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:'#d1d5db'}}, gasto.data||'')
+                  ),
+                  /*#__PURE__*/React.createElement("div", {style:{fontWeight:'800', fontSize:'0.92rem', color:'#b45309', flexShrink:0, marginRight:'8px'}}, "R$ "+gasto.valor.toFixed(2)),
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px', flexShrink:0}},
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('extra');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoExtra(gasto), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoExtra(gasto.id), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                  )
+                )
+              )
+            ),
+
+        gastosFiltrados.length>1 && /*#__PURE__*/React.createElement("div", {style:{padding:'12px 20px', borderTop:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fafafa'}},
+          /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'600', color:'#6b7280'}}, "Total \xB7 "+gastosFiltrados.length+" gastos"),
+          /*#__PURE__*/React.createElement("span", {style:{fontSize:'1rem', fontWeight:'900', color:'#b45309'}}, "R$ "+totalFiltrado.toFixed(2))
+        )
+      )
+    );
   };
+
   const TelaReceitas = () => {
     const mesesOrdem = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
     const mesesNome  = {jan:'Jan',fev:'Fev',mar:'Mar',abr:'Abr',mai:'Mai',jun:'Jun',jul:'Jul',ago:'Ago',set:'Set',out:'Out',nov:'Nov',dez:'Dez'};
