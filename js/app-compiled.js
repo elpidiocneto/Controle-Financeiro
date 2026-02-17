@@ -5118,6 +5118,7 @@ function App({
       // valor adicional
       novaDespesa: 0 // valor adicional
     });
+    const [simCompra, setSimCompra] = useState({ nome:'', valor:'', forma:'avista', parcelas:12, taxaJuros:2.5, resultado:null });
     const orcadoTotal = orcamento.cartoes + orcamento.fixos + orcamento.variaveis;
     const gastadoTotal = totais.total;
     const diferenca = orcadoTotal - gastadoTotal;
@@ -6286,469 +6287,322 @@ function App({
       className: "font-bold text-yellow-800 mb-1"
     }, "Sem sobra para pagar d\xEDvidas"), /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-yellow-700"
-    }, "Voc\xEA est\xE1 gastando tudo ou mais que sua renda. Para usar as estrat\xE9gias de pagamento, \xE9 preciso ter sobra mensal. Revise seus gastos no or\xE7amento!")))))), (abaAtiva === 'simulacoes' && subAba === 'compra') && /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {display:'flex', gap:'8px', marginBottom:'4px'}
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-compra'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='compra'?'#6366f1':'#f3f4f6', color: subAba==='compra'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "🛒 Simul. Compra"), /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-simulador'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='simulador'?'#6366f1':'#f3f4f6', color: subAba==='simulador'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "🎲 Simulador")),
-    /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between items-center mb-4"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
-      className: "text-lg font-bold text-gray-800"
-    }, "\uD83D\uDED2 Simulador de Compra"), /*#__PURE__*/React.createElement("p", {
-      className: "text-gray-600"
-    }, "Simule uma compra e veja o impacto no seu or\xE7amento"))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h4", {
-      className: "text-base font-bold text-gray-800 mb-4"
-    }, "\uD83D\uDCDD Detalhes da Compra"), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-4"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-      className: "block text-sm font-semibold text-gray-700 mb-2"
-    }, "Nome do Produto/Servi\xE7o"), /*#__PURE__*/React.createElement("input", {
-      type: "text",
-      id: "simNomeProduto",
-      placeholder: "Ex: Geladeira, TV, Curso...",
-      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-    })), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-1 md:grid-cols-2 gap-4"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-      className: "block text-sm font-semibold text-gray-700 mb-2"
-    }, "Valor Total"), /*#__PURE__*/React.createElement("input", {
-      type: "number",
-      id: "simValorTotal",
-      step: "0.01",
-      placeholder: "0.00",
-      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-    })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-      className: "block text-sm font-semibold text-gray-700 mb-2"
-    }, "Forma de Pagamento"), /*#__PURE__*/React.createElement("select", {
-      id: "simFormaPagamento",
-      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none",
-      onChange: e => {
-        const parcelasDiv = document.getElementById('simParcelasDiv');
-        if (e.target.value === 'parcelado') {
-          parcelasDiv.style.display = 'block';
-        } else {
-          parcelasDiv.style.display = 'none';
-        }
-      }
-    }, /*#__PURE__*/React.createElement("option", {
-      value: "avista"
-    }, "\xC0 Vista"), /*#__PURE__*/React.createElement("option", {
-      value: "parcelado"
-    }, "Parcelado")))), /*#__PURE__*/React.createElement("div", {
-      id: "simParcelasDiv",
-      style: {
-        display: 'none'
-      }
-    }, /*#__PURE__*/React.createElement("label", {
-      className: "block text-sm font-semibold text-gray-700 mb-2"
-    }, "N\xFAmero de Parcelas"), /*#__PURE__*/React.createElement("input", {
-      type: "number",
-      id: "simNumeroParcelas",
-      min: "2",
-      max: "48",
-      placeholder: "Ex: 12",
-      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-    })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-      className: "block text-sm font-semibold text-gray-700 mb-2"
-    }, "M\xEAs da Primeira Parcela/Pagamento"), /*#__PURE__*/React.createElement("input", {
-      type: "month",
-      id: "simMesPagamento",
-      defaultValue: mesAtual,
-      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-    })), /*#__PURE__*/React.createElement("button", {
-      onClick: () => {
-        const nome = document.getElementById('simNomeProduto').value;
-        const valor = parseFloat(document.getElementById('simValorTotal').value);
-        const forma = document.getElementById('simFormaPagamento').value;
-        const parcelas = forma === 'parcelado' ? parseInt(document.getElementById('simNumeroParcelas').value) : 1;
-        const mesPagamento = document.getElementById('simMesPagamento').value;
-        if (!nome || !valor || valor <= 0) {
-          alert('⚠️ Preencha o nome e o valor da compra!');
-          return;
-        }
-        if (forma === 'parcelado' && (!parcelas || parcelas < 2)) {
-          alert('⚠️ Informe o número de parcelas (mínimo 2)!');
-          return;
-        }
+    }, "Você está gastando tudo ou mais que sua renda. Para usar as estratégias de pagamento, é preciso ter sobra mensal. Revise seus gastos no orçamento!"))))),
+  (abaAtiva === 'simulacoes' && subAba === 'compra') && /*#__PURE__*/React.createElement("div", {className:"space-y-3"},
+    /*#__PURE__*/React.createElement("div", {style:{display:'flex',gap:'8px',marginBottom:'16px'}},
+      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-compra'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#6366f1',color:'#fff'}}, "🛒 Simul. Compra"),
+      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-simulador'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#f3f4f6',color:'#6b7280'}}, "🎲 Simulador")
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+        /*#__PURE__*/React.createElement("div", {style:{background:saldo.positivo?'linear-gradient(135deg,#064e3b,#065f46)':'linear-gradient(135deg,#7f1d1d,#991b1b)',borderRadius:'16px',padding:'20px',color:'#fff',border:saldo.positivo?'1px solid rgba(16,185,129,0.3)':'1px solid rgba(239,68,68,0.3)',boxShadow:'0 4px 20px rgba(0,0,0,0.25)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'10px'}}, "💰 Saldo Disponível"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.8rem',fontWeight:'900',marginBottom:'4px'}}, "R$ " + Math.abs(saldo.saldo).toFixed(2)),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem',opacity:0.8}}, saldo.positivo ? "Sobra mensal disponível" : "Saldo negativo — cuidado!")
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'16px'}}, "📝 Detalhes da Compra"),
+          /*#__PURE__*/React.createElement("div", {style:{marginBottom:'12px'}},
+            /*#__PURE__*/React.createElement("label", {style:{fontSize:'0.75rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'6px'}}, "Produto / Serviço"),
+            /*#__PURE__*/React.createElement("input", {type:"text",placeholder:"Ex: Geladeira, TV, Curso...",value:simCompra.nome,onChange:e=>setSimCompra({...simCompra,nome:e.target.value,resultado:null}),style:{width:'100%',padding:'10px 12px',borderRadius:'10px',border:'2px solid #e5e7eb',fontSize:'0.82rem',outline:'none',boxSizing:'border-box'}})
+          ),
+          /*#__PURE__*/React.createElement("div", {style:{marginBottom:'12px'}},
+            /*#__PURE__*/React.createElement("label", {style:{fontSize:'0.75rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'6px'}}, "Valor Total (R$)"),
+            /*#__PURE__*/React.createElement("input", {type:"number",placeholder:"0,00",step:"0.01",value:simCompra.valor,onChange:e=>setSimCompra({...simCompra,valor:e.target.value,resultado:null}),style:{width:'100%',padding:'10px 12px',borderRadius:'10px',border:'2px solid #e5e7eb',fontSize:'0.82rem',outline:'none',boxSizing:'border-box'}})
+          ),
+          /*#__PURE__*/React.createElement("div", {style:{marginBottom:'12px'}},
+            /*#__PURE__*/React.createElement("label", {style:{fontSize:'0.75rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'6px'}}, "Forma de Pagamento"),
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex',gap:'8px'}},
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setSimCompra({...simCompra,forma:'avista',resultado:null}),style:{flex:1,padding:'10px',borderRadius:'10px',border:'2px solid',borderColor:simCompra.forma==='avista'?'#6366f1':'#e5e7eb',background:simCompra.forma==='avista'?'#eef2ff':'#fff',color:simCompra.forma==='avista'?'#4f46e5':'#6b7280',fontSize:'0.78rem',fontWeight:'700',cursor:'pointer'}}, "💵 À Vista"),
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setSimCompra({...simCompra,forma:'parcelado',resultado:null}),style:{flex:1,padding:'10px',borderRadius:'10px',border:'2px solid',borderColor:simCompra.forma==='parcelado'?'#6366f1':'#e5e7eb',background:simCompra.forma==='parcelado'?'#eef2ff':'#fff',color:simCompra.forma==='parcelado'?'#4f46e5':'#6b7280',fontSize:'0.78rem',fontWeight:'700',cursor:'pointer'}}, "💳 Parcelado")
+            )
+          ),
+          simCompra.forma === 'parcelado' && /*#__PURE__*/React.createElement("div", {style:{marginBottom:'12px'}},
+            /*#__PURE__*/React.createElement("div", {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}},
+              /*#__PURE__*/React.createElement("div", null,
+                /*#__PURE__*/React.createElement("label", {style:{fontSize:'0.75rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'6px'}}, "Parcelas"),
+                /*#__PURE__*/React.createElement("select", {value:simCompra.parcelas,onChange:e=>setSimCompra({...simCompra,parcelas:parseInt(e.target.value),resultado:null}),style:{width:'100%',padding:'10px 12px',borderRadius:'10px',border:'2px solid #e5e7eb',fontSize:'0.82rem',outline:'none'}},
+                  [2,3,4,6,8,10,12,18,24,36,48,60].map(n => /*#__PURE__*/React.createElement("option", {key:n,value:n}, n+"x"))
+                )
+              ),
+              /*#__PURE__*/React.createElement("div", null,
+                /*#__PURE__*/React.createElement("label", {style:{fontSize:'0.75rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'6px'}}, "Juros/mês (%)"),
+                /*#__PURE__*/React.createElement("input", {type:"number",step:"0.1",placeholder:"2.5",value:simCompra.taxaJuros,onChange:e=>setSimCompra({...simCompra,taxaJuros:parseFloat(e.target.value)||0,resultado:null}),style:{width:'100%',padding:'10px 12px',borderRadius:'10px',border:'2px solid #e5e7eb',fontSize:'0.82rem',outline:'none',boxSizing:'border-box'}})
+              )
+            )
+          ),
+          /*#__PURE__*/React.createElement("button", {
+            onClick:()=>{
+              const v=parseFloat(simCompra.valor)||0;
+              if(!v)return;
+              let resultado;
+              if(simCompra.forma==='avista'){
+                const novoSaldo=saldo.saldo-v;
+                const pctRenda=saldo.receitas>0?v/saldo.receitas*100:0;
+                resultado={tipo:'avista',totalPago:v,impactoMensal:v,meses:1,totalJuros:0,novoSaldo,pctRenda,viavel:novoSaldo>=0};
+              } else {
+                const taxa=simCompra.taxaJuros/100;
+                const n=simCompra.parcelas;
+                const parcela=taxa>0?v*(taxa*Math.pow(1+taxa,n))/(Math.pow(1+taxa,n)-1):v/n;
+                const totalPago=parcela*n;
+                resultado={tipo:'parcelado',parcela,totalPago,totalJuros:totalPago-v,meses:n,impactoMensal:parcela,novoSaldoMensal:saldo.saldo-parcela,pctRenda:saldo.receitas>0?parcela/saldo.receitas*100:0,viavel:saldo.saldo-parcela>=0};
+              }
+              setSimCompra({...simCompra,resultado});
+            },
+            style:{width:'100%',padding:'13px',border:'none',borderRadius:'12px',background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',fontSize:'0.88rem',fontWeight:'800',cursor:'pointer',boxShadow:'0 4px 12px rgba(99,102,241,0.3)',marginTop:'4px'}
+          }, "🔍 Simular Compra")
+        )
+      ),
+      simCompra.resultado === null
+        ? /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(135deg,#f8fafc,#f1f5f9)',borderRadius:'16px',padding:'40px 20px',textAlign:'center',border:'2px dashed #e2e8f0',color:'#94a3b8'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'3.5rem',marginBottom:'12px',opacity:0.5}}, "🛒"),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'1rem',fontWeight:'700',color:'#64748b',marginBottom:'6px'}}, "Preencha e simule"),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem'}}, "Veja o impacto da compra no seu orçamento")
+          )
+        : /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+            /*#__PURE__*/React.createElement("div", {style:{background:simCompra.resultado.viavel?'linear-gradient(135deg,#064e3b,#065f46)':'linear-gradient(135deg,#7f1d1d,#991b1b)',borderRadius:'16px',padding:'22px',color:'#fff',border:simCompra.resultado.viavel?'1px solid rgba(16,185,129,0.3)':'1px solid rgba(239,68,68,0.3)',boxShadow:'0 4px 24px rgba(0,0,0,0.3)'}},
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'10px'}}, simCompra.resultado.viavel?"✅ Compra Viável":"⚠️ Atenção — Impacto Alto"),
+              simCompra.nome && /*#__PURE__*/React.createElement("div", {style:{fontSize:'1rem',fontWeight:'700',marginBottom:'8px',opacity:0.9}}, simCompra.nome),
+              /*#__PURE__*/React.createElement("div", {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginTop:'12px'}},
+                /*#__PURE__*/React.createElement("div", null,
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, simCompra.resultado.tipo==='parcelado'?"Parcela Mensal":"Desembolso"),
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.6rem',fontWeight:'900'}}, "R$ "+simCompra.resultado.impactoMensal.toFixed(2))
+                ),
+                /*#__PURE__*/React.createElement("div", null,
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, "% da Renda"),
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.6rem',fontWeight:'900',color:simCompra.resultado.pctRenda>30?'#fca5a5':'#86efac'}}, simCompra.resultado.pctRenda.toFixed(1)+"%")
+                )
+              )
+            ),
+            /*#__PURE__*/React.createElement("div", {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, "📋 Resumo"),
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'10px'}},
+                /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.8rem',color:'#6b7280'}}, "Total Pago"),
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.9rem',fontWeight:'800',color:'#111827'}}, "R$ "+simCompra.resultado.totalPago.toFixed(2))
+                ),
+                simCompra.resultado.tipo==='parcelado' && /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.8rem',color:'#6b7280'}}, "Juros Totais"),
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.9rem',fontWeight:'800',color:'#ef4444'}}, "R$ "+simCompra.resultado.totalJuros.toFixed(2))
+                ),
+                simCompra.resultado.tipo==='parcelado' && /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.8rem',color:'#6b7280'}}, "Prazo"),
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.9rem',fontWeight:'800',color:'#111827'}}, simCompra.resultado.meses+" meses")
+                ),
+                /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.8rem',color:'#6b7280'}}, simCompra.resultado.tipo==='parcelado'?"Saldo Após Parcela":"Saldo Após Compra"),
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.9rem',fontWeight:'800',color:(simCompra.resultado.novoSaldo??simCompra.resultado.novoSaldoMensal)>=0?'#10b981':'#ef4444'}}, "R$ "+(simCompra.resultado.novoSaldo??simCompra.resultado.novoSaldoMensal).toFixed(2))
+                )
+              )
+            )
+          ),
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, "📏 Regra dos 30%"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem',color:'#374151',lineHeight:1.6,marginBottom:'12px'}}, "Especialistas recomendam que nenhuma compra comprometa mais de ", /*#__PURE__*/React.createElement("strong", null, "30% da renda mensal.")),
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'8px'}},
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between'}},
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem',color:'#6b7280'}}, "Limite recomendado"),
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.8rem',fontWeight:'800',color:'#10b981'}}, "R$ "+(saldo.receitas*0.3).toFixed(0))
+            ),
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between'}},
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem',color:'#6b7280'}}, "Sua renda mensal"),
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.8rem',fontWeight:'800',color:'#111827'}}, "R$ "+saldo.receitas.toFixed(0))
+            )
+          )
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(135deg,#ede9fe,#ddd6fe)',borderRadius:'16px',padding:'16px',border:'1px solid #ddd6fe'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem',fontWeight:'700',color:'#5b21b6',marginBottom:'8px'}}, "⚡ À Vista vs Parcelado"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem',color:'#4c1d95',lineHeight:1.6}}, "Parcelado parece mais barato, mas os juros acumulam. Se tiver o valor disponível, pagar à vista sempre sai mais em conta.")
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(135deg,#fef3c7,#fde68a)',borderRadius:'16px',padding:'16px',border:'1px solid #fde68a'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem',fontWeight:'700',color:'#92400e',marginBottom:'6px'}}, "💡 Dica"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem',color:'#78350f',lineHeight:1.5}},
+            simCompra.resultado
+              ? simCompra.resultado.viavel
+                ? simCompra.resultado.pctRenda < 15
+                  ? "Ótima compra! O impacto na sua renda é baixo e cabe bem no orçamento."
+                  : "Compra viável, mas representa uma fatia significativa da sua renda."
+                : "Esta compra compromete seu saldo. Considere poupar antes ou parcelar em mais vezes."
+              : "Preencha os dados para receber uma análise personalizada da compra."
+          )
+        )
+      )
+    )
+  ),
 
-        // Mostrar resultado
-        const divResultado = document.getElementById('simResultado');
-        const valorParcela = valor / parcelas;
+  (abaAtiva === 'simulacoes' && subAba === 'simulador') && /*#__PURE__*/React.createElement("div", {className:"space-y-3"},
+    /*#__PURE__*/React.createElement("div", {style:{display:'flex',gap:'8px',marginBottom:'16px'}},
+      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-compra'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#f3f4f6',color:'#6b7280'}}, "🛒 Simul. Compra"),
+      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-simulador'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#6366f1',color:'#fff'}}, "🎲 Simulador")
+    ),
+    /*#__PURE__*/React.createElement("div", {style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+        /*#__PURE__*/React.createElement("div", {style:{background:saldo.positivo?'linear-gradient(135deg,#1e1b4b,#312e81)':'linear-gradient(135deg,#7f1d1d,#991b1b)',borderRadius:'16px',padding:'20px',color:'#fff',border:'1px solid rgba(255,255,255,0.1)',boxShadow:'0 4px 24px rgba(0,0,0,0.3)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'14px'}}, "📊 Situação Atual"),
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'10px'}},
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem',opacity:0.7}}, "Receitas"),
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.95rem',fontWeight:'800'}}, "R$ "+saldo.receitas.toFixed(2))
+            ),
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem',opacity:0.7}}, "Despesas"),
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.95rem',fontWeight:'800'}}, "R$ "+totais.total.toFixed(2))
+            ),
+            /*#__PURE__*/React.createElement("div", {style:{borderTop:'1px solid rgba(255,255,255,0.15)',paddingTop:'10px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem',opacity:0.7}}, "Saldo"),
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.3rem',fontWeight:'900',color:saldo.positivo?'#86efac':'#fca5a5'}}, "R$ "+saldo.saldo.toFixed(2))
+            ),
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem',opacity:0.7}}, "Score Saúde"),
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.1rem',fontWeight:'900',color:'#fde68a'}}, scoreSaude.score+" pts")
+            )
+          )
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, "⚡ Cenários Rápidos"),
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'8px'}},
+            /*#__PURE__*/React.createElement("button", {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:0}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #d1fae5',background:simulacao.rendaAjuste===20&&simulacao.gastosAjuste===0?'#d1fae5':'#fff',cursor:'pointer'}},
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex',alignItems:'center',gap:'10px'}},
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.3rem'}}, "📈"),
+                /*#__PURE__*/React.createElement("div", null,
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem',fontWeight:'700',color:'#065f46'}}, "Promoção +20%"),
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem',color:'#6b7280'}}, "Aumento de renda")
+                )
+              )
+            ),
+            /*#__PURE__*/React.createElement("button", {onClick:()=>setSimulacao({...simulacao,rendaAjuste:0,gastosAjuste:-20}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #dbeafe',background:simulacao.rendaAjuste===0&&simulacao.gastosAjuste===-20?'#dbeafe':'#fff',cursor:'pointer'}},
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex',alignItems:'center',gap:'10px'}},
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.3rem'}}, "💰"),
+                /*#__PURE__*/React.createElement("div", null,
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem',fontWeight:'700',color:'#1e40af'}}, "Economizar -20%"),
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem',color:'#6b7280'}}, "Redução de gastos")
+                )
+              )
+            ),
+            /*#__PURE__*/React.createElement("button", {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:-20}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #ede9fe',background:simulacao.rendaAjuste===20&&simulacao.gastosAjuste===-20?'#ede9fe':'#fff',cursor:'pointer'}},
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex',alignItems:'center',gap:'10px'}},
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.3rem'}}, "🚀"),
+                /*#__PURE__*/React.createElement("div", null,
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem',fontWeight:'700',color:'#5b21b6'}}, "Combo Perfeito"),
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem',color:'#6b7280'}}, "+20% renda e -20% gastos")
+                )
+              )
+            ),
+            /*#__PURE__*/React.createElement("button", {onClick:()=>setSimulacao({rendaAjuste:0,gastosAjuste:0,quitarDivida:null,novaReceita:0,novaDespesa:0}),style:{width:'100%',padding:'10px',borderRadius:'10px',border:'2px solid #f3f4f6',background:'#fff',cursor:'pointer',fontSize:'0.75rem',fontWeight:'700',color:'#9ca3af'}}, "🔄 Resetar")
+          )
+        )
+      ),
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'18px'}}, "🎮 Ajuste os Valores"),
+          /*#__PURE__*/React.createElement("div", {style:{marginBottom:'20px'}},
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}},
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.8rem',fontWeight:'700',color:'#374151'}}, "💰 Ajuste de Renda"),
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.9rem',fontWeight:'900',color:simulacao.rendaAjuste>0?'#10b981':simulacao.rendaAjuste<0?'#ef4444':'#6b7280'}}, (simulacao.rendaAjuste>0?'+':'')+simulacao.rendaAjuste+"%")
+            ),
+            /*#__PURE__*/React.createElement("input", {type:"range",min:"-50",max:"100",step:"1",value:simulacao.rendaAjuste,onChange:e=>setSimulacao({...simulacao,rendaAjuste:parseFloat(e.target.value)}),style:{width:'100%',accentColor:'#10b981',cursor:'pointer'}}),
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',fontSize:'0.65rem',color:'#9ca3af',marginTop:'4px'}},
+              /*#__PURE__*/React.createElement("span", null, "-50%"),
+              /*#__PURE__*/React.createElement("span", null, "+100%")
+            )
+          ),
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}},
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.8rem',fontWeight:'700',color:'#374151'}}, "📉 Ajuste de Gastos"),
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.9rem',fontWeight:'900',color:simulacao.gastosAjuste<0?'#10b981':simulacao.gastosAjuste>0?'#ef4444':'#6b7280'}}, (simulacao.gastosAjuste>0?'+':'')+simulacao.gastosAjuste+"%")
+            ),
+            /*#__PURE__*/React.createElement("input", {type:"range",min:"-50",max:"50",step:"1",value:simulacao.gastosAjuste,onChange:e=>setSimulacao({...simulacao,gastosAjuste:parseFloat(e.target.value)}),style:{width:'100%',accentColor:'#6366f1',cursor:'pointer'}}),
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',fontSize:'0.65rem',color:'#9ca3af',marginTop:'4px'}},
+              /*#__PURE__*/React.createElement("span", null, "-50%"),
+              /*#__PURE__*/React.createElement("span", null, "+50%")
+            )
+          )
+        ),
+        /*#__PURE__*/React.createElement("div", {
+          style:{
+            background: simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0 ? 'linear-gradient(135deg,#f8fafc,#f1f5f9)' : (saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))>=0 ? 'linear-gradient(135deg,#064e3b,#065f46)' : 'linear-gradient(135deg,#7f1d1d,#991b1b)',
+            borderRadius:'16px',padding:'20px',
+            color: simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0?'#64748b':'#fff',
+            border: simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0?'2px dashed #e2e8f0':'1px solid rgba(255,255,255,0.2)',
+            boxShadow: simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0?'none':'0 4px 24px rgba(0,0,0,0.25)'
+          }
+        },
+          simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0
+            ? /*#__PURE__*/React.createElement("div", {style:{textAlign:'center',padding:'10px 0'}},
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'2.5rem',marginBottom:'8px',opacity:0.4}}, "🎲"),
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem',fontWeight:'600'}}, "Mova os controles para ver o cenário simulado")
+              )
+            : /*#__PURE__*/React.createElement("div", null,
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'14px'}}, "🔮 Cenário Simulado"),
+                /*#__PURE__*/React.createElement("div", {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}},
+                  /*#__PURE__*/React.createElement("div", null,
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, "Receitas"),
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'1rem',fontWeight:'900'}}, "R$ "+(saldo.receitas*(1+simulacao.rendaAjuste/100)).toFixed(0)),
+                    simulacao.rendaAjuste!==0&&/*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem',color:simulacao.rendaAjuste>=0?'#86efac':'#fca5a5'}}, (simulacao.rendaAjuste>=0?'▲ +':'▼ ')+"R$ "+Math.abs(saldo.receitas*simulacao.rendaAjuste/100).toFixed(0))
+                  ),
+                  /*#__PURE__*/React.createElement("div", null,
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, "Despesas"),
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'1rem',fontWeight:'900'}}, "R$ "+(totais.total*(1+simulacao.gastosAjuste/100)).toFixed(0)),
+                    simulacao.gastosAjuste!==0&&/*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem',color:simulacao.gastosAjuste<=0?'#86efac':'#fca5a5'}}, (simulacao.gastosAjuste>=0?'▲ +':'▼ ')+"R$ "+Math.abs(totais.total*simulacao.gastosAjuste/100).toFixed(0))
+                  ),
+                  /*#__PURE__*/React.createElement("div", null,
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, "Saldo"),
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.2rem',fontWeight:'900',color:(saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))>=0?'#86efac':'#fca5a5'}}, "R$ "+(saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100)).toFixed(0))
+                  ),
+                  /*#__PURE__*/React.createElement("div", null,
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, "Score Est."),
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.2rem',fontWeight:'900',color:'#fde68a'}},
+                      Math.min(100, Math.max(0,
+                        ((saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))>=0?30:0)+
+                        (totais.total*(1+simulacao.gastosAjuste/100)<=saldo.receitas*(1+simulacao.rendaAjuste/100)*0.9?25:0)+
+                        Math.min(30,Math.floor(reservaEmergencia/(totais.total*(1+simulacao.gastosAjuste/100)*6)*30))
+                      ))+" pts"
+                    )
+                  )
+                )
+              )
+        )
+      ),
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, "🔬 Análise de Impacto"),
+          simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0
+            ? /*#__PURE__*/React.createElement("div", {style:{textAlign:'center',padding:'20px 0',color:'#d1d5db'}},
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'2rem',marginBottom:'8px'}}, "⬆️"),
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem'}}, "Ajuste os controles para ver a análise")
+              )
+            : /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'10px'}},
+                /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem',color:'#6b7280'}}, "Taxa Poupança"),
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.9rem',fontWeight:'800',color:((saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))/saldo.receitas*(1+simulacao.rendaAjuste/100)*100)>=20?'#10b981':((saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))/saldo.receitas*(1+simulacao.rendaAjuste/100)*100)>=10?'#f59e0b':'#ef4444'}},
+                    Math.max(0,(saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))/(saldo.receitas*(1+simulacao.rendaAjuste/100))*100).toFixed(1)+"%"
+                  )
+                ),
+                (saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))>0&&/*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem',color:'#6b7280'}}, "Poupança/mês"),
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.9rem',fontWeight:'800',color:'#6366f1'}}, "R$ "+(saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100)).toFixed(0))
+                ),
+                (saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))>0&&/*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem',color:'#6b7280'}}, "Poupança/ano"),
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.9rem',fontWeight:'800',color:'#10b981'}}, "R$ "+((saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))*12).toFixed(0))
+                )
+              )
+        ),
+        /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(135deg,#fef3c7,#fde68a)',borderRadius:'16px',padding:'16px',border:'1px solid #fde68a'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem',fontWeight:'700',color:'#92400e',marginBottom:'6px'}}, "💡 Meta Recomendada"),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem',color:'#78350f',lineHeight:1.5}},
+            "Economistas recomendam poupar pelo menos ",
+            /*#__PURE__*/React.createElement("strong", null, "20% da renda"),
+            ". Com sua renda isso seria ",
+            /*#__PURE__*/React.createElement("strong", null, "R$ "+(saldo.receitas*0.2).toFixed(0)+"/mês"),
+            "."
+          )
+        )
+      )
+    )
+)))
 
-        // Buscar dados atuais
-        const saldoAtual = saldo.saldo;
-        const receitasMensal = saldo.receitas;
-        const despesasMensal = totais.total;
-        const orcamentoTotal = orcadoTotal;
-        const impactoMensal = forma === 'avista' ? valor : valorParcela;
-        const novasDespesas = despesasMensal + impactoMensal;
-        const novoSaldo = receitasMensal - novasDespesas;
-        const percentualRenda = impactoMensal / receitasMensal * 100;
-        const comprometimentoTotal = novasDespesas / receitasMensal * 100;
-        const sufoca = comprometimentoTotal > 90 || novoSaldo < 0;
-        let html = `
-                          <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-                            <h4 class="text-xl font-bold mb-4">📊 Resultado da Simulação</h4>
-                            
-                            <div class="bg-white bg-opacity-20 rounded-lg p-4 mb-4">
-                              <div class="text-sm opacity-90 mb-1">Produto</div>
-                              <div class="text-2xl font-bold">${nome}</div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4 mb-4">
-                              <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                                <div class="text-sm opacity-90 mb-1">Valor Total</div>
-                                <div class="text-xl font-bold">R$ ${valor.toFixed(2)}</div>
-                              </div>
-                              <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                                <div class="text-sm opacity-90 mb-1">${forma === 'avista' ? 'Pagamento' : 'Parcelas'}</div>
-                                <div class="text-xl font-bold">${forma === 'avista' ? 'À Vista' : parcelas + 'x'}</div>
-                              </div>
-                            </div>
-
-                            ${forma === 'parcelado' ? `
-                              <div class="bg-white bg-opacity-20 rounded-lg p-4 mb-4">
-                                <div class="text-sm opacity-90 mb-1">Valor por Parcela</div>
-                                <div class="text-2xl font-bold">R$ ${valorParcela.toFixed(2)}</div>
-                              </div>
-                            ` : ''}
-                          </div>
-                        `;
-        html += `
-                          <div class="bg-white rounded-xl shadow-lg p-6 mt-4">
-                            <h4 class="text-lg font-bold text-gray-800 mb-4">💰 Impacto no Orçamento</h4>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                              <div class="border-2 border-gray-200 rounded-lg p-4">
-                                <div class="text-sm text-gray-600 mb-1">Suas Receitas</div>
-                                <div class="text-xl font-bold text-green-600">R$ ${receitasMensal.toFixed(2)}</div>
-                              </div>
-                              <div class="border-2 border-gray-200 rounded-lg p-4">
-                                <div class="text-sm text-gray-600 mb-1">Despesas Atuais</div>
-                                <div class="text-xl font-bold text-orange-600">R$ ${despesasMensal.toFixed(2)}</div>
-                              </div>
-                              <div class="border-2 border-gray-200 rounded-lg p-4">
-                                <div class="text-sm text-gray-600 mb-1">Saldo Atual</div>
-                                <div class="text-xl font-bold ${saldoAtual >= 0 ? 'text-green-600' : 'text-red-600'}">
-                                  R$ ${saldoAtual.toFixed(2)}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div class="border-t-2 border-gray-200 pt-4 mt-4">
-                              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                                  <div class="text-sm text-blue-700 mb-1">Impacto Mensal</div>
-                                  <div class="text-2xl font-bold text-blue-600">R$ ${impactoMensal.toFixed(2)}</div>
-                                  <div class="text-xs text-blue-600 mt-1">${percentualRenda.toFixed(1)}% da renda</div>
-                                </div>
-                                <div class="${sufoca ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'} border-2 rounded-lg p-4">
-                                  <div class="text-sm ${sufoca ? 'text-red-700' : 'text-green-700'} mb-1">Novo Saldo</div>
-                                  <div class="text-2xl font-bold ${sufoca ? 'text-red-600' : 'text-green-600'}">
-                                    R$ ${novoSaldo.toFixed(2)}
-                                  </div>
-                                  <div class="text-xs ${sufoca ? 'text-red-600' : 'text-green-600'} mt-1">
-                                    ${novoSaldo >= 0 ? 'Sobrando' : 'Faltando'}
-                                  </div>
-                                </div>
-                                <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
-                                  <div class="text-sm text-purple-700 mb-1">Renda Comprometida</div>
-                                  <div class="text-2xl font-bold ${comprometimentoTotal > 90 ? 'text-red-600' : 'text-purple-600'}">
-                                    ${comprometimentoTotal.toFixed(0)}%
-                                  </div>
-                                  <div class="text-xs text-purple-600 mt-1">
-                                    ${comprometimentoTotal <= 70 ? '✅ Saudável' : comprometimentoTotal <= 90 ? '⚠️ Atenção' : '🚨 Crítico'}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div class="mt-4 p-4 rounded-lg ${sufoca ? 'bg-red-50 border-2 border-red-200' : 'bg-green-50 border-2 border-green-200'}">
-                              <div class="flex items-start gap-3">
-                                <div class="text-2xl">${sufoca ? '🚨' : '✅'}</div>
-                                <div class="flex-1">
-                                  <div class="font-bold ${sufoca ? 'text-red-800' : 'text-green-800'} mb-2">
-                                    ${sufoca ? 'ATENÇÃO: Esta compra pode sufocar seu orçamento!' : 'Esta compra está dentro do seu orçamento!'}
-                                  </div>
-                                  <div class="text-sm ${sufoca ? 'text-red-700' : 'text-green-700'}">
-                                    ${sufoca ? 'Com essa compra, você ficará com ' + comprometimentoTotal.toFixed(0) + '% da renda comprometida. ' + (novoSaldo < 0 ? 'Você terá déficit de R$ ' + Math.abs(novoSaldo).toFixed(2) + ' no mês. ' : '') + 'Considere reduzir gastos ou aumentar o prazo de pagamento.' : 'Você ainda terá R$ ' + novoSaldo.toFixed(2) + ' sobrando por mês. Está dentro do recomendado manter menos de 70% da renda comprometida.'}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            ${forma === 'parcelado' ? `
-                              <div class="mt-4 bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                                <div class="font-bold text-blue-800 mb-2">📅 Cronograma de Pagamento</div>
-                                <div class="text-sm text-blue-700">
-                                  Primeira parcela: ${new Date(mesPagamento + '-01').toLocaleDateString('pt-BR', {
-          month: 'long',
-          year: 'numeric'
-        })}<br>
-                                  Última parcela: ${(() => {
-          const data = new Date(mesPagamento + '-01');
-          data.setMonth(data.getMonth() + parcelas - 1);
-          return data.toLocaleDateString('pt-BR', {
-            month: 'long',
-            year: 'numeric'
-          });
-        })()}<br>
-                                  Durante ${parcelas} meses você terá um compromisso de R$ ${valorParcela.toFixed(2)} mensais.
-                                </div>
-                              </div>
-                            ` : ''}
-                          </div>
-                        `;
-        divResultado.innerHTML = html;
-        divResultado.style.display = 'block';
-      },
-      style: {
-        width: "100%",
-        padding: "12px 24px",
-        background: "linear-gradient(135deg, #6366f1, #10b981)",
-        color: "#fff",
-        border: "none",
-        borderRadius: "12px",
-        fontWeight: "700",
-        cursor: "pointer",
-        boxShadow: "0 4px 16px rgba(99,102,241,0.4)"
-      }
-    }, "\uD83D\uDD0D Simular Compra"))), /*#__PURE__*/React.createElement("div", {
-      id: "simResultado",
-      style: {
-        display: 'none'
-      }
-    }), /*#__PURE__*/React.createElement("div", {
-      className: "bg-gradient-to-r from-green-500 to-teal-600 rounded-xl shadow-lg p-6 text-white"
-    }, /*#__PURE__*/React.createElement("h4", {
-      className: "text-lg font-bold mb-3"
-    }, "\uD83D\uDCA1 Dicas para uma Compra Consciente"), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-2 text-sm"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex items-start gap-2"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-lg"
-    }, "\u2705"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Mantenha at\xE9 70% da renda comprometida:"), " Isso garante margem para imprevistos")), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-start gap-2"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-lg"
-    }, "\u2705"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Compare \xE0 vista vs parcelado:"), " \xC0s vezes o desconto \xE0 vista compensa")), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-start gap-2"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-lg"
-    }, "\u2705"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Avalie a necessidade:"), " \xC9 desejo ou necessidade? Pode esperar?")), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-start gap-2"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-lg"
-    }, "\u2705"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Considere sua reserva de emerg\xEAncia:"), " N\xE3o comprometa seu fundo de emerg\xEAncia"))),
-(abaAtiva === 'simulacoes' && subAba === 'simulador') && /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {display:'flex', gap:'8px', marginBottom:'4px'}
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-compra'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='compra'?'#6366f1':'#f3f4f6', color: subAba==='compra'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "🛒 Simul. Compra"), /*#__PURE__*/React.createElement("button", {
-      onClick: ()=>setTelaAtiva('planejamento-simulador'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='simulador'?'#6366f1':'#f3f4f6', color: subAba==='simulador'?'#fff':'#6b7280', transition:'all 0.15s'}
-    }, "🎲 Simulador")),
-    /*#__PURE__*/React.createElement("div", {
-      className: "text-lg font-bold text-gray-800"
-    }, "\uD83C\uDFB2 Simulador de Cen\xE1rios"), /*#__PURE__*/React.createElement("p", {
-      className: "text-gray-600"
-    }, "Veja o impacto de mudan\xE7as nas suas finan\xE7as")), /*#__PURE__*/React.createElement("div", {
-      className: "bg-gradient-to-r from-gray-600 to-gray-700 rounded-xl shadow-lg p-6 text-white"
-    }, /*#__PURE__*/React.createElement("h4", {
-      className: "text-xl font-bold mb-4"
-    }, "\uD83D\uDCCA Cen\xE1rio Atual"), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-2 md:grid-cols-4 gap-4"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-75"
-    }, "Receitas"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold"
-    }, "R$ ", saldo.receitas.toFixed(2))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-75"
-    }, "Despesas"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold"
-    }, "R$ ", totais.total.toFixed(2))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-75"
-    }, "Saldo"), /*#__PURE__*/React.createElement("div", {
-      className: `text-2xl font-bold ${saldo.positivo ? 'text-green-300' : 'text-red-300'}`
-    }, "R$ ", saldo.saldo.toFixed(2))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm opacity-75"
-    }, "Score"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold"
-    }, scoreSaude.score)))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h4", {
-      className: "text-lg font-bold text-gray-800 mb-4"
-    }, "\uD83C\uDFAE Ajuste os Valores"), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-1 md:grid-cols-2 gap-3"
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-      className: "block text-sm font-semibold text-gray-700 mb-2"
-    }, "\uD83D\uDCB0 Ajuste de Renda (%)"), /*#__PURE__*/React.createElement("input", {
-      type: "range",
-      min: "-50",
-      max: "100",
-      value: simulacao.rendaAjuste,
-      onChange: e => setSimulacao({
-        ...simulacao,
-        rendaAjuste: parseFloat(e.target.value)
-      }),
-      className: "w-full"
-    }), /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between text-sm mt-2"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "text-red-600"
-    }, "-50%"), /*#__PURE__*/React.createElement("span", {
-      className: `font-bold ${simulacao.rendaAjuste >= 0 ? 'text-green-600' : 'text-red-600'}`
-    }, simulacao.rendaAjuste > 0 ? '+' : '', simulacao.rendaAjuste, "%"), /*#__PURE__*/React.createElement("span", {
-      className: "text-green-600"
-    }, "+100%"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-      className: "block text-sm font-semibold text-gray-700 mb-2"
-    }, "\uD83D\uDCC9 Ajuste de Gastos (%)"), /*#__PURE__*/React.createElement("input", {
-      type: "range",
-      min: "-50",
-      max: "50",
-      value: simulacao.gastosAjuste,
-      onChange: e => setSimulacao({
-        ...simulacao,
-        gastosAjuste: parseFloat(e.target.value)
-      }),
-      className: "w-full"
-    }), /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between text-sm mt-2"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "text-green-600"
-    }, "-50%"), /*#__PURE__*/React.createElement("span", {
-      className: `font-bold ${simulacao.gastosAjuste <= 0 ? 'text-green-600' : 'text-red-600'}`
-    }, simulacao.gastosAjuste > 0 ? '+' : '', simulacao.gastosAjuste, "%"), /*#__PURE__*/React.createElement("span", {
-      className: "text-red-600"
-    }, "+50%")))), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setSimulacao({
-        rendaAjuste: 0,
-        gastosAjuste: 0,
-        quitarDivida: null,
-        novaReceita: 0,
-        novaDespesa: 0
-      }),
-      className: "mt-4 px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
-    }, "\uD83D\uDD04 Resetar")), (() => {
-      const receitaSimulada = saldo.receitas * (1 + simulacao.rendaAjuste / 100);
-      const despesaSimulada = totais.total * (1 + simulacao.gastosAjuste / 100);
-      const saldoSimulado = receitaSimulada - despesaSimulada;
-      const positivoSimulado = saldoSimulado >= 0;
-
-      // Calcular novo score
-      let scoreSimulado = 0;
-      if (positivoSimulado) scoreSimulado += 30;
-      if (despesaSimulada <= receitaSimulada * 0.9) scoreSimulado += 25;
-      scoreSimulado += Math.min(30, Math.floor(reservaEmergencia / (despesaSimulada * 6) * 30));
-      if (positivoSimulado) scoreSimulado += Math.min(15, Math.floor(saldoSimulado / receitaSimulada * 100 / 20 * 15));
-      const diferenca = {
-        receita: receitaSimulada - saldo.receitas,
-        despesa: despesaSimulada - totais.total,
-        saldo: saldoSimulado - saldo.saldo,
-        score: scoreSimulado - scoreSaude.score
-      };
-      return /*#__PURE__*/React.createElement("div", {
-        style: {
-          background: 'linear-gradient(135deg, #6366f1 0%, #10b981 100%)',
-          borderRadius: '16px',
-          boxShadow: '0 8px 24px rgba(99,102,241,0.3)',
-          padding: '1.5rem',
-          color: '#fff'
-        }
-      }, /*#__PURE__*/React.createElement("h4", {
-        className: "text-xl font-bold mb-4"
-      }, "\uD83D\uDD2E Cen\xE1rio Simulado"), /*#__PURE__*/React.createElement("div", {
-        className: "grid grid-cols-2 md:grid-cols-4 gap-4 mb-3"
-      }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm opacity-75"
-      }, "Receitas"), /*#__PURE__*/React.createElement("div", {
-        className: "text-2xl font-bold"
-      }, "R$ ", receitaSimulada.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-        className: `text-sm ${diferenca.receita >= 0 ? 'text-green-300' : 'text-red-300'}`
-      }, diferenca.receita >= 0 ? '▲' : '▼', " R$ ", Math.abs(diferenca.receita).toFixed(2))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm opacity-75"
-      }, "Despesas"), /*#__PURE__*/React.createElement("div", {
-        className: "text-2xl font-bold"
-      }, "R$ ", despesaSimulada.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-        className: `text-sm ${diferenca.despesa <= 0 ? 'text-green-300' : 'text-red-300'}`
-      }, diferenca.despesa >= 0 ? '▲' : '▼', " R$ ", Math.abs(diferenca.despesa).toFixed(2))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm opacity-75"
-      }, "Saldo"), /*#__PURE__*/React.createElement("div", {
-        className: `text-2xl font-bold ${positivoSimulado ? 'text-green-300' : 'text-red-300'}`
-      }, "R$ ", saldoSimulado.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-        className: `text-sm ${diferenca.saldo >= 0 ? 'text-green-300' : 'text-red-300'}`
-      }, diferenca.saldo >= 0 ? '▲' : '▼', " R$ ", Math.abs(diferenca.saldo).toFixed(2))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm opacity-75"
-      }, "Score"), /*#__PURE__*/React.createElement("div", {
-        className: "text-2xl font-bold"
-      }, scoreSimulado), /*#__PURE__*/React.createElement("div", {
-        className: `text-sm ${diferenca.score >= 0 ? 'text-green-300' : 'text-red-300'}`
-      }, diferenca.score >= 0 ? '▲' : '▼', " ", Math.abs(diferenca.score), " pts"))), /*#__PURE__*/React.createElement("div", {
-        className: "bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm"
-      }, /*#__PURE__*/React.createElement("h5", {
-        className: "font-bold mb-2"
-      }, "\uD83D\uDCCA An\xE1lise de Impacto:"), /*#__PURE__*/React.createElement("div", {
-        className: "space-y-1 text-sm"
-      }, diferenca.saldo > 0 && /*#__PURE__*/React.createElement("div", null, "\u2705 Melhora no saldo mensal de R$ ", diferenca.saldo.toFixed(2)), diferenca.saldo < 0 && /*#__PURE__*/React.createElement("div", null, "\u26A0\uFE0F Piora no saldo mensal de R$ ", Math.abs(diferenca.saldo).toFixed(2)), diferenca.score > 0 && /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCC8 Score de sa\xFAde aumenta ", diferenca.score, " pontos"), diferenca.score < 0 && /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCC9 Score de sa\xFAde diminui ", Math.abs(diferenca.score), " pontos"), positivoSimulado && !saldo.positivo && /*#__PURE__*/React.createElement("div", null, "\uD83C\uDF89 Voc\xEA sairia do vermelho!"), !positivoSimulado && saldo.positivo && /*#__PURE__*/React.createElement("div", null, "\uD83D\uDEA8 Voc\xEA entraria no vermelho!"))));
-    })(), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h4", {
-      className: "text-lg font-bold text-gray-800 mb-4"
-    }, "\u26A1 Cen\xE1rios R\xE1pidos"), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-1 md:grid-cols-3 gap-4"
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => setSimulacao({
-        ...simulacao,
-        rendaAjuste: 20,
-        gastosAjuste: 0
-      }),
-      className: "p-4 border-2 border-green-200 rounded-lg hover:bg-green-50 text-left"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl mb-2"
-    }, "\uD83D\uDCC8"), /*#__PURE__*/React.createElement("div", {
-      className: "font-bold text-gray-800"
-    }, "Promo\xE7\xE3o +20%"), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "Aumento de renda")), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setSimulacao({
-        ...simulacao,
-        rendaAjuste: 0,
-        gastosAjuste: -20
-      }),
-      className: "p-4 border-2 border-blue-200 rounded-lg hover:bg-blue-50 text-left"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl mb-2"
-    }, "\uD83D\uDCB0"), /*#__PURE__*/React.createElement("div", {
-      className: "font-bold text-gray-800"
-    }, "Economia -20%"), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "Redu\xE7\xE3o de gastos")), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setSimulacao({
-        ...simulacao,
-        rendaAjuste: 20,
-        gastosAjuste: -20
-      }),
-      className: "p-4 border-2 border-purple-200 rounded-lg hover:bg-purple-50 text-left"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl mb-2"
-    }, "\uD83D\uDE80"), /*#__PURE__*/React.createElement("div", {
-      className: "font-bold text-gray-800"
-    }, "Combo Perfeito"), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600"
-    }, "+20% renda, -20% gastos")))))))
   };
   const TelaFarol = () => {
     const [filtroStatus, setFiltroStatus] = useState('todos');
