@@ -880,6 +880,7 @@ function App({
     return meses[new Date().getMonth()];
   });
   const [telaAtiva, setTelaAtiva] = useState('dashboard');
+  const [sidebarExpandida, setSidebarExpandida] = useState(true);
   const [modalAberto, setModalAberto] = useState(null);
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
@@ -6680,20 +6681,9 @@ function App({
       padding: '8px 16px',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: '12px'
-    }
-  }, /*#__PURE__*/React.createElement(UserMenu, {
-    user: user,
-    onLogout: async () => {
-      ['cartoes', 'gastosFixos', 'gastosVariaveis', 'gastosExtras', 'receitas', 'orcamentos', 'metasMensais', 'metasFinanceiras', 'planejados', 'dividas', 'categorias', 'farol', '_currentUserId'].forEach(k => localStorage.removeItem(k));
-      await firebase.auth().signOut();
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      left: '50%',
-      transform: 'translateX(-50%)'
+      justifyContent: 'center',
+      gap: '12px',
+      position: 'relative'
     }
   }, /*#__PURE__*/React.createElement("img", {
     src: window.LOGO_B64,
@@ -6703,38 +6693,30 @@ function App({
       width: 'auto',
       objectFit: 'contain'
     }
-  })), /*#__PURE__*/React.createElement("select", {
-    value: anoAtual,
-    onChange: e => setAnoAtual(parseInt(e.target.value)),
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '6px 10px',
-      borderRadius: '8px',
-      border: '1px solid rgba(99,102,241,0.5)',
-      background: 'rgba(255,255,255,0.08)',
-      color: '#fff',
-      fontSize: '0.875rem',
-      fontWeight: '600',
-      cursor: 'pointer',
-      minWidth: '85px'
+      position: 'absolute',
+      right: '16px'
     }
-  }, [2024, 2025, 2026, 2027, 2028, 2029, 2030].map(ano => /*#__PURE__*/React.createElement("option", {
-    key: ano,
-    value: ano,
-    style: {
-      background: '#1a1a4e'
+  }, /*#__PURE__*/React.createElement(UserMenu, {
+    user: user,
+    onLogout: async () => {
+      ['cartoes', 'gastosFixos', 'gastosVariaveis', 'gastosExtras', 'receitas', 'orcamentos', 'metasMensais', 'metasFinanceiras', 'planejados', 'dividas', 'categorias', 'farol', '_currentUserId'].forEach(k => localStorage.removeItem(k));
+      await firebase.auth().signOut();
     }
-  }, ano))))), /*#__PURE__*/React.createElement(Sidebar, {
+  })))), /*#__PURE__*/React.createElement(Sidebar, {
     telaAtiva: telaAtiva,
     setTelaAtiva: setTelaAtiva,
     mesAtual: mesAtual,
     setMesAtual: setMesAtual,
     anoAtual: anoAtual,
     setAnoAtual: setAnoAtual,
-    isUserAdmin: isUserAdmin
+    isUserAdmin: isUserAdmin,
+    onExpandChange: (expandido) => setSidebarExpandida(expandido)
   }), /*#__PURE__*/React.createElement("div", {
     className: "main-content-area",
     style: {
-      marginLeft: '260px',
+      marginLeft: sidebarExpandida ? '260px' : '72px',
       transition: 'margin-left 0.3s ease',
       display: !isUserAdmin && planoInfo.plano === 'trial' && planoInfo.expirado ? 'none' : 'block'
     }

@@ -1,10 +1,17 @@
-// Sidebar - Menu lateral retrátil
-window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtual, anoAtual, setAnoAtual, isUserAdmin }) {
+// Sidebar v2 - Menu lateral retrátil com calendário
+window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtual, anoAtual, setAnoAtual, isUserAdmin, onExpandChange }) {
   const [expandido, setExpandido] = React.useState(true);
   const [subMenu, setSubMenu] = React.useState(null);
+  const [mostrarCalendario, setMostrarCalendario] = React.useState(false);
 
   const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const mesesNome = {jan:'Janeiro',fev:'Fevereiro',mar:'Março',abr:'Abril',mai:'Maio',jun:'Junho',jul:'Julho',ago:'Agosto',set:'Setembro',out:'Outubro',nov:'Novembro',dez:'Dezembro'};
+
+  const toggleExpandido = () => {
+    const novoEstado = !expandido;
+    setExpandido(novoEstado);
+    if (onExpandChange) onExpandChange(novoEstado);
+  };
 
   const navegar = (tela) => {
     setTelaAtiva(tela);
@@ -15,23 +22,13 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
     setSubMenu(subMenu === menu ? null : menu);
   };
 
-  const mudarMes = (direcao) => {
-    const idx = meses.indexOf(mesAtual);
-    if (direcao === 'prev') {
-      if (idx === 0) {
-        setMesAtual('dez');
-        setAnoAtual(anoAtual - 1);
-      } else {
-        setMesAtual(meses[idx - 1]);
-      }
-    } else {
-      if (idx === 11) {
-        setMesAtual('jan');
-        setAnoAtual(anoAtual + 1);
-      } else {
-        setMesAtual(meses[idx + 1]);
-      }
-    }
+  const selecionarMes = (mes) => {
+    setMesAtual(mes);
+    setMostrarCalendario(false);
+  };
+
+  const mudarAno = (direcao) => {
+    setAnoAtual(anoAtual + (direcao === 'next' ? 1 : -1));
   };
 
   const itemStyle = (ativo) => ({
@@ -104,7 +101,7 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
         }
       }, '💰 Estratégia'),
       React.createElement('button', {
-        onClick: () => setExpandido(!expandido),
+        onClick: toggleExpandido,
         style: {
           width: '36px',
           height: '36px',
@@ -123,71 +120,148 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
       }, expandido ? '◀' : '▶')
     ),
 
-    // Seletor de mês
+    // Calendário de meses
     React.createElement('div', {
       style: {
-        padding: '12px 16px',
-        borderBottom: '1px solid rgba(255,255,255,0.1)'
+        padding: '12px',
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        position: 'relative'
       }
     },
-      React.createElement('div', {
+      // Botão principal
+      React.createElement('button', {
+        onClick: () => expandido && setMostrarCalendario(!mostrarCalendario),
         style: {
+          width: '100%',
+          padding: expandido ? '12px' : '10px',
+          border: '1px solid rgba(255,255,255,0.15)',
+          borderRadius: '10px',
+          background: 'rgba(255,255,255,0.05)',
+          color: '#fff',
+          cursor: expandido ? 'pointer' : 'default',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          gap: '8px',
-          justifyContent: expandido ? 'space-between' : 'center'
+          gap: '4px',
+          transition: 'all 0.2s'
         }
       },
-        React.createElement('button', {
-          onClick: () => mudarMes('prev'),
+        React.createElement('div', {
           style: {
-            width: '32px',
-            height: '32px',
-            border: 'none',
-            borderRadius: '6px',
-            background: 'rgba(255,255,255,0.1)',
-            color: '#fff',
-            cursor: 'pointer',
-            fontSize: '0.9rem',
+            fontSize: expandido ? '0.7rem' : '0.6rem',
+            opacity: 0.7,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+          }
+        }, expandido ? (mostrarCalendario ? '🗓️ Fechar' : '🗓️ Selecionar mês') : '🗓️'),
+        React.createElement('div', {
+          style: {
+            fontSize: expandido ? '0.95rem' : '0.65rem',
+            fontWeight: '700'
+          }
+        }, expandido ? mesesNome[mesAtual] : mesAtual.toUpperCase().slice(0,3)),
+        React.createElement('div', {
+          style: {
+            fontSize: expandido ? '0.75rem' : '0.6rem',
+            opacity: 0.8
+          }
+        }, anoAtual)
+      ),
+
+      // Dropdown calendário
+      expandido && mostrarCalendario && React.createElement('div', {
+        style: {
+          position: 'absolute',
+          top: '100%',
+          left: '12px',
+          right: '12px',
+          marginTop: '8px',
+          background: '#1e1b4b',
+          borderRadius: '12px',
+          padding: '12px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          zIndex: 100
+        }
+      },
+        // Seletor de ano
+        React.createElement('div', {
+          style: {
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'space-between',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid rgba(255,255,255,0.1)'
           }
-        }, '◀'),
-        expandido && React.createElement('div', {
+        },
+          React.createElement('button', {
+            onClick: () => mudarAno('prev'),
+            style: {
+              width: '32px',
+              height: '32px',
+              border: 'none',
+              borderRadius: '6px',
+              background: 'rgba(255,255,255,0.1)',
+              color: '#fff',
+              cursor: 'pointer',
+              fontSize: '1rem'
+            }
+          }, '◀'),
+          React.createElement('div', {
+            style: {
+              color: '#fff',
+              fontSize: '0.95rem',
+              fontWeight: '700'
+            }
+          }, anoAtual),
+          React.createElement('button', {
+            onClick: () => mudarAno('next'),
+            style: {
+              width: '32px',
+              height: '32px',
+              border: 'none',
+              borderRadius: '6px',
+              background: 'rgba(255,255,255,0.1)',
+              color: '#fff',
+              cursor: 'pointer',
+              fontSize: '1rem'
+            }
+          }, '▶')
+        ),
+        // Grid de meses
+        React.createElement('div', {
           style: {
-            flex: 1,
-            textAlign: 'center',
-            color: '#fff',
-            fontSize: '0.85rem',
-            fontWeight: '600'
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '6px'
           }
-        }, mesesNome[mesAtual] + ' ' + anoAtual),
-        !expandido && React.createElement('div', {
-          style: {
-            color: '#fff',
-            fontSize: '0.65rem',
-            fontWeight: '700',
-            textAlign: 'center',
-            width: '40px'
-          }
-        }, mesAtual.toUpperCase()),
-        React.createElement('button', {
-          onClick: () => mudarMes('next'),
-          style: {
-            width: '32px',
-            height: '32px',
-            border: 'none',
-            borderRadius: '6px',
-            background: 'rgba(255,255,255,0.1)',
-            color: '#fff',
-            cursor: 'pointer',
-            fontSize: '0.9rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }
-        }, '▶')
+        },
+          ...meses.map(mes =>
+            React.createElement('button', {
+              key: mes,
+              onClick: () => selecionarMes(mes),
+              style: {
+                padding: '10px',
+                border: 'none',
+                borderRadius: '8px',
+                background: mes === mesAtual ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)',
+                color: mes === mesAtual ? '#10b981' : '#d1d5db',
+                cursor: 'pointer',
+                fontSize: '0.8rem',
+                fontWeight: mes === mesAtual ? '700' : '500',
+                transition: 'all 0.2s',
+                border: mes === mesAtual ? '1px solid #10b981' : '1px solid transparent'
+              },
+              onMouseEnter: e => {
+                if (mes !== mesAtual) e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+              },
+              onMouseLeave: e => {
+                if (mes !== mesAtual) e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+              }
+            }, mesesNome[mes].slice(0, 3))
+          )
+        )
       )
     ),
 
