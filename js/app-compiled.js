@@ -6723,30 +6723,19 @@ function App({
     style: {
       background: '#1a1a4e'
     }
-  }, ano))))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: 'linear-gradient(90deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)',
-      borderBottom: '1px solid rgba(99,102,241,0.3)',
-      position: 'sticky',
-      top: '57px',
-      zIndex: 45,
-      overflow: 'visible'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      maxWidth: '1280px',
-      margin: '0 auto',
-      padding: '4px 16px',
-      overflow: 'visible',
-      position: 'relative'
-    }
-  }, /*#__PURE__*/React.createElement(MenuNavegacao, {
+  }, ano))))), /*#__PURE__*/React.createElement(Sidebar, {
     telaAtiva: telaAtiva,
     setTelaAtiva: setTelaAtiva,
+    mesAtual: mesAtual,
+    setMesAtual: setMesAtual,
+    anoAtual: anoAtual,
+    setAnoAtual: setAnoAtual,
     isUserAdmin: isUserAdmin
-  }))), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
     className: "main-content-area",
     style: {
+      marginLeft: '260px',
+      transition: 'margin-left 0.3s ease',
       display: !isUserAdmin && planoInfo.plano === 'trial' && planoInfo.expirado ? 'none' : 'block'
     }
   }, /*#__PURE__*/React.createElement("div", {
