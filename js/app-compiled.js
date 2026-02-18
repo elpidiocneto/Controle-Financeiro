@@ -6409,386 +6409,251 @@ function App({
     const [filtroStatus, setFiltroStatus] = useState('todos');
     const [modalPagamento, setModalPagamento] = useState(null);
     const [valorParcial, setValorParcial] = useState('');
-    const [mostrarTimeline, setMostrarTimeline] = useState(false); // INICIA FECHADO
+
+    const mesesOrdem = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const diasSem = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
     const itensTodos = [
-    // CORRIGIDO: Acessa valores do ano atual
-    ...cartoes.map(c => {
-      const valoresAno = c.valores?.[anoAtual] || {};
-      return {
-        tipo: 'CARTÃO',
-        nome: c.nome,
-        vencimento: c.vencimento,
-        valor: valoresAno[mesAtual] || 0
-      };
-    }),
-    // Filtrar gastos fixos por mês (se tiverem mês definido) ou mostrar todos sem mês
-    ...gastosFixos.filter(g => !g.mes || g.mes === mesAtual) // Se não tem mês OU é do mês atual
-    .filter(g => !g.ano || g.ano === anoAtual) // Se não tem ano OU é do ano atual
-    .map(g => ({
-      tipo: 'FIXO',
-      nome: g.descricao,
-      vencimento: g.vencimento,
-      valor: g.valor,
-      badge: g.temporario && g.totalParcelas ? `${g.parcelaAtual}/${g.totalParcelas}` : null
-    })),
-    // Gastos Variáveis que devem aparecer no Farol
-    ...gastosVariaveis.filter(g => g.mostrarNoFarol && g.mes === mesAtual && g.ano === anoAtual).map(g => ({
-      tipo: 'VARIÁVEL',
-      nome: g.descricao || g.categoria,
-      vencimento: g.vencimento || 1,
-      valor: g.valor
-    })),
-    // Gastos Extras que devem aparecer no Farol
-    ...gastosExtras.filter(g => g.mostrarNoFarol && g.mes === mesAtual && g.ano === anoAtual).map(g => ({
-      tipo: 'EXTRA',
-      nome: g.descricao || g.categoria,
-      vencimento: g.vencimento || 1,
-      valor: g.valor
-    }))].filter(item => item.valor > 0).sort((a, b) => a.vencimento - b.vencimento);
-    const itensFiltrados = filtroStatus === 'todos' ? itensTodos : filtroStatus === 'pagos' ? itensTodos.filter(item => getStatusFarol(item.nome, mesAtual) === 'PAGO') : itensTodos.filter(item => getStatusFarol(item.nome, mesAtual) === 'PENDENTE');
+      ...cartoes.map(c => {
+        const valoresAno = c.valores?.[anoAtual] || {};
+        const parcelas = calcularParcelasCartao(c.nome, mesAtual);
+        const valorBase = valoresAno[mesAtual] || 0;
+        const valorParc = parcelas.reduce((s,p) => s + p.valorParcela, 0);
+        return { tipo:'CARTÃO', nome:c.nome, vencimento:c.vencimento, valor:valorBase+valorParc };
+      }),
+      ...gastosFixos.filter(g => !g.mes || g.mes===mesAtual).filter(g => !g.ano || g.ano===anoAtual).map(g => ({
+        tipo:'FIXO', nome:g.descricao, vencimento:g.vencimento, valor:g.valor,
+        badge: g.temporario && g.totalParcelas ? `${g.parcelaAtual}/${g.totalParcelas}` : null
+      })),
+      ...gastosVariaveis.filter(g => g.mostrarNoFarol && g.mes===mesAtual && g.ano===anoAtual).map(g => ({
+        tipo:'VARIÁVEL', nome:g.descricao||g.categoria, vencimento:g.vencimento||1, valor:g.valor
+      })),
+      ...gastosExtras.filter(g => g.mostrarNoFarol && g.mes===mesAtual && g.ano===anoAtual).map(g => ({
+        tipo:'EXTRA', nome:g.descricao||g.categoria, vencimento:g.vencimento||1, valor:g.valor
+      }))
+    ].filter(i => i.valor > 0).sort((a,b) => a.vencimento - b.vencimento);
 
-    // Calcular vencimentos da semana
-    const hoje = new Date();
-    const diaHoje = hoje.getDate();
-    const proximaSemana = diaHoje + 7;
-    const vencimentosHoje = itensTodos.filter(item => {
-      const status = getStatusFarol(item.nome, mesAtual);
-      return item.vencimento === diaHoje && status !== 'PAGO';
-    });
-    const vencimentosSemana = itensTodos.filter(item => {
-      const status = getStatusFarol(item.nome, mesAtual);
-      return item.vencimento > diaHoje && item.vencimento <= proximaSemana && status !== 'PAGO';
-    });
-    const totalHoje = vencimentosHoje.reduce((sum, item) => sum + item.valor, 0);
-    const totalSemana = vencimentosSemana.reduce((sum, item) => sum + item.valor, 0);
-    return /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-gradient-to-br from-purple-600 to-indigo-700 rounded-lg shadow-lg p-4 text-white"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center justify-between mb-3"
-    }, /*#__PURE__*/React.createElement("h3", {
-      className: "text-lg font-bold flex items-center gap-2"
-    }, "\uD83D\uDCC5 Vencimentos da Semana"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xs bg-white/20 px-2 py-1 rounded-full"
-    }, "Hoje: ", diaHoje, " ", mesAtual.toUpperCase())), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-1 md:grid-cols-3 gap-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-white/10 backdrop-blur rounded-lg p-3 border border-red-300"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-xs opacity-90 mb-1"
-    }, "\uD83D\uDD34 VENCE HOJE"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold mb-1"
-    }, "R$ ", totalHoje.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-xs opacity-80 mb-1"
-    }, vencimentosHoje.length, " ", vencimentosHoje.length === 1 ? 'item' : 'itens'), vencimentosHoje.length > 0 && /*#__PURE__*/React.createElement("div", {
-      className: "mt-1 space-y-0.5"
-    }, vencimentosHoje.slice(0, 2).map((item, idx) => /*#__PURE__*/React.createElement("div", {
-      key: idx,
-      className: "text-xs opacity-80 truncate"
-    }, "\u2022 ", item.nome)), vencimentosHoje.length > 2 && /*#__PURE__*/React.createElement("div", {
-      className: "text-xs opacity-70"
-    }, "+ ", vencimentosHoje.length - 2, " mais"))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white/10 backdrop-blur rounded-lg p-3 border border-yellow-300"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-xs opacity-90 mb-1"
-    }, "\uD83D\uDFE1 PR\xD3XIMOS 7 DIAS"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold mb-1"
-    }, "R$ ", totalSemana.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-xs opacity-80 mb-1"
-    }, vencimentosSemana.length, " ", vencimentosSemana.length === 1 ? 'item' : 'itens'), vencimentosSemana.length > 0 && /*#__PURE__*/React.createElement("div", {
-      className: "mt-1 space-y-0.5"
-    }, vencimentosSemana.slice(0, 2).map((item, idx) => /*#__PURE__*/React.createElement("div", {
-      key: idx,
-      className: "text-xs opacity-80 truncate"
-    }, "\u2022 ", item.nome, " (dia ", item.vencimento, ")")), vencimentosSemana.length > 2 && /*#__PURE__*/React.createElement("div", {
-      className: "text-xs opacity-70"
-    }, "+ ", vencimentosSemana.length - 2, " mais"))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white/10 backdrop-blur rounded-lg p-3 border border-white/50"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-xs opacity-90 mb-1"
-    }, "\uD83D\uDCB0 TOTAL SEMANA"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold mb-1"
-    }, "R$ ", (totalHoje + totalSemana).toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-xs opacity-80 mb-2"
-    }, vencimentosHoje.length + vencimentosSemana.length, " itens total"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setMostrarTimeline(!mostrarTimeline),
-      className: "text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition-colors w-full"
-    }, mostrarTimeline ? '📅 Ocultar' : '📅 Ver', " Timeline")))), mostrarTimeline && /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h3", {
-      className: "text-lg font-bold text-gray-800 mb-4"
-    }, "\uD83D\uDCC6 Timeline da Semana"), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, [...Array(7)].map((_, i) => {
-      const dia = diaHoje + i;
-      const vencimentosDia = itensTodos.filter(item => {
-        const status = getStatusFarol(item.nome, mesAtual);
-        return item.vencimento === dia && status !== 'PAGO';
-      });
-      const totalDia = vencimentosDia.reduce((sum, item) => sum + item.valor, 0);
-      const dataFutura = new Date(hoje);
-      dataFutura.setDate(dia);
-      const diaSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'][dataFutura.getDay()];
-      const isHoje = i === 0;
-      return /*#__PURE__*/React.createElement("div", {
-        key: i,
-        className: `flex items-start gap-3 p-3 rounded-lg transition-all ${isHoje ? 'bg-purple-50 border-2 border-purple-500' : vencimentosDia.length > 0 ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50 border border-gray-200'}`
-      }, /*#__PURE__*/React.createElement("div", {
-        className: `flex-shrink-0 w-16 text-center ${isHoje ? 'text-purple-600' : 'text-gray-600'}`
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-xs font-semibold"
-      }, diaSemana), /*#__PURE__*/React.createElement("div", {
-        className: `text-2xl font-bold ${isHoje ? 'text-purple-700' : 'text-gray-700'}`
-      }, dia), isHoje && /*#__PURE__*/React.createElement("div", {
-        className: "text-xs font-bold text-purple-600"
-      }, "HOJE")), /*#__PURE__*/React.createElement("div", {
-        className: "flex-1"
-      }, vencimentosDia.length === 0 ? /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-gray-400 italic py-2"
-      }, "Nenhum vencimento") : /*#__PURE__*/React.createElement("div", {
-        className: "space-y-2"
-      }, vencimentosDia.map((item, idx) => {
-        const status = getStatusFarol(item.nome, mesAtual);
-        const isPago = status === 'PAGO';
-        return /*#__PURE__*/React.createElement("div", {
-          key: idx,
-          className: "flex items-center justify-between bg-white rounded p-2 shadow-sm"
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "flex items-center gap-2"
-        }, /*#__PURE__*/React.createElement("span", {
-          className: "text-lg"
-        }, isPago ? '✅' : '⚪'), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-          className: "font-semibold text-sm text-gray-800"
-        }, item.nome), /*#__PURE__*/React.createElement("div", {
-          className: "text-xs text-gray-500"
-        }, item.tipo))), /*#__PURE__*/React.createElement("div", {
-          className: "text-right"
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "font-bold text-gray-800"
-        }, "R$ ", item.valor.toFixed(2))));
-      }), /*#__PURE__*/React.createElement("div", {
-        className: "text-xs text-right font-bold text-gray-600 pt-1 border-t"
-      }, "Total do dia: R$ ", totalDia.toFixed(2)))));
-    }))), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl shadow-lg p-6"
-    }, /*#__PURE__*/React.createElement("h2", {
-      className: "text-2xl font-bold text-gray-800 mb-3"
-    }, "\uD83D\uDEA6 Farol de Pagamentos - ", mesAtual.toUpperCase(), " / ", anoAtual), /*#__PURE__*/React.createElement("div", {
-      className: "grid grid-cols-1 md:grid-cols-3 gap-4 mb-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-blue-50 rounded-lg p-4 border-2 border-blue-200"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600 mb-1"
-    }, "Total a Pagar"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold text-blue-600"
-    }, "R$ ", pagamentos.total.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-500 mt-2"
-    }, pagamentos.qtdTotal, " itens")), /*#__PURE__*/React.createElement("div", {
-      className: "bg-green-50 rounded-lg p-4 border-2 border-green-200"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600 mb-1"
-    }, "\u2705 J\xE1 Pago"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold text-green-600"
-    }, "R$ ", pagamentos.pago.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-500 mt-2"
-    }, pagamentos.qtdPago, " pagos \u2022 ", pagamentos.percentual.toFixed(0), "%")), /*#__PURE__*/React.createElement("div", {
-      className: "bg-orange-50 rounded-lg p-4 border-2 border-orange-200"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-600 mb-1"
-    }, "\u23F3 Ainda Falta"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold text-orange-600"
-    }, "R$ ", pagamentos.pendente.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-gray-500 mt-2"
-    }, pagamentos.qtdTotal - pagamentos.qtdPago, " pendentes"))), /*#__PURE__*/React.createElement("div", {
-      className: "mb-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-between text-sm mb-2"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "font-semibold text-gray-700"
-    }, "Progresso de Pagamentos"), /*#__PURE__*/React.createElement("span", {
-      className: "font-bold text-gray-800"
-    }, pagamentos.percentual.toFixed(1), "%")), /*#__PURE__*/React.createElement("div", {
-      className: "w-full bg-gray-200 rounded-full h-6"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: `h-6 rounded-full transition-all flex items-center justify-end pr-2 text-white text-xs font-bold ${pagamentos.percentual >= 100 ? 'bg-green-500' : pagamentos.percentual >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`,
-      style: {
-        width: `${Math.min(pagamentos.percentual, 100)}%`
-      }
-    }, pagamentos.percentual >= 10 && `${pagamentos.percentual.toFixed(0)}%`))), /*#__PURE__*/React.createElement("div", {
-      className: "flex gap-2 mb-3"
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => setFiltroStatus('todos'),
-      className: `px-4 py-2 rounded-lg font-semibold ${filtroStatus === 'todos' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`
-    }, "Todos (", itensTodos.length, ")"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setFiltroStatus('pagos'),
-      className: `px-4 py-2 rounded-lg font-semibold ${filtroStatus === 'pagos' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`
-    }, "\u2705 Pagos (", pagamentos.qtdPago, ")"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setFiltroStatus('pendentes'),
-      className: `px-4 py-2 rounded-lg font-semibold ${filtroStatus === 'pendentes' ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`
-    }, "\u23F3 Pendentes (", pagamentos.qtdTotal - pagamentos.qtdPago, ")")), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, (() => {
-      // Agrupar itens por data de vencimento
-      const itensPorData = {};
-      itensFiltrados.forEach(item => {
-        const dia = item.vencimento;
-        if (!itensPorData[dia]) {
-          itensPorData[dia] = [];
-        }
-        itensPorData[dia].push(item);
-      });
+    const pagamentos = calcularPagamentos(mesAtual);
+    const hoje = new Date().getDate();
 
-      // Ordenar dias
-      const diasOrdenados = Object.keys(itensPorData).sort((a, b) => parseInt(a) - parseInt(b));
-      return diasOrdenados.map(dia => {
-        const itensDoDia = itensPorData[dia];
-        const totalDia = itensDoDia.reduce((sum, item) => sum + item.valor, 0);
-        const hoje = new Date().getDate();
-        const isHoje = parseInt(dia) === hoje;
+    const vencHoje = itensTodos.filter(i => i.vencimento === hoje && getStatusFarol(i.nome,mesAtual) !== 'PAGO');
+    const vencSemana = itensTodos.filter(i => i.vencimento > hoje && i.vencimento <= hoje+7 && getStatusFarol(i.nome,mesAtual) !== 'PAGO');
+    const totalHoje = vencHoje.reduce((s,i) => s + i.valor, 0);
+    const totalSemana = vencSemana.reduce((s,i) => s + i.valor, 0);
 
-        // Calcular dia da semana
-        const dataAtual = new Date();
-        const anoNum = dataAtual.getFullYear();
-        const mesNum = dataAtual.getMonth();
-        const dataVencimento = new Date(anoNum, mesNum, parseInt(dia));
-        const diaSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'][dataVencimento.getDay()];
-        return /*#__PURE__*/React.createElement("div", {
-          key: dia,
-          className: `flex items-start gap-3 p-3 rounded-lg transition-all ${isHoje ? 'bg-purple-50 border-2 border-purple-500' : itensDoDia.length > 0 ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50 border border-gray-200'}`
-        }, /*#__PURE__*/React.createElement("div", {
-          className: `flex-shrink-0 w-16 text-center ${isHoje ? 'text-purple-600' : 'text-gray-600'}`
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "text-xs font-semibold"
-        }, diaSemana), /*#__PURE__*/React.createElement("div", {
-          className: `text-2xl font-bold ${isHoje ? 'text-purple-700' : 'text-gray-700'}`
-        }, dia), isHoje && /*#__PURE__*/React.createElement("div", {
-          className: "text-xs font-bold text-purple-600"
-        }, "HOJE")), /*#__PURE__*/React.createElement("div", {
-          className: "flex-1"
-        }, itensDoDia.length === 0 ? /*#__PURE__*/React.createElement("div", {
-          className: "text-sm text-gray-400 italic py-2"
-        }, "Nenhum vencimento") : /*#__PURE__*/React.createElement("div", {
-          className: "space-y-2"
-        }, itensDoDia.map((item, idx) => {
-          const status = getStatusFarol(item.nome, mesAtual);
-          const isPago = status === 'PAGO';
-          const isParcial = typeof status === 'number' && status > 0;
-          const valorPago = isParcial ? status : 0;
-          const isAtrasado = parseInt(dia) < hoje && !isPago;
-          return /*#__PURE__*/React.createElement("div", {
-            key: idx,
-            className: "flex items-center justify-between bg-white rounded p-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow",
-            onClick: () => setModalPagamento(item)
-          }, /*#__PURE__*/React.createElement("div", {
-            className: "flex items-center gap-2"
-          }, /*#__PURE__*/React.createElement("span", {
-            className: "text-lg"
-          }, isPago ? '✅' : isAtrasado ? '⚠️' : isParcial ? '💵' : '⚪'), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-            className: `font-semibold text-sm ${isPago ? 'text-green-700 line-through' : 'text-gray-800'}`
-          }, item.nome), /*#__PURE__*/React.createElement("div", {
-            className: "text-xs text-gray-500"
-          }, item.tipo))), /*#__PURE__*/React.createElement("div", {
-            className: "text-right"
-          }, /*#__PURE__*/React.createElement("div", {
-            className: `font-bold ${isPago ? 'text-green-600' : 'text-gray-800'}`
-          }, "R$ ", item.valor.toFixed(2)), isParcial && /*#__PURE__*/React.createElement("div", {
-            className: "text-xs text-blue-600"
-          }, "Pago: R$ ", valorPago.toFixed(2))));
-        }), /*#__PURE__*/React.createElement("div", {
-          className: "text-xs text-right font-bold text-gray-600 pt-1 border-t"
-        }, "Total do dia: R$ ", totalDia.toFixed(2)))));
-      });
-    })())), modalPagamento && /*#__PURE__*/React.createElement("div", {
-      className: "modal-overlay",
-      onClick: () => setModalPagamento(null)
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "modal-content",
-      onClick: e => e.stopPropagation()
-    }, /*#__PURE__*/React.createElement("h3", {
-      className: "text-xl font-bold mb-4"
-    }, "\uD83D\uDCB0 Registrar Pagamento"), /*#__PURE__*/React.createElement("div", {
-      className: "mb-4 p-4 bg-blue-50 rounded-lg"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "font-bold"
-    }, modalPagamento.nome), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-blue-600 mt-2"
-    }, "Total: R$ ", modalPagamento.valor.toFixed(2)), (() => {
-      const statusAtual = getStatusFarol(modalPagamento.nome, mesAtual);
-      if (typeof statusAtual === 'number' && statusAtual > 0) {
-        const restante = modalPagamento.valor - statusAtual;
-        return /*#__PURE__*/React.createElement("div", {
-          className: "mt-3 pt-3 border-t border-blue-300"
-        }, /*#__PURE__*/React.createElement("div", {
-          className: "text-sm text-green-600 font-semibold"
-        }, "\u2705 J\xE1 pago: R$ ", statusAtual.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-          className: "text-sm text-orange-600 font-semibold"
-        }, "\u23F3 Falta pagar: R$ ", restante.toFixed(2)));
-      }
-      return null;
-    })()), /*#__PURE__*/React.createElement("div", {
-      className: "space-y-3"
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => {
-        marcarPago(modalPagamento.nome, mesAtual);
-        setModalPagamento(null);
+    const itensFiltrados = filtroStatus === 'todos' ? itensTodos :
+      filtroStatus === 'pagos' ? itensTodos.filter(i => getStatusFarol(i.nome,mesAtual) === 'PAGO') :
+      itensTodos.filter(i => getStatusFarol(i.nome,mesAtual) !== 'PAGO');
+
+    const porDia = itensFiltrados.reduce((acc,i) => { (acc[i.vencimento]=acc[i.vencimento]||[]).push(i); return acc; }, {});
+    const diasOrdenados = Object.keys(porDia).sort((a,b) => parseInt(a)-parseInt(b));
+
+    return /*#__PURE__*/React.createElement(React.Fragment, null,
+
+      // Grid 3 colunas
+      /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'240px 1fr 220px', gap:'16px', alignItems:'start'}},
+
+        // COLUNA ESQUERDA
+        /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
+          /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(150deg,#4c1d95,#5b21b6,#6d28d9)', borderRadius:'16px', padding:'20px', color:'#fff', boxShadow:'0 6px 24px rgba(91,33,182,0.45)', border:'1px solid rgba(167,139,250,0.2)'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'8px'}}, "\uD83D\uDEA6 FAROL \xB7 " + mesAtual.toUpperCase()),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.8rem', fontWeight:'900', lineHeight:1, marginBottom:'4px'}}, "R$ " + pagamentos.total.toLocaleString('pt-BR',{minimumFractionDigits:2})),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.72rem', opacity:0.65, marginBottom:'14px'}}, "total a pagar no m\xEAs"),
+            /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', borderTop:'1px solid rgba(255,255,255,0.12)', paddingTop:'12px'}},
+              /*#__PURE__*/React.createElement("div", null,
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', opacity:0.5, marginBottom:'2px'}}, "Pago"),
+                /*#__PURE__*/React.createElement("div", {style:{fontWeight:'800', color:'#86efac'}}, pagamentos.percentual.toFixed(0)+"%")
+              ),
+              /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', opacity:0.5, marginBottom:'2px'}}, "Pendente"),
+                /*#__PURE__*/React.createElement("div", {style:{fontWeight:'800', color:'#fca5a5'}}, "R$ " + pagamentos.pendente.toFixed(0))
+              )
+            )
+          ),
+          /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'14px', padding:'14px', border:'1px solid #e5e7eb', boxShadow:'0 2px 8px rgba(0,0,0,0.04)'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'10px'}}, "Progresso"),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.2rem', fontWeight:'900', color:'#6d28d9', marginBottom:'8px'}}, pagamentos.percentual.toFixed(1)+"%"),
+            /*#__PURE__*/React.createElement("div", {style:{height:'10px', background:'#f1f5f9', borderRadius:'5px', overflow:'hidden'}},
+              /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:Math.min(100,pagamentos.percentual)+'%', background:'linear-gradient(90deg,#8b5cf6,#7c3aed)', borderRadius:'5px', transition:'width .6s ease'}})
+            ),
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', fontSize:'0.7rem', color:'#64748b', marginTop:'6px'}},
+              /*#__PURE__*/React.createElement("span", null, pagamentos.qtdPago + "/" + pagamentos.qtdTotal),
+              /*#__PURE__*/React.createElement("span", null, "R$ " + pagamentos.pago.toFixed(0))
+            )
+          ),
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'6px'}},
+            ...['todos','pagos','pendentes'].map(f => {
+              const ativo = filtroStatus === f;
+              const qtd = f==='todos' ? itensTodos.length : f==='pagos' ? pagamentos.qtdPago : pagamentos.qtdTotal-pagamentos.qtdPago;
+              const cor = f==='todos' ? '#6d28d9' : f==='pagos' ? '#059669' : '#ea580c';
+              return /*#__PURE__*/React.createElement("button", {key:f, onClick:()=>setFiltroStatus(f),
+                style:{width:'100%', padding:'9px 12px', border:'none', borderRadius:'10px', textAlign:'left', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center',
+                  background: ativo ? cor : '#fff',
+                  color: ativo ? '#fff' : '#374151',
+                  fontWeight: ativo ? '700' : '500',
+                  fontSize:'0.78rem',
+                  border: ativo ? 'none' : '1px solid #e5e7eb'
+                }
+              },
+                /*#__PURE__*/React.createElement("span", null, f.charAt(0).toUpperCase()+f.slice(1)),
+                /*#__PURE__*/React.createElement("span", {style:{fontWeight:'800'}}, qtd)
+              );
+            })
+          )
+        ),
+
+        // COLUNA CENTRAL
+        /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
+          /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center'}},
+            /*#__PURE__*/React.createElement("div", null,
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:'#111827'}}, "Farol de Pagamentos \u2014 " + mesAtual.charAt(0).toUpperCase() + mesAtual.slice(1)),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}}, "Hoje: " + hoje + " de " + mesAtual)
+            ),
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'6px'}},
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:'#64748b'}}, "Pago"),
+              /*#__PURE__*/React.createElement("div", {style:{width:'28px', height:'4px', background:'linear-gradient(90deg,#10b981,#059669)', borderRadius:'2px'}}),
+              /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:'#64748b', marginLeft:'6px'}}, "Pendente"),
+              /*#__PURE__*/React.createElement("div", {style:{width:'28px', height:'4px', background:'#e5e7eb', borderRadius:'2px'}})
+            )
+          ),
+          itensFiltrados.length === 0 && /*#__PURE__*/React.createElement("div", {style:{padding:'60px 20px', textAlign:'center'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'2.5rem', marginBottom:'10px'}}, "\uD83D\uDEA6"),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af'}}, filtroStatus==='pagos' ? 'Nenhum pagamento confirmado' : filtroStatus==='pendentes' ? 'Tudo pago!' : 'Nenhum item no farol')
+          ),
+          itensFiltrados.length > 0 && /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
+            ...diasOrdenados.map(dia => {
+              const itensDia = porDia[dia];
+              const totalDia = itensDia.reduce((s,i)=>s+i.valor,0);
+              const isHoje = parseInt(dia) === hoje;
+              const mesNum = mesesOrdem.indexOf(mesAtual);
+              const dSem = diasSem[new Date(new Date().getFullYear(), mesNum>=0?mesNum:new Date().getMonth(), parseInt(dia)).getDay()];
+
+              return /*#__PURE__*/React.createElement("div", {key:dia},
+                /*#__PURE__*/React.createElement("div", {style:{padding:'10px 20px', background: isHoje?'#faf5ff':'#fafafa', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:'14px'}},
+                  /*#__PURE__*/React.createElement("div", {style:{width:'50px', textAlign:'center'}},
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.62rem', color: isHoje?'#6d28d9':'#9ca3af', fontWeight:'600'}}, dSem),
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize: isHoje?'1.2rem':'1rem', fontWeight:'900', color: isHoje?'#6d28d9':'#374151'}}, "Dia " + dia),
+                    isHoje && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.55rem', fontWeight:'800', color:'#6d28d9'}}, "HOJE")
+                  ),
+                  /*#__PURE__*/React.createElement("div", {style:{flex:1, height:'2px', background:'linear-gradient(90deg,#e5e7eb,transparent)'}}),
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'800', color:'#6d28d9'}}, "R$ " + totalDia.toFixed(0))
+                ),
+                ...itensDia.map((item,idx) => {
+                  const status = getStatusFarol(item.nome, mesAtual);
+                  const isPago = status === 'PAGO';
+                  const isParcial = typeof status === 'number' && status > 0;
+                  const isAtrasado = parseInt(dia) < hoje && !isPago;
+
+                  return /*#__PURE__*/React.createElement("div", {
+                    key:idx,
+                    onClick:()=>setModalPagamento(item),
+                    style:{display:'flex', alignItems:'center', gap:'12px', padding:'11px 20px 11px 84px', borderBottom:'1px solid #f9fafb', transition:'background .15s', cursor:'pointer'},
+                    onMouseEnter:e=>{e.currentTarget.style.background='#fafafa'},
+                    onMouseLeave:e=>{e.currentTarget.style.background='transparent'}
+                  },
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.1rem', flexShrink:0}}, isPago?'✅':isAtrasado?'⚠️':isParcial?'💵':'⚪'),
+                    /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
+                      /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.82rem', fontWeight:'700', color: isPago?'#059669':'#111827', textDecoration: isPago?'line-through':'none', marginBottom:'2px'}}, item.nome),
+                      /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'6px'}},
+                        /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.65rem', background: item.tipo==='CARTÃO'?'#dbeafe':item.tipo==='FIXO'?'#f3e8ff':item.tipo==='VARIÁVEL'?'#fff7ed':'#fffbeb', color: item.tipo==='CARTÃO'?'#1e40af':item.tipo==='FIXO'?'#6d28d9':item.tipo==='VARIÁVEL'?'#ea580c':'#d97706', padding:'1px 7px', borderRadius:'20px', fontWeight:'600'}}, item.tipo),
+                        item.badge && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.65rem', color:'#9ca3af'}}, item.badge)
+                      )
+                    ),
+                    /*#__PURE__*/React.createElement("div", {style:{textAlign:'right', flexShrink:0}},
+                      /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'900', color: isPago?'#059669':'#374151'}}, "R$ " + item.valor.toFixed(2)),
+                      isParcial && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:'#3b82f6'}}, "Pago: R$ " + status.toFixed(0))
+                    )
+                  );
+                })
+              );
+            })
+          )
+        ),
+
+        // COLUNA DIREITA
+        /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
+          vencHoje.length > 0 && /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(135deg,#fff1f2,#ffe4e6)', borderRadius:'14px', padding:'14px', border:'1px solid #fecdd3'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#be123c', marginBottom:'10px'}}, "\uD83D\uDD34 Vence HOJE"),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.4rem', fontWeight:'900', color:'#9f1239', marginBottom:'8px'}}, "R$ " + totalHoje.toFixed(2)),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#be123c'}}, vencHoje.length + " pagamento" + (vencHoje.length>1?"s":""))
+          ),
+          vencSemana.length > 0 && /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(135deg,#fffbeb,#fef3c7)', borderRadius:'14px', padding:'14px', border:'1px solid #fde68a'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#92400e', marginBottom:'10px'}}, "\uD83D\uDFE1 Pr\xF3ximos 7 Dias"),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.4rem', fontWeight:'900', color:'#78350f', marginBottom:'8px'}}, "R$ " + totalSemana.toFixed(2)),
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'5px', marginTop:'10px'}},
+              ...vencSemana.slice(0,4).map((i,idx) =>
+                /*#__PURE__*/React.createElement("div", {key:idx, style:{display:'flex', justifyContent:'space-between', fontSize:'0.7rem'}},
+                  /*#__PURE__*/React.createElement("span", {style:{color:'#78350f', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'120px'}}, i.nome),
+                  /*#__PURE__*/React.createElement("span", {style:{fontWeight:'700', color:'#b45309', flexShrink:0}}, "Dia " + i.vencimento)
+                )
+              ),
+              vencSemana.length > 4 && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:'#92400e', fontStyle:'italic'}}, "+ " + (vencSemana.length-4) + " mais")
+            )
+          ),
+          /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'14px', padding:'14px', border:'1px solid #e5e7eb', boxShadow:'0 2px 8px rgba(0,0,0,0.04)'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#9ca3af', marginBottom:'12px'}}, "Resumo do M\xEAs"),
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'8px'}},
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', paddingBottom:'8px', borderBottom:'1px solid #f3f4f6'}},
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', color:'#64748b'}}, "Total a pagar"),
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.82rem', fontWeight:'800', color:'#374151'}}, "R$ " + pagamentos.total.toFixed(0))
+              ),
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', paddingBottom:'8px', borderBottom:'1px solid #f3f4f6'}},
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', color:'#64748b'}}, "J\xE1 pago"),
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.82rem', fontWeight:'800', color:'#059669'}}, "R$ " + pagamentos.pago.toFixed(0))
+              ),
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between'}},
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', color:'#64748b'}}, "Pendente"),
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.82rem', fontWeight:'800', color:'#ea580c'}}, "R$ " + pagamentos.pendente.toFixed(0))
+              )
+            )
+          )
+        )
+      ),
+
+      // MODAL
+      modalPagamento && /*#__PURE__*/React.createElement("div", {
+        style:{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999},
+        onClick:()=>setModalPagamento(null)
       },
-      className: "w-full px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
-    }, "\u2705 Marcar como PAGO"), /*#__PURE__*/React.createElement("div", {
-      className: "border-t pt-3"
-    }, /*#__PURE__*/React.createElement("label", {
-      className: "block text-sm font-semibold mb-2"
-    }, "Pagar valor parcial:"), /*#__PURE__*/React.createElement("input", {
-      type: "number",
-      step: "0.01",
-      value: valorParcial,
-      onChange: e => setValorParcial(e.target.value),
-      placeholder: "Digite o valor",
-      className: "w-full px-4 py-2 border rounded-lg mb-2"
-    }), /*#__PURE__*/React.createElement("button", {
-      onClick: () => {
-        if (valorParcial && parseFloat(valorParcial) > 0) {
-          pagarParcial(modalPagamento.nome, mesAtual, valorParcial);
-          setModalPagamento(null);
-          setValorParcial('');
-        }
-      },
-      className: "w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
-    }, "\uD83D\uDCB0 Pagar Parcial")), (() => {
-      const statusAtual = getStatusFarol(modalPagamento.nome, mesAtual);
-      // Mostrar botão de resetar para PAGO ou PARCIAL
-      if (statusAtual === 'PAGO' || typeof statusAtual === 'number' && statusAtual > 0) {
-        return /*#__PURE__*/React.createElement("div", {
-          className: "border-t pt-3"
-        }, /*#__PURE__*/React.createElement("button", {
-          onClick: () => {
-            const tipoPagamento = statusAtual === 'PAGO' ? 'integral' : 'parcial';
-            const valorPago = statusAtual === 'PAGO' ? modalPagamento.valor.toFixed(2) : statusAtual.toFixed(2);
-            if (confirm(`🔄 DESFAZER PAGAMENTO?\n\n` + `Tipo: ${tipoPagamento.toUpperCase()}\n` + `Valor pago: R$ ${valorPago}\n\n` + `Este item voltará para PENDENTE.\n\n` + `Confirma?`)) {
-              const chave = `${modalPagamento.nome}-${mesAtual}-${anoAtual}`;
-              setFarol(prev => {
-                const novoFarol = {
-                  ...prev
-                };
-                delete novoFarol[chave]; // Remove do farol
-                return novoFarol;
-              });
-              setModalPagamento(null);
-              alert('✅ Pagamento desfeito! Item voltou para PENDENTE.');
-            }
-          },
-          className: "w-full px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all"
-        }, "\uD83D\uDD04 Desfazer Pagamento"), /*#__PURE__*/React.createElement("div", {
-          className: "text-xs text-center text-gray-500 mt-2"
-        }, "\u26A0\uFE0F Esta a\xE7\xE3o voltar\xE1 o item para PENDENTE"));
-      }
-      return null;
-    })(), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setModalPagamento(null),
-      className: "w-full px-4 py-2 bg-gray-200 rounded-lg font-semibold hover:bg-gray-300"
-    }, "Cancelar")))));
+        /*#__PURE__*/React.createElement("div", {
+          onClick:e=>e.stopPropagation(),
+          style:{background:'#fff', borderRadius:'16px', padding:'24px', maxWidth:'400px', width:'90%', boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}
+        },
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.1rem', fontWeight:'800', color:'#111827', marginBottom:'16px'}}, "\uD83D\uDCB0 Registrar Pagamento"),
+          /*#__PURE__*/React.createElement("div", {style:{background:'#f8fafc', borderRadius:'12px', padding:'16px', marginBottom:'16px'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#374151', marginBottom:'4px'}}, modalPagamento.nome),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.6rem', fontWeight:'900', color:'#6d28d9'}}, "R$ " + modalPagamento.valor.toFixed(2)),
+            (() => {
+              const st = getStatusFarol(modalPagamento.nome, mesAtual);
+              if (typeof st === 'number' && st > 0) {
+                return /*#__PURE__*/React.createElement("div", {style:{marginTop:'10px', paddingTop:'10px', borderTop:'1px solid #e5e7eb'}},
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#059669', fontWeight:'600'}}, "\u2705 Pago: R$ " + st.toFixed(2)),
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#ea580c', fontWeight:'600'}}, "\u23F3 Falta: R$ " + (modalPagamento.valor-st).toFixed(2))
+                );
+              }
+              return null;
+            })()
+          ),
+          /*#__PURE__*/React.createElement("button", {
+            onClick:()=>{ marcarPago(modalPagamento.nome, mesAtual); setModalPagamento(null); },
+            style:{width:'100%', padding:'12px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontSize:'0.85rem', fontWeight:'700', cursor:'pointer', marginBottom:'12px'}
+          }, "\u2705 Marcar como PAGO"),
+          /*#__PURE__*/React.createElement("div", {style:{borderTop:'1px solid #e5e7eb', paddingTop:'12px'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', fontWeight:'600', color:'#374151', marginBottom:'8px'}}, "Pagar valor parcial:"),
+            /*#__PURE__*/React.createElement("input", {
+              type:"number", step:"0.01", value:valorParcial, onChange:e=>setValorParcial(e.target.value), placeholder:"Valor",
+              style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'8px', fontSize:'0.85rem', marginBottom:'8px', outline:'none'}
+            }),
+            /*#__PURE__*/React.createElement("button", {
+              onClick:()=>{ if(valorParcial){ marcarPagoParcial(modalPagamento.nome, mesAtual, parseFloat(valorParcial)); setModalPagamento(null); setValorParcial(''); } },
+              style:{width:'100%', padding:'10px', border:'none', borderRadius:'8px', background:'#3b82f6', color:'#fff', fontSize:'0.8rem', fontWeight:'600', cursor:'pointer'}
+            }, "\uD83D\uDCB5 Confirmar Pagamento Parcial")
+          )
+        )
+      )
+    );
   };
+
   return /*#__PURE__*/React.createElement("div", {
     className: "min-h-screen",
     style: {
