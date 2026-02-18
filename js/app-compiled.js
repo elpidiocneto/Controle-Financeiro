@@ -4065,6 +4065,13 @@ function App({
     const mesesOrdem = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
     const mesesNome  = {jan:'Jan',fev:'Fev',mar:'Mar',abr:'Abr',mai:'Mai',jun:'Jun',jul:'Jul',ago:'Ago',set:'Set',out:'Out',nov:'Nov',dez:'Dez'};
 
+    // CORREÇÃO: Verificar se estamos no mês atual para calcular "vencido"
+    const dataAtual = new Date();
+    const mesAtualSistema = mesesOrdem[dataAtual.getMonth()];
+    const anoAtualSistema = dataAtual.getFullYear();
+    const estamosNoMesAtual = mesAtual === mesAtualSistema && anoAtual === anoAtualSistema;
+    const hoje = estamosNoMesAtual ? dataAtual.getDate() : -1;
+
     // Totais do mês
     const totaisPorCartao = {};
     let totalGeralMes = 0;
@@ -4291,7 +4298,7 @@ function App({
               .filter(c=>{const st=getStatusFarol(c.nome,mesAtual); return st!=='PAGO' && totaisPorCartao[c.nome]?.total>0;})
               .sort((a,b)=>a.vencimento-b.vencimento)
               .map(c => {
-                const diasRestantes = c.vencimento - new Date().getDate();
+                const diasRestantes = estamosNoMesAtual ? c.vencimento - hoje : 999; // 999 = não mostrar alerta se não for mês atual
                 const info = totaisPorCartao[c.nome];
                 return /*#__PURE__*/React.createElement("div", {key:c.id, style:{padding:'8px 10px', borderRadius:'8px', background: diasRestantes<=3?'#fff1f2':diasRestantes<=7?'#fffbeb':'#f9fafb', border:'1px solid '+(diasRestantes<=3?'#fecdd3':diasRestantes<=7?'#fde68a':'#f3f4f6')}},
                   /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', marginBottom:'3px'}},
@@ -4299,7 +4306,11 @@ function App({
                     /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.78rem', fontWeight:'800', color:'#0284c7'}}, "R$ " + info.total.toFixed(0))
                   ),
                   /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', color: diasRestantes===0?'#ef4444':diasRestantes<=3?'#f59e0b':'#9ca3af'}},
-                    diasRestantes === 0 ? "Vence HOJE!" : diasRestantes < 0 ? "Vencido h\xE1 " + Math.abs(diasRestantes) + " dias" : "Vence em " + diasRestantes + " dia" + (diasRestantes>1?"s":"")
+                    estamosNoMesAtual ? (
+                      diasRestantes === 0 ? "Vence HOJE!" : diasRestantes < 0 ? "Vencido h\xE1 " + Math.abs(diasRestantes) + " dias" : "Vence em " + diasRestantes + " dia" + (diasRestantes>1?"s":"")
+                    ) : (
+                      "Vence dia " + c.vencimento
+                    )
                   )
                 );
               })
@@ -4329,6 +4340,13 @@ function App({
   const TelaGastosFixos = () => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
 
+    // CORREÇÃO: Verificar se estamos no mês atual
+    const mesesOrdem = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const dataAtual = new Date();
+    const mesAtualSistema = mesesOrdem[dataAtual.getMonth()];
+    const anoAtualSistema = dataAtual.getFullYear();
+    const estamosNoMesAtual = mesAtual === mesAtualSistema && anoAtual === anoAtualSistema;
+
     const gastosDoMes = gastosFixos.filter(g => {
       if (g.mes && g.ano) return g.mes === mesAtual && g.ano === anoAtual;
       return true;
@@ -4348,7 +4366,7 @@ function App({
       porDia[dia].push(g);
     });
     const diasOrdenados = Object.keys(porDia).sort((a,b) => parseInt(a)-parseInt(b));
-    const hoje = new Date().getDate();
+    const hoje = estamosNoMesAtual ? dataAtual.getDate() : -1;
 
     return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'200px 1fr', gap:'16px', alignItems:'start'}},
 
@@ -4489,6 +4507,14 @@ function App({
 
   const TelaGastosVariaveis = () => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
+    
+    // CORREÇÃO: Verificar se estamos no mês atual
+    const mesesOrdem = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const dataAtual = new Date();
+    const mesAtualSistema = mesesOrdem[dataAtual.getMonth()];
+    const anoAtualSistema = dataAtual.getFullYear();
+    const estamosNoMesAtual = mesAtual === mesAtualSistema && anoAtual === anoAtualSistema;
+    
     const gastosDoMes = gastosVariaveis.filter(g => g.mes===mesAtual && g.ano===anoAtual);
     const totaisPorCat = {};
     gastosDoMes.forEach(g => { totaisPorCat[g.categoria] = (totaisPorCat[g.categoria]||0) + g.valor; });
@@ -4505,7 +4531,7 @@ function App({
       porData[key].push(g);
     });
     const datasOrdenadas = Object.keys(porData).sort((a,b)=>a==='Sem data'?1:b==='Sem data'?-1:b.localeCompare(a));
-    const hoje = new Date();
+    const hoje = estamosNoMesAtual ? dataAtual : null;
 
     return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'200px 1fr', gap:'16px', alignItems:'start'}},
 
@@ -4567,7 +4593,7 @@ function App({
                 let diaSemana='', diaNum='', dataFmt=dataKey, isHoje=false;
                 if (dataKey!=='Sem data') {
                   const d = new Date(dataKey+'T00:00:00');
-                  isHoje = d.toDateString()===hoje.toDateString();
+                  isHoje = hoje ? d.toDateString()===hoje.toDateString() : false;
                   diaSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','S\xE1b'][d.getDay()];
                   diaNum = d.getDate();
                   dataFmt = d.toLocaleDateString('pt-BR');
