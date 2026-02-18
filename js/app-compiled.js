@@ -6434,7 +6434,13 @@ function App({
     ].filter(i => i.valor > 0).sort((a,b) => a.vencimento - b.vencimento);
 
     const pagamentos = calcularPagamentos(mesAtual);
-    const hoje = new Date().getDate();
+    
+    // CORREÇÃO: Só marcar como "hoje" se o mês visualizado for o mês atual do sistema
+    const dataAtual = new Date();
+    const mesAtualSistema = mesesOrdem[dataAtual.getMonth()];
+    const anoAtualSistema = dataAtual.getFullYear();
+    const estamosNoMesAtual = mesAtual === mesAtualSistema && anoAtual === anoAtualSistema;
+    const hoje = estamosNoMesAtual ? dataAtual.getDate() : -1; // -1 = nenhum dia é "hoje" se não for o mês atual
 
     const vencHoje = itensTodos.filter(i => i.vencimento === hoje && getStatusFarol(i.nome,mesAtual) !== 'PAGO');
     const vencSemana = itensTodos.filter(i => i.vencimento > hoje && i.vencimento <= hoje+7 && getStatusFarol(i.nome,mesAtual) !== 'PAGO');
@@ -6450,10 +6456,8 @@ function App({
 
     return /*#__PURE__*/React.createElement(React.Fragment, null,
 
-      // Grid 3 colunas
       /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'240px 1fr 220px', gap:'16px', alignItems:'start'}},
 
-        // COLUNA ESQUERDA
         /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
           /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(150deg,#4c1d95,#5b21b6,#6d28d9)', borderRadius:'16px', padding:'20px', color:'#fff', boxShadow:'0 6px 24px rgba(91,33,182,0.45)', border:'1px solid rgba(167,139,250,0.2)'}},
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'8px'}}, "\uD83D\uDEA6 FAROL \xB7 " + mesAtual.toUpperCase()),
@@ -6502,12 +6506,13 @@ function App({
           )
         ),
 
-        // COLUNA CENTRAL
         /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
           /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center'}},
             /*#__PURE__*/React.createElement("div", null,
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:'#111827'}}, "Farol de Pagamentos \u2014 " + mesAtual.charAt(0).toUpperCase() + mesAtual.slice(1)),
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}}, "Hoje: " + hoje + " de " + mesAtual)
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}}, 
+                estamosNoMesAtual ? "Hoje: " + hoje + " de " + mesAtual : "Visualizando: " + mesAtual + "/" + anoAtual
+              )
             ),
             /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'6px'}},
               /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:'#64748b'}}, "Pago"),
@@ -6524,9 +6529,9 @@ function App({
             ...diasOrdenados.map(dia => {
               const itensDia = porDia[dia];
               const totalDia = itensDia.reduce((s,i)=>s+i.valor,0);
-              const isHoje = parseInt(dia) === hoje;
+              const isHoje = estamosNoMesAtual && parseInt(dia) === hoje;
               const mesNum = mesesOrdem.indexOf(mesAtual);
-              const dSem = diasSem[new Date(new Date().getFullYear(), mesNum>=0?mesNum:new Date().getMonth(), parseInt(dia)).getDay()];
+              const dSem = diasSem[new Date(anoAtual, mesNum>=0?mesNum:new Date().getMonth(), parseInt(dia)).getDay()];
 
               return /*#__PURE__*/React.createElement("div", {key:dia},
                 /*#__PURE__*/React.createElement("div", {style:{padding:'10px 20px', background: isHoje?'#faf5ff':'#fafafa', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:'14px'}},
@@ -6542,7 +6547,8 @@ function App({
                   const status = getStatusFarol(item.nome, mesAtual);
                   const isPago = status === 'PAGO';
                   const isParcial = typeof status === 'number' && status > 0;
-                  const isAtrasado = parseInt(dia) < hoje && !isPago;
+                  // CORREÇÃO: Só marcar atrasado se estamos no mês atual E o dia já passou
+                  const isAtrasado = estamosNoMesAtual && parseInt(dia) < hoje && !isPago;
 
                   return /*#__PURE__*/React.createElement("div", {
                     key:idx,
@@ -6570,7 +6576,6 @@ function App({
           )
         ),
 
-        // COLUNA DIREITA
         /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
           vencHoje.length > 0 && /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(135deg,#fff1f2,#ffe4e6)', borderRadius:'14px', padding:'14px', border:'1px solid #fecdd3'}},
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#be123c', marginBottom:'10px'}}, "\uD83D\uDD34 Vence HOJE"),
@@ -6610,7 +6615,6 @@ function App({
         )
       ),
 
-      // MODAL
       modalPagamento && /*#__PURE__*/React.createElement("div", {
         style:{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999},
         onClick:()=>setModalPagamento(null)
@@ -6653,6 +6657,7 @@ function App({
       )
     );
   };
+
 
   return /*#__PURE__*/React.createElement("div", {
     className: "min-h-screen",
