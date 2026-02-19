@@ -99,7 +99,23 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
           fontWeight: '800',
           letterSpacing: '0.5px'
         }
-      }, '💰 Estratégia'),
+      }, React.createElement('div', {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }
+      },
+        React.createElement('img', {
+          src: window.LOGO_B64,
+          alt: 'Estratégia',
+          style: {
+            height: '28px',
+            width: 'auto',
+            objectFit: 'contain'
+          }
+        })
+      )),
       React.createElement('button', {
         onClick: toggleExpandido,
         style: {
