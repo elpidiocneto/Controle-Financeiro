@@ -885,14 +885,20 @@ function App({
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
   const [gastosFixos, setGastosFixos] = useState(() => {
+    const currentUserId = localStorage.getItem('_currentUserId');
+    if (!currentUserId) return DADOS_INICIAIS.gastosFixos;
     const saved = localStorage.getItem('gastosFixos');
     return saved ? JSON.parse(saved) : DADOS_INICIAIS.gastosFixos;
   });
   const [cartoes, setCartoes] = useState(() => {
+    const currentUserId = localStorage.getItem('_currentUserId');
+    if (!currentUserId) return DADOS_INICIAIS.cartoes;
     const saved = localStorage.getItem('cartoes');
     return saved ? JSON.parse(saved) : DADOS_INICIAIS.cartoes;
   });
   const [gastosVariaveis, setGastosVariaveis] = useState(() => {
+    const currentUserId = localStorage.getItem('_currentUserId');
+    if (!currentUserId) return [];
     const saved = localStorage.getItem('gastosVariaveis');
     const gastos = saved ? JSON.parse(saved) : [];
 
@@ -948,6 +954,8 @@ function App({
     return gastosMigrados;
   });
   const [gastosExtras, setGastosExtras] = useState(() => {
+    const currentUserId = localStorage.getItem('_currentUserId');
+    if (!currentUserId) return [];
     const saved = localStorage.getItem('gastosExtras');
     const gastos = saved ? JSON.parse(saved) : [];
 
@@ -997,14 +1005,20 @@ function App({
     return gastosMigrados;
   });
   const [receitas, setReceitas] = useState(() => {
+    const currentUserId = localStorage.getItem('_currentUserId');
+    if (!currentUserId) return [];
     const saved = localStorage.getItem('receitas');
     return saved ? JSON.parse(saved) : [];
   });
   const [farol, setFarol] = useState(() => {
+    const currentUserId = localStorage.getItem('_currentUserId');
+    if (!currentUserId) return {};
     const saved = localStorage.getItem('farol');
     return saved ? JSON.parse(saved) : {};
   });
   const [metas, setMetas] = useState(() => {
+    const currentUserId = localStorage.getItem('_currentUserId');
+    if (!currentUserId) return {};
     const saved = localStorage.getItem('metas');
     return saved ? JSON.parse(saved) : {
       mensal: 0,
@@ -1025,22 +1039,30 @@ function App({
 
   // 🎯 METAS FINANCEIRAS (Curto/Médio/Longo Prazo)
   const [metasFinanceiras, setMetasFinanceiras] = useState(() => {
+    const currentUserId = localStorage.getItem('_currentUserId');
+    if (!currentUserId) return [];
     const saved = localStorage.getItem('metasFinanceiras');
     return saved ? JSON.parse(saved) : [];
   });
 
   // 💰 RESERVA DE EMERGÊNCIA ATUAL
   const [reservaEmergencia, setReservaEmergencia] = useState(() => {
+    const currentUserId = localStorage.getItem('_currentUserId');
+    if (!currentUserId) return 0;
     const saved = localStorage.getItem('reservaEmergencia');
     return saved ? parseFloat(saved) : 0;
   });
 
   // 💳 DÍVIDAS
   const [dividas, setDividas] = useState(() => {
+    const currentUserId = localStorage.getItem('_currentUserId');
+    if (!currentUserId) return [];
     const saved = localStorage.getItem('dividas');
     return saved ? JSON.parse(saved) : [];
   });
   const [orcamento, setOrcamento] = useState(() => {
+    const currentUserId = localStorage.getItem('_currentUserId');
+    if (!currentUserId) return {};
     const saved = localStorage.getItem('orcamento');
     return saved ? JSON.parse(saved) : {
       cartoes: 0,
