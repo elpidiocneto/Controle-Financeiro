@@ -124,16 +124,27 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
           border: 'none',
           borderRadius: '8px',
           background: 'rgba(255,255,255,0.1)',
-          color: '#fff',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '1.2rem',
-          transition: 'all 0.2s'
+          transition: 'all 0.2s',
+          overflow: 'hidden'
         },
         title: expandido ? 'Colapsar menu' : 'Expandir menu'
-      }, expandido ? '◀' : '▶')
+      }, expandido ? 
+        React.createElement('span', {style: {color: '#fff'}}, '◀') :
+        React.createElement('img', {
+          src: window.AGUIA_B64 || window.LOGO_B64,
+          alt: 'Menu',
+          style: {
+            height: '24px',
+            width: '24px',
+            objectFit: 'contain'
+          }
+        })
+      )
     ),
 
     // Calendário de meses

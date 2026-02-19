@@ -6726,7 +6726,7 @@ function App({
     style: {
       maxWidth: '1280px',
       margin: '0 auto',
-      padding: '8px 16px',
+      padding: '14px 16px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
