@@ -13,9 +13,11 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
     if (onExpandChange) onExpandChange(novoEstado);
   };
 
-  const navegar = (tela) => {
+  const navegar = (tela, manterSubmenuAberto = false) => {
     setTelaAtiva(tela);
-    setSubMenu(null);
+    if (!manterSubmenuAberto) {
+      setSubMenu(null);
+    }
   };
 
   const toggleSubMenu = (menu) => {
@@ -30,6 +32,15 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
   const mudarAno = (direcao) => {
     setAnoAtual(anoAtual + (direcao === 'next' ? 1 : -1));
   };
+
+  // Auto-abrir submenu se estiver em uma tela filha
+  React.useEffect(() => {
+    if (telaAtiva.startsWith('planejamento')) {
+      setSubMenu('plan');
+    } else if (['cartoes','fixos','variaveis','extras'].includes(telaAtiva)) {
+      setSubMenu('desp');
+    }
+  }, [telaAtiva]);
 
   const itemStyle = (ativo) => ({
     display: 'flex',
@@ -338,25 +349,25 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
         ),
         expandido && subMenu === 'plan' && React.createElement('div', { style: { marginTop: '4px' } },
           React.createElement('div', {
-            onClick: () => navegar('planejamento'),
+            onClick: () => navegar('planejamento', true),
             style: subItemStyle(telaAtiva === 'planejamento' || telaAtiva === 'planejamento-timeline'),
             onMouseEnter: e => { if (!['planejamento','planejamento-timeline'].includes(telaAtiva)) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (!['planejamento','planejamento-timeline'].includes(telaAtiva)) e.currentTarget.style.background = 'transparent'; }
           }, '🏥 Diagnóstico'),
           React.createElement('div', {
-            onClick: () => navegar('planejamento-orcamento'),
+            onClick: () => navegar('planejamento-orcamento', true),
             style: subItemStyle(telaAtiva === 'planejamento-orcamento' || telaAtiva === 'planejamento-premes'),
             onMouseEnter: e => { if (!['planejamento-orcamento','planejamento-premes'].includes(telaAtiva)) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (!['planejamento-orcamento','planejamento-premes'].includes(telaAtiva)) e.currentTarget.style.background = 'transparent'; }
           }, '📊 Orçamento'),
           React.createElement('div', {
-            onClick: () => navegar('planejamento-metas'),
+            onClick: () => navegar('planejamento-metas', true),
             style: subItemStyle(telaAtiva === 'planejamento-metas' || telaAtiva === 'planejamento-dividas'),
             onMouseEnter: e => { if (!['planejamento-metas','planejamento-dividas'].includes(telaAtiva)) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (!['planejamento-metas','planejamento-dividas'].includes(telaAtiva)) e.currentTarget.style.background = 'transparent'; }
           }, '🎯 Metas'),
           React.createElement('div', {
-            onClick: () => navegar('planejamento-compra'),
+            onClick: () => navegar('planejamento-compra', true),
             style: subItemStyle(telaAtiva === 'planejamento-compra' || telaAtiva === 'planejamento-simulador'),
             onMouseEnter: e => { if (!['planejamento-compra','planejamento-simulador'].includes(telaAtiva)) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (!['planejamento-compra','planejamento-simulador'].includes(telaAtiva)) e.currentTarget.style.background = 'transparent'; }
@@ -389,25 +400,25 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
         ),
         expandido && subMenu === 'desp' && React.createElement('div', { style: { marginTop: '4px' } },
           React.createElement('div', {
-            onClick: () => navegar('cartoes'),
+            onClick: () => navegar('cartoes', true),
             style: subItemStyle(telaAtiva === 'cartoes'),
             onMouseEnter: e => { if (telaAtiva !== 'cartoes') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (telaAtiva !== 'cartoes') e.currentTarget.style.background = 'transparent'; }
           }, '💳 Cartões'),
           React.createElement('div', {
-            onClick: () => navegar('fixos'),
+            onClick: () => navegar('fixos', true),
             style: subItemStyle(telaAtiva === 'fixos'),
             onMouseEnter: e => { if (telaAtiva !== 'fixos') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (telaAtiva !== 'fixos') e.currentTarget.style.background = 'transparent'; }
           }, '🏠 Gastos Fixos'),
           React.createElement('div', {
-            onClick: () => navegar('variaveis'),
+            onClick: () => navegar('variaveis', true),
             style: subItemStyle(telaAtiva === 'variaveis'),
             onMouseEnter: e => { if (telaAtiva !== 'variaveis') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (telaAtiva !== 'variaveis') e.currentTarget.style.background = 'transparent'; }
           }, '📊 Gastos Variáveis'),
           React.createElement('div', {
-            onClick: () => navegar('extras'),
+            onClick: () => navegar('extras', true),
             style: subItemStyle(telaAtiva === 'extras'),
             onMouseEnter: e => { if (telaAtiva !== 'extras') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (telaAtiva !== 'extras') e.currentTarget.style.background = 'transparent'; }

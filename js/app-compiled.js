@@ -371,7 +371,10 @@ function AuthWrapper() {
         maxHeight: '70px',
         width: 'auto',
         objectFit: 'contain',
-        marginBottom: '0.5rem'
+        marginBottom: '0.5rem',
+        display: 'block',
+        marginLeft: 'auto',
+        marginRight: 'auto'
       }
     }), /*#__PURE__*/React.createElement("p", {
       style: {
