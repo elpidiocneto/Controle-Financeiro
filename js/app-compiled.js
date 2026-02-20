@@ -3245,7 +3245,7 @@ function App({
       className: "w-5 h-5 text-orange-600 border-2 border-gray-300 rounded focus:ring-orange-500"
     }), /*#__PURE__*/React.createElement("span", {
       className: "text-sm font-semibold text-gray-700"
-    }, "\uD83D\uDEA6 Mostrar no Farol de Pagamentos")), /*#__PURE__*/React.createElement("p", {
+    }, "\uD83D\uDEA6 Mostrar no Gestão de Pagamentos")), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-gray-500 mt-1 ml-7"
     }, "Para gastos recorrentes como IPTU, seguro anual, etc.")), /*#__PURE__*/React.createElement("button", {
       type: "submit",
@@ -3368,7 +3368,7 @@ function App({
       className: "w-5 h-5 text-amber-600 border-2 border-gray-300 rounded focus:ring-amber-500"
     }), /*#__PURE__*/React.createElement("span", {
       className: "text-sm font-semibold text-gray-700"
-    }, "\uD83D\uDEA6 Mostrar no Farol de Pagamentos")), /*#__PURE__*/React.createElement("p", {
+    }, "\uD83D\uDEA6 Mostrar no Gestão de Pagamentos")), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-gray-500 mt-1 ml-7"
     }, "Para gastos recorrentes como seguro, licenciamento, etc.")), /*#__PURE__*/React.createElement("button", {
       type: "submit",
@@ -4197,10 +4197,11 @@ function App({
           const valorTotal = valorBase + valorParc;
           const limite     = cartao.limite || 0;
 
-          // Status da fatura
-          const hoje = new Date().getDate();
+          // Status da fatura - só calcular se estiver no mês atual
           const fech = cartao.diaFechamento || cartao.vencimento - 7;
-          const statusFat = hoje <= fech ? 'ABERTA' : hoje <= cartao.vencimento ? 'FECHADA' : 'VENCIDA';
+          const statusFat = estamosNoMesAtual 
+            ? (hoje <= fech ? 'ABERTA' : hoje <= cartao.vencimento ? 'FECHADA' : 'VENCIDA')
+            : 'ABERTA'; // Meses passados/futuros sempre mostram como ABERTA
           const corStatus = statusFat==='ABERTA' ? {bg:'#dbeafe',txt:'#1e40af'} : statusFat==='FECHADA' ? {bg:'#d1fae5',txt:'#065f46'} : {bg:'#fecdd3',txt:'#be123c'};
 
           // Limite usado (simplificado)
@@ -6600,7 +6601,7 @@ function App({
         /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
           /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center'}},
             /*#__PURE__*/React.createElement("div", null,
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:'#111827'}}, "Farol de Pagamentos \u2014 " + mesAtual.charAt(0).toUpperCase() + mesAtual.slice(1)),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:'#111827'}}, "Gestão de Pagamentos \u2014 " + mesAtual.charAt(0).toUpperCase() + mesAtual.slice(1)),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}}, 
                 estamosNoMesAtual ? "Hoje: " + hoje + " de " + mesAtual : "Visualizando: " + mesAtual + "/" + anoAtual
               )
