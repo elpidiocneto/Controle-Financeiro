@@ -884,6 +884,50 @@ function App({
   });
   const [telaAtiva, setTelaAtiva] = useState('dashboard');
   const [sidebarExpandida, setSidebarExpandida] = useState(true);
+  
+  // 🔒 LOGOUT AUTOMÁTICO POR INATIVIDADE - 30 MINUTOS
+  const [ultimaAtividade, setUltimaAtividade] = useState(Date.now());
+  
+  useEffect(() => {
+    if (!user) return;
+    
+    const TIMEOUT_INATIVIDADE = 30 * 60 * 1000; // 30 minutos
+    
+    // Atualizar timestamp de atividade
+    const registrarAtividade = () => setUltimaAtividade(Date.now());
+    
+    // Monitorar eventos do usuário
+    window.addEventListener('mousedown', registrarAtividade);
+    window.addEventListener('keydown', registrarAtividade);
+    window.addEventListener('scroll', registrarAtividade);
+    window.addEventListener('touchstart', registrarAtividade);
+    
+    // Verificar inatividade a cada 1 minuto
+    const intervalo = setInterval(() => {
+      const tempoInativo = Date.now() - ultimaAtividade;
+      
+      if (tempoInativo >= TIMEOUT_INATIVIDADE) {
+        console.log('🔒 Logout automático: 30 minutos de inatividade');
+        alert('⏰ Sua sessão expirou por inatividade (30 minutos).\\n\\nPor segurança, você será desconectado.');
+        
+        // Limpar todos os dados
+        ['cartoes', 'gastosFixos', 'gastosVariaveis', 'gastosExtras', 'receitas', 'orcamentos', 'metasMensais', 'metasFinanceiras', 'planejados', 'dividas', 'categorias', 'farol', '_currentUserId'].forEach(k => localStorage.removeItem(k));
+        
+        // Fazer logout
+        firebase.auth().signOut();
+      }
+    }, 60000); // Verificar a cada 1 minuto
+    
+    // Cleanup ao desmontar
+    return () => {
+      window.removeEventListener('mousedown', registrarAtividade);
+      window.removeEventListener('keydown', registrarAtividade);
+      window.removeEventListener('scroll', registrarAtividade);
+      window.removeEventListener('touchstart', registrarAtividade);
+      clearInterval(intervalo);
+    };
+  }, [user, ultimaAtividade]);
+  
   const [modalAberto, setModalAberto] = useState(null);
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
@@ -4197,12 +4241,25 @@ function App({
           const valorTotal = valorBase + valorParc;
           const limite     = cartao.limite || 0;
 
-          // Status da fatura - só calcular se estiver no mês atual
+          // Status da fatura
           const fech = cartao.diaFechamento || cartao.vencimento - 7;
-          const statusFat = estamosNoMesAtual 
-            ? (hoje <= fech ? 'ABERTA' : hoje <= cartao.vencimento ? 'FECHADA' : 'VENCIDA')
-            : 'ABERTA'; // Meses passados/futuros sempre mostram como ABERTA
-          const corStatus = statusFat==='ABERTA' ? {bg:'#dbeafe',txt:'#1e40af'} : statusFat==='FECHADA' ? {bg:'#d1fae5',txt:'#065f46'} : {bg:'#fecdd3',txt:'#be123c'};
+          
+          // Verificar se foi pago no farol
+          const chaveStatusFarol = cartao.nome + '-' + mesAtual + '-' + anoAtual;
+          const statusPagamento = getStatusFarol(cartao.nome, mesAtual);
+          const estaPago = statusPagamento === 'PAGO';
+          
+          // Determinar status da fatura
+          let statusFat;
+          if (estaPago) {
+            statusFat = 'PAGA'; // Se está marcado como pago no farol
+          } else if (estamosNoMesAtual) {
+            statusFat = hoje <= fech ? 'ABERTA' : hoje <= cartao.vencimento ? 'FECHADA' : 'VENCIDA';
+          } else {
+            statusFat = 'ABERTA'; // Meses futuros/passados não pagos
+          }
+          
+          const corStatus = statusFat==='PAGA' ? {bg:'#d1fae5',txt:'#065f46'} : statusFat==='ABERTA' ? {bg:'#dbeafe',txt:'#1e40af'} : statusFat==='FECHADA' ? {bg:'#fef3c7',txt:'#92400e'} : {bg:'#fecdd3',txt:'#be123c'};
 
           // Limite usado (simplificado)
           let totalUsado = 0, totalPago = 0;
