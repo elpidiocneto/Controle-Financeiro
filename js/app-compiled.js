@@ -236,6 +236,12 @@ function AuthWrapper() {
         emailVerificado: false,
         plano: 'trial',
         dataFimTrial: fimTrial,
+        newsletter: aceitaNewsletter,
+        notificacoes: {
+          vencimentos: true,
+          metas: true,
+          newsletter: aceitaNewsletter
+        },
         criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
         ultimoAcesso: firebase.firestore.FieldValue.serverTimestamp()
       });
