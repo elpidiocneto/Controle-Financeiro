@@ -25,12 +25,16 @@ window.DashboardComponent = function Dashboard() {
   const progressoPct   = metaMensal > 0 ? Math.min(100, totais.total / metaMensal * 100) : 0;
   const progressoCor   = progressoPct < 70 ? '#10b981' : progressoPct < 90 ? '#f59e0b' : '#ef4444';
 
-  // Próximas a vencer - apenas itens NÃO PAGOS
+  // Próximas a vencer - apenas próximos 7 dias, não pagos
   const hoje = new Date().getDate();
   const proximasVencer = [
     ...cartoes.map(c   => ({ nome:c.nome,      venc:c.vencimento, tipo:'Cartão', icone:'💳', status:getStatusFarol(c.nome, mesAtual) })),
     ...gastosFixos.map(g => ({ nome:g.descricao, venc:g.vencimento, tipo:'Fixo',   icone:'🏠', status:getStatusFarol(g.descricao, mesAtual) }))
-  ].filter(c => c.status !== 'PAGO').sort((a,b) => (a.venc||31)-(b.venc||31)).slice(0,6);
+  ]
+    .filter(c => c.status !== 'PAGO')  // Não está pago
+    .filter(c => c.venc && c.venc >= hoje && c.venc <= hoje + 7)  // Vence nos próximos 7 dias
+    .sort((a,b) => (a.venc||31)-(b.venc||31))
+    .slice(0,6);
 
   // Categorias para donut
   const cats = [
