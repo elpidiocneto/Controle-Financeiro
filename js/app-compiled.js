@@ -6220,7 +6220,21 @@ function App({
     }, "Sem sobra para pagar d\xEDvidas"), /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-yellow-700"
     }, "Você está gastando tudo ou mais que sua renda. Para usar as estratégias de pagamento, é preciso ter sobra mensal. Revise seus gastos no orçamento!"))))),
-(abaAtiva === 'simulacoes' && subAba === 'compra') && /*#__PURE__*/React.createElement("div", {className:"space-y-3"},
+  
+  /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '12px',
+      background: '#fef3c7',
+      borderRadius: '8px',
+      marginBottom: '16px',
+      fontSize: '0.85rem',
+      fontWeight: '700',
+      color: '#92400e'
+    }
+  }, "🔍 MARCADOR: Antes da verificação de Simulações"),
+  
+  console.log('🔍 Verificando simulacoes:', {abaAtiva, subAba, condicao: abaAtiva === 'simulacoes' && subAba === 'compra'}),
+  (abaAtiva === 'simulacoes' && subAba === 'compra') && /*#__PURE__*/React.createElement("div", {className:"space-y-3"},
     /*#__PURE__*/React.createElement("div", {style:{display:'flex',gap:'8px',marginBottom:'16px'}},
       /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-compra'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#6366f1',color:'#fff'}}, "🛒 Simul. Compra"),
       /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-simulador'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#f3f4f6',color:'#6b7280'}}, "🎲 Simulador")
