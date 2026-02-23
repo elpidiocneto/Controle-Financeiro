@@ -5318,7 +5318,21 @@ function App({
       className: "flex justify-between items-center"
     }, /*#__PURE__*/React.createElement("h2", {
       className: "text-base font-bold text-gray-800"
-    }, "\uD83D\uDCCB Planejamento")), abaAtiva === 'diagnostico' && (() => {
+    }, "\uD83D\uDCCB Planejamento")),
+    
+    abaAtiva === 'simulacoes' && /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '20px',
+        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        borderRadius: '16px',
+        color: '#fff',
+        marginBottom: '16px'
+      }
+    }, /*#__PURE__*/React.createElement("h3", {
+      style: {fontSize: '1.2rem', fontWeight: '800', marginBottom: '8px'}
+    }, "🎲 DEBUG: Simulações"), /*#__PURE__*/React.createElement("div", null, "telaAtiva: ", telaAtiva), /*#__PURE__*/React.createElement("div", null, "abaAtiva: ", abaAtiva), /*#__PURE__*/React.createElement("div", null, "subAba: ", subAba || 'null')),
+    
+    abaAtiva === 'diagnostico' && (() => {
       window.__diagCtx = {
         scoreSaude, scoreInfo, saldo, totais, orcamento,
         dentroOrcamento, reservaEmergencia, setReservaEmergencia,
@@ -6206,45 +6220,7 @@ function App({
     }, "Sem sobra para pagar d\xEDvidas"), /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-yellow-700"
     }, "Você está gastando tudo ou mais que sua renda. Para usar as estratégias de pagamento, é preciso ter sobra mensal. Revise seus gastos no orçamento!"))))),
-  abaAtiva === 'simulacoes' && /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '20px',
-      background: '#fff',
-      borderRadius: '16px',
-      border: '2px solid #6366f1',
-      marginBottom: '16px'
-    }
-  },
-    /*#__PURE__*/React.createElement("h2", {
-      style: {
-        fontSize: '1.2rem',
-        fontWeight: '800',
-        color: '#6366f1',
-        marginBottom: '16px'
-      }
-    }, "🎲 SIMULAÇÕES - Área de Testes"),
-    /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: '0.9rem',
-        color: '#6b7280',
-        marginBottom: '12px'
-      }
-    }, "telaAtiva: " + telaAtiva),
-    /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: '0.9rem',
-        color: '#6b7280',
-        marginBottom: '12px'
-      }
-    }, "abaAtiva: " + abaAtiva),
-    /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: '0.9rem',
-        color: '#6b7280'
-      }
-    }, "subAba: " + (subAba || 'null'))
-  ),
-  (abaAtiva === 'simulacoes' && subAba === 'compra') && /*#__PURE__*/React.createElement("div", {className:"space-y-3"},
+(abaAtiva === 'simulacoes' && subAba === 'compra') && /*#__PURE__*/React.createElement("div", {className:"space-y-3"},
     /*#__PURE__*/React.createElement("div", {style:{display:'flex',gap:'8px',marginBottom:'16px'}},
       /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-compra'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#6366f1',color:'#fff'}}, "🛒 Simul. Compra"),
       /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-simulador'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#f3f4f6',color:'#6b7280'}}, "🎲 Simulador")
