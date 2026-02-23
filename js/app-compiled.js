@@ -5022,7 +5022,6 @@ function App({
     // Controlar aba via telaAtiva do menu
     const abaAtiva = telaAtiva === 'planejamento-orcamento' || telaAtiva === 'planejamento-premes' ? 'orcamento' : telaAtiva === 'planejamento-metas' || telaAtiva === 'planejamento-dividas' ? 'metas' : telaAtiva === 'planejamento-compra' || telaAtiva === 'planejamento-simulador' ? 'simulacoes' : 'diagnostico';
     const subAba = telaAtiva === 'planejamento-premes' ? 'premes' : telaAtiva === 'planejamento-dividas' ? 'dividas' : telaAtiva === 'planejamento-compra' ? 'compra' : telaAtiva === 'planejamento-simulador' ? 'simulador' : telaAtiva === 'planejamento-timeline' ? 'timeline' : null;
-    console.log('🎲 TelaPlanejamento:', {telaAtiva, abaAtiva, subAba});
 
     // Estados do Simulador
     const [simulacao, setSimulacao] = useState({
@@ -5318,21 +5317,7 @@ function App({
       className: "flex justify-between items-center"
     }, /*#__PURE__*/React.createElement("h2", {
       className: "text-base font-bold text-gray-800"
-    }, "\uD83D\uDCCB Planejamento")),
-    
-    abaAtiva === 'simulacoes' && /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: '20px',
-        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-        borderRadius: '16px',
-        color: '#fff',
-        marginBottom: '16px'
-      }
-    }, /*#__PURE__*/React.createElement("h3", {
-      style: {fontSize: '1.2rem', fontWeight: '800', marginBottom: '8px'}
-    }, "🎲 DEBUG: Simulações"), /*#__PURE__*/React.createElement("div", null, "telaAtiva: ", telaAtiva), /*#__PURE__*/React.createElement("div", null, "abaAtiva: ", abaAtiva), /*#__PURE__*/React.createElement("div", null, "subAba: ", subAba || 'null')),
-    
-    abaAtiva === 'diagnostico' && (() => {
+    }, "\uD83D\uDCCB Planejamento")), abaAtiva === 'diagnostico' && (() => {
       window.__diagCtx = {
         scoreSaude, scoreInfo, saldo, totais, orcamento,
         dentroOrcamento, reservaEmergencia, setReservaEmergencia,
@@ -6220,20 +6205,6 @@ function App({
     }, "Sem sobra para pagar d\xEDvidas"), /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-yellow-700"
     }, "Você está gastando tudo ou mais que sua renda. Para usar as estratégias de pagamento, é preciso ter sobra mensal. Revise seus gastos no orçamento!"))))),
-  
-  /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '12px',
-      background: '#fef3c7',
-      borderRadius: '8px',
-      marginBottom: '16px',
-      fontSize: '0.85rem',
-      fontWeight: '700',
-      color: '#92400e'
-    }
-  }, "🔍 MARCADOR: Antes da verificação de Simulações"),
-  
-  console.log('🔍 Verificando simulacoes:', {abaAtiva, subAba, condicao: abaAtiva === 'simulacoes' && subAba === 'compra'}),
   (abaAtiva === 'simulacoes' && subAba === 'compra') && /*#__PURE__*/React.createElement("div", {className:"space-y-3"},
     /*#__PURE__*/React.createElement("div", {style:{display:'flex',gap:'8px',marginBottom:'16px'}},
       /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-compra'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#6366f1',color:'#fff'}}, "🛒 Simul. Compra"),
