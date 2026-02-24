@@ -6856,7 +6856,12 @@ function App({
     onClick: () => setMesAtual(mes),
     className: `mes-btn${mesAtual === mes ? ' ativo' : ''}`
   }, mes.charAt(0).toUpperCase() + mes.slice(1)))))), /*#__PURE__*/React.createElement("div", {
-    className: "max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 main-content animate-in"
+    style: {
+      maxWidth: '1280px',
+      margin: '0 auto',
+      padding: '1rem',
+      animation: 'fadeIn 0.3s ease-out'
+    }
   }, React.useMemo(() => {
     if (telaAtiva !== 'dashboard') return null;
     return /*#__PURE__*/React.createElement(Dashboard, {
