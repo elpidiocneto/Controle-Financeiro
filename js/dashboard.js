@@ -1,6 +1,50 @@
 // Dashboard - Estratégia Finanças - Layout 3 colunas
 window.DashboardComponent = function Dashboard() {
   const h = React.createElement;
+  
+  // Botão de exportar PDF
+  const btnExportarPDF = h('button', {
+    onClick: async () => {
+      try {
+        const dados = window.ExportadorPDF.prepararDados(mesAtual, anoAtual);
+        await window.ExportadorPDF.exportarRelatorioMensal(
+          dados, 
+          mesAtual, 
+          anoAtual,
+          user?.displayName || 'Usuário'
+        );
+      } catch (error) {
+        console.error('Erro ao exportar PDF:', error);
+        alert('❌ Erro ao gerar PDF. Verifique o console para detalhes.');
+      }
+    },
+    style: {
+      padding: '10px 20px',
+      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '12px',
+      fontSize: '0.85rem',
+      fontWeight: '700',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      boxShadow: '0 4px 12px rgba(239,68,68,0.3)',
+      transition: 'all 0.2s'
+    },
+    onMouseEnter: (e) => {
+      e.currentTarget.style.transform = 'translateY(-2px)';
+      e.currentTarget.style.boxShadow = '0 6px 16px rgba(239,68,68,0.4)';
+    },
+    onMouseLeave: (e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(239,68,68,0.3)';
+    }
+  }, 
+    h('span', {style: {fontSize: '1.2rem'}}, '📄'),
+    'Exportar PDF'
+  );
 
   const ctx = window.__dashCtx || {};
   const totais      = ctx.totais      || { cartoes:0, fixos:0, variaveis:0, extras:0, total:0 };
@@ -272,12 +316,17 @@ window.DashboardComponent = function Dashboard() {
   );
 
   // ─── LAYOUT 3 COLUNAS ────────────────────────────────────
-  return h('div', {
-    style:{
-      display:'grid',
-      gridTemplateColumns:'1fr 1.4fr 1fr',
-      gap:'16px',
-      alignItems:'start',
-    }
-  }, colEsq, colCentro, colDir);
+  return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '16px' } },
+    // Header com botão de exportar
+    h('div', { style: { display: 'flex', justifyContent: 'flex-end' } }, btnExportarPDF),
+    // Grid principal
+    h('div', {
+      style:{
+        display:'grid',
+        gridTemplateColumns:'1fr 1.4fr 1fr',
+        gap:'16px',
+        alignItems:'start',
+      }
+    }, colEsq, colCentro, colDir)
+  );
 };
