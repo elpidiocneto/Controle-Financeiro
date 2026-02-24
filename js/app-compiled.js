@@ -2857,9 +2857,7 @@ function App({
     titulo,
     children,
     onClose
-  }) => {
-    console.log('🔍 Modal renderizando:', titulo);
-    return /*#__PURE__*/React.createElement("div", {
+  }) => /*#__PURE__*/React.createElement("div", {
     className: "modal-overlay",
     onClick: onClose
   }, /*#__PURE__*/React.createElement("div", {
@@ -2873,7 +2871,6 @@ function App({
     onClick: onClose,
     className: "text-gray-500 hover:text-gray-700 text-xl font-bold"
   }, "\xD7")), children));
-  };
 
   // Forms
   const FormNovoCartao = () => {
@@ -4429,7 +4426,7 @@ function App({
     );
   };
 
-  const TelaGastosFixos = () => {
+  const TelaGastosFixos = ({setModalAberto}) => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
 
     // CORREÇÃO: Verificar se estamos no mês atual
@@ -4507,7 +4504,7 @@ function App({
         ),
 
         // Botões de ação
-        /*#__PURE__*/React.createElement("button", {onClick:()=>{alert('Botão clicado! Abrindo Gasto Fixo...'); console.log('🔍 Abrindo modal Gasto Fixo'); setModalAberto('novoGastoFixo')}, style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Novo Gasto Fixo"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Novo Gasto Fixo"),
         /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
@@ -4526,7 +4523,7 @@ function App({
           ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83C\uDFE0"),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, "Nenhum gasto fixo"),
-              /*#__PURE__*/React.createElement("button", {onClick:()=>{alert('Botão clicado! Abrindo Gasto Fixo...'); console.log('🔍 Abrindo modal Gasto Fixo'); setModalAberto('novoGastoFixo')}, style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'580px', overflowY:'auto'}},
               ...diasOrdenados.map(dia => {
@@ -4597,7 +4594,7 @@ function App({
     );
   };
 
-  const TelaGastosVariaveis = () => {
+  const TelaGastosVariaveis = ({setModalAberto}) => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
     
     // CORREÇÃO: Verificar se estamos no mês atual
@@ -4659,7 +4656,7 @@ function App({
           )
         ),
 
-        /*#__PURE__*/React.createElement("button", {onClick:()=>{alert('Botão clicado! Abrindo Gasto Variável...'); console.log('🔍 Abrindo modal Gasto Variável'); setModalAberto('novoGastoVariavel')}, style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(234,88,12,0.35)'}}, "\u2795 Novo Gasto Vari\xE1vel"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(234,88,12,0.35)'}}, "\u2795 Novo Gasto Vari\xE1vel"),
         /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
@@ -4676,7 +4673,7 @@ function App({
           ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83D\uDCCA"),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhum gasto vari\xE1vel em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
-              /*#__PURE__*/React.createElement("button", {onClick:()=>{alert('Botão clicado! Abrindo Gasto Variável...'); console.log('🔍 Abrindo modal Gasto Variável'); setModalAberto('novoGastoVariavel')}, style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
               ...datasOrdenadas.map(dataKey => {
@@ -4733,7 +4730,7 @@ function App({
     );
   };
 
-  const TelaGastosExtras = () => {
+  const TelaGastosExtras = ({setModalAberto}) => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
     const gastosDoMes = gastosExtras.filter(g => g.mes===mesAtual && g.ano===anoAtual);
     const totaisPorCat = {};
@@ -4778,7 +4775,7 @@ function App({
           )
         ),
 
-        /*#__PURE__*/React.createElement("button", {onClick:()=>{alert('Botão clicado! Abrindo Gasto Extra...'); console.log('🔍 Abrindo modal Gasto Extra'); setModalAberto('novoGastoExtra')}, style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(217,119,6,0.35)'}}, "\u2795 Novo Gasto Extra"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoExtra'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(217,119,6,0.35)'}}, "\u2795 Novo Gasto Extra"),
         /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
@@ -4796,7 +4793,7 @@ function App({
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\u26A1"),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhum gasto extra em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:'#d1d5db', marginBottom:'18px'}}, "Registre compras pontuais, surpresas ou gastos imprevistos"),
-              /*#__PURE__*/React.createElement("button", {onClick:()=>{alert('Botão clicado! Abrindo Gasto Extra...'); console.log('🔍 Abrindo modal Gasto Extra'); setModalAberto('novoGastoExtra')}, style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoExtra'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
               ...sortedGastos.map((gasto,idx)=>
@@ -6869,7 +6866,7 @@ function App({
     isUserAdmin: isUserAdmin
   }), telaAtiva.startsWith('planejamento') && /*#__PURE__*/React.createElement(TelaPlanejamento, null), telaAtiva === 'receitas' && /*#__PURE__*/React.createElement(TelaReceitas, null), telaAtiva === 'cartoes' && /*#__PURE__*/React.createElement(TelaCartoes, {
     key: JSON.stringify(farol)
-  }), telaAtiva === 'fixos' && /*#__PURE__*/React.createElement(TelaGastosFixos, null), telaAtiva === 'variaveis' && /*#__PURE__*/React.createElement(TelaGastosVariaveis, null), telaAtiva === 'extras' && /*#__PURE__*/React.createElement(TelaGastosExtras, null), telaAtiva === 'farol' && /*#__PURE__*/React.createElement(TelaFarol, null)), modalAberto === 'editar' && itemEditando && /*#__PURE__*/React.createElement(Modal, {
+  }), telaAtiva === 'fixos' && /*#__PURE__*/React.createElement(TelaGastosFixos, {setModalAberto}), telaAtiva === 'variaveis' && /*#__PURE__*/React.createElement(TelaGastosVariaveis, {setModalAberto}), telaAtiva === 'extras' && /*#__PURE__*/React.createElement(TelaGastosExtras, {setModalAberto}), telaAtiva === 'farol' && /*#__PURE__*/React.createElement(TelaFarol, null)), modalAberto === 'editar' && itemEditando && /*#__PURE__*/React.createElement(Modal, {
     titulo: `✏️ Editar ${tipoEditando === 'receita' ? 'Receita' : tipoEditando === 'cartao' ? 'Cartão' : tipoEditando === 'fixo' ? 'Gasto Fixo' : 'Gasto Variável'}`,
     onClose: () => {
       setModalAberto(null);
