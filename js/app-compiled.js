@@ -935,6 +935,10 @@ function App({
   }, [user, ultimaAtividade]);
   
   const [modalAberto, setModalAberto] = useState(null);
+  React.useEffect(() => {
+    console.log('🟢 modalAberto mudou para:', modalAberto);
+  }, [modalAberto]);
+  console.log("🟢 Estado modalAberto inicializado");
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
   const [gastosFixos, setGastosFixos] = useState(() => {
@@ -4504,7 +4508,7 @@ function App({
         ),
 
         // Botões de ação
-        /*#__PURE__*/React.createElement("button", {onClick:(e)=>{e.stopPropagation();setModalAberto('novoGastoFixo');}, style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Novo Gasto Fixo"),
+        /*#__PURE__*/React.createElement("button", {onClick:(e)=>{console.log('🔴 BOTÃO CLICADO!', e); e.stopPropagation(); console.log('🔴 Chamando setModalAberto'); setModalAberto('novoGastoFixo'); console.log('🔴 setModalAberto chamado');}, style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Novo Gasto Fixo"),
         /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
@@ -4523,7 +4527,7 @@ function App({
           ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83C\uDFE0"),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, "Nenhum gasto fixo"),
-              /*#__PURE__*/React.createElement("button", {onClick:(e)=>{e.stopPropagation();setModalAberto('novoGastoFixo');}, style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+              /*#__PURE__*/React.createElement("button", {onClick:(e)=>{console.log('🔴 BOTÃO CLICADO!', e); e.stopPropagation(); console.log('🔴 Chamando setModalAberto'); setModalAberto('novoGastoFixo'); console.log('🔴 setModalAberto chamado');}, style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'580px', overflowY:'auto'}},
               ...diasOrdenados.map(dia => {
@@ -7230,7 +7234,7 @@ function App({
   }, "\u2705 Criar Meta"))), modalAberto === 'novoCartao' && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Cart\xE3o",
     onClose: () => setModalAberto(null)
-  }, /*#__PURE__*/React.createElement(FormNovoCartao, null)), modalAberto === 'novoGastoFixo' && /*#__PURE__*/React.createElement(Modal, {
+  }, /*#__PURE__*/React.createElement(FormNovoCartao, null)), (console.log('🔵 Verificando se deve renderizar modal:', modalAberto === 'novoGastoFixo'), modalAberto === 'novoGastoFixo') && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Gasto Fixo",
     onClose: () => setModalAberto(null)
   }, /*#__PURE__*/React.createElement(FormNovoGastoFixo, null)), modalAberto === 'novoGastoVariavel' && /*#__PURE__*/React.createElement(Modal, {
