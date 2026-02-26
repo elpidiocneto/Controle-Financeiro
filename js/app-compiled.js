@@ -6731,7 +6731,7 @@ function App({
         )
       ),
 
-      modalPagamento && /*#__PURE__*/React.createElement("div", {
+      false && /*#__PURE__*/React.createElement("div", {
         style:{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999},
         onClick:()=>setModalPagamento(null)
       },
