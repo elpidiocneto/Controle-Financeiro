@@ -6856,12 +6856,7 @@ function App({
     onClick: () => setMesAtual(mes),
     className: `mes-btn${mesAtual === mes ? ' ativo' : ''}`
   }, mes.charAt(0).toUpperCase() + mes.slice(1)))))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      maxWidth: '1280px',
-      margin: '0 auto',
-      padding: '1rem',
-      animation: 'fadeIn 0.3s ease-out'
-    }
+    className: "max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 main-content animate-in"
   }, React.useMemo(() => {
     if (telaAtiva !== 'dashboard') return null;
     return /*#__PURE__*/React.createElement(Dashboard, {
@@ -7235,7 +7230,7 @@ function App({
   }, "\u2705 Criar Meta"))), modalAberto === 'novoCartao' && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Cart\xE3o",
     onClose: () => setModalAberto(null)
-  }, /*#__PURE__*/React.createElement(FormNovoCartao, null)), true && /*#__PURE__*/React.createElement(Modal, {
+  }, /*#__PURE__*/React.createElement(FormNovoCartao, null)), modalAberto === 'novoGastoFixo' && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Gasto Fixo",
     onClose: () => setModalAberto(null)
   }, /*#__PURE__*/React.createElement(FormNovoGastoFixo, null)), modalAberto === 'novoGastoVariavel' && /*#__PURE__*/React.createElement(Modal, {
