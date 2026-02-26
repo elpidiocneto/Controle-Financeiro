@@ -819,7 +819,7 @@ const UserMenu = ({
       position: 'absolute',
       top: 'calc(100% + 8px)',
       left: 0,
-      zIndex: 9999,
+      zIndex: 100,
       background: '#1e1b4b',
       borderRadius: '12px',
       minWidth: '220px',
@@ -6838,7 +6838,7 @@ function App({
   }, /*#__PURE__*/React.createElement("div", {
     style: {},
     id: "meses-container",
-    className: "sticky-desktop top-[57px] md:top-[57px] z-10"
+    className: "sticky-desktop top-[57px] md:top-[57px]"
   }, /*#__PURE__*/React.createElement("div", {
     className: "max-w-7xl mx-auto px-2 md:px-4",
     style: {
