@@ -469,3 +469,20 @@ h1, h2, h3, h4 {
         padding: 1rem;
     }
 }
+
+
+/* CORREÇÃO CRÍTICA - Elementos que podem estar bloqueando cliques */
+.main-content-area {
+    pointer-events: auto !important;
+}
+
+.main-content-area > * {
+    pointer-events: auto !important;
+}
+
+/* Garantir que botões sempre recebam cliques */
+button {
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
