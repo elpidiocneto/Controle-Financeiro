@@ -2,7 +2,7 @@
 
         // Firebase já foi inicializado no firebase-config.js
         // Pegando referência do db global
-        const db = window.db;
+        // db já está disponível via window.db do firebase-config.js
 
         const DADOS_INICIAIS = {
             gastosFixos: [
