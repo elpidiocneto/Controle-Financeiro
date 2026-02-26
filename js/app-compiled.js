@@ -7235,9 +7235,9 @@ function App({
   }, "\u2705 Criar Meta"))), modalAberto === 'novoCartao' && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Cart\xE3o",
     onClose: () => setModalAberto(null)
-  }, /*#__PURE__*/React.createElement(FormNovoCartao, null)), modalAberto === 'novoGastoFixo' && /*#__PURE__*/React.createElement(Modal, {
+  }, /*#__PURE__*/React.createElement(FormNovoCartao, null)), true && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Gasto Fixo",
-    onClose: () => setModalAberto(null)
+    onClose: () => console.log("Tentou fechar modal")
   }, /*#__PURE__*/React.createElement(FormNovoGastoFixo, null)), modalAberto === 'novoGastoVariavel' && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Gasto Vari\xE1vel",
     onClose: () => setModalAberto(null)
