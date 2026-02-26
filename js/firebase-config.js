@@ -14,8 +14,8 @@ const firebaseConfig = {
     appId: "1:447370107548:web:a17e42519fe07f0c23eb59"
 };
 
-// Inicializar Firebase
-let db = null;
+// Inicializar Firebase e criar variável global db (sem let/const/var)
+db = null;
 try {
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
@@ -26,6 +26,3 @@ try {
     console.error("❌ Erro ao inicializar Firebase:", error);
     alert("⚠️ Erro ao conectar com Firebase. Verifique sua conexão com a internet.");
 }
-
-// Exportar para uso global (window.db será acessível em app.js)
-window.db = db;
