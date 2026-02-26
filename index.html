@@ -13,7 +13,7 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <!-- Babel não necessário: app.js pré-compilado -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -39,51 +39,5 @@
     <script src="js/dashboard.js"></script>
     <script src="js/diagnostico.js"></script>
     <script src="js/app-compiled.js"></script>
-
-<!-- TESTE DE OVERLAY - Remover depois -->
-<div id="test-overlay" style="
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(255, 0, 0, 0.1);
-  z-index: 10000;
-  pointer-events: none;
-  display: none;
-">
-  <div style="
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: black;
-    color: white;
-    padding: 20px;
-    border-radius: 10px;
-    font-size: 18px;
-    pointer-events: auto;
-  ">
-    ⚠️ OVERLAY DE TESTE ATIVO<br>
-    <button onclick="document.getElementById('test-overlay').style.display='none'">
-      Fechar
-    </button>
-  </div>
-</div>
-
-<script>
-// Detectar cliques em qualquer lugar
-document.addEventListener('click', function(e) {
-  console.log('🖱️ Clique detectado em:', e.target.tagName, e.target.className, e.target.textContent?.substring(0, 50));
-}, true);
-
-// Mostrar teste ao pressionar T
-document.addEventListener('keydown', function(e) {
-  if (e.key === 't' || e.key === 'T') {
-    document.getElementById('test-overlay').style.display = 'block';
-  }
-});
-</script>
-
 </body>
 </html>
