@@ -1,1 +1,22 @@
-/* CSS limpo - sem interferência */
+/* REMOVER QUALQUER PSEUDO-ELEMENTO QUE POSSA BLOQUEAR */
+*::before,
+*::after {
+    pointer-events: none !important;
+}
+
+/* GARANTIR QUE ELEMENTOS REAIS FUNCIONEM */
+button,
+a,
+input,
+select,
+textarea {
+    pointer-events: auto !important;
+}
+
+/* Remover qualquer overlay de animação */
+.animate-in::before,
+.animate-in::after,
+.main-content::before,
+.main-content::after {
+    display: none !important;
+}
