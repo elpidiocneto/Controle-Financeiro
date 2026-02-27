@@ -4515,8 +4515,8 @@ function App({
         ),
 
         // Botões de ação
-        /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('novoGastoFixo'), onclick:"window.abrirModal('novoGastoFixo')", style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Novo Gasto Fixo"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {className:"btn-novo-gasto-fixo", onClick:()=>window.abrirModal('novoGastoFixo')}, "\u2795 Novo Gasto Fixo"),
+        /*#__PURE__*/React.createElement("button", {className:"btn-gerenciar-categorias", onClick:()=>window.abrirModal('gerenciarCategorias')}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       // COLUNA DIREITA — lista por vencimento
@@ -4667,8 +4667,8 @@ function App({
           )
         ),
 
-        /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('novoGastoVariavel'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(234,88,12,0.35)'}}, "\u2795 Novo Gasto Vari\xE1vel"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {className:"btn-novo-gasto-variavel", onClick:()=>window.abrirModal('novoGastoVariavel')}, "\u2795 Novo Gasto Vari\xE1vel"),
+        /*#__PURE__*/React.createElement("button", {className:"btn-gerenciar-categorias", onClick:()=>window.abrirModal('gerenciarCategorias')}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
@@ -4786,8 +4786,8 @@ function App({
           )
         ),
 
-        /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('novoGastoExtra'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(217,119,6,0.35)'}}, "\u2795 Novo Gasto Extra"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {className:"btn-novo-gasto-extra", onClick:()=>window.abrirModal('novoGastoExtra')}, "\u2795 Novo Gasto Extra"),
+        /*#__PURE__*/React.createElement("button", {className:"btn-gerenciar-categorias", onClick:()=>window.abrirModal('gerenciarCategorias')}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
