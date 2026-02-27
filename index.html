@@ -27,18 +27,7 @@
     <link rel="stylesheet" href="css/responsive.css">
 <link rel="stylesheet" href="css/fix-clicks.css">
 
-<script>
-// Expor setModalAberto globalmente para testes
-window.abrirModal = function(tipo) {
-    console.log('🎯 abrirModal chamado:', tipo);
-    
-    // Disparar evento customizado que o React vai capturar
-    const event = new CustomEvent('abrirModal', { detail: { tipo: tipo } });
-    window.dispatchEvent(event);
-    
-    console.log('✅ Evento abrirModal disparado');
-};
-</script>
+
 
 </head>
 <body>
@@ -56,15 +45,26 @@ window.abrirModal = function(tipo) {
     <script src="js/diagnostico.js"></script>
     <script src="js/app-compiled.js"></script>
 
+
+
+
 <script>
-// Capturar TODOS os cliques na fase de captura (antes de tudo)
+console.log('🟢 Script de cliques carregado!');
+
+// Função global para abrir modais
+window.abrirModal = function(tipo) {
+    console.log('🎯 abrirModal chamado:', tipo);
+    const event = new CustomEvent('abrirModal', { detail: { tipo: tipo } });
+    window.dispatchEvent(event);
+};
+
+// Capturar TODOS os cliques
 document.addEventListener('click', function(e) {
-    // Verificar se clicou em um botão ou dentro de um botão
     let target = e.target;
     let botao = null;
     
     // Subir na árvore DOM até encontrar um button
-    while (target && target !== document) {
+    while (target && target !== document.body) {
         if (target.tagName === 'BUTTON') {
             botao = target;
             break;
@@ -73,34 +73,29 @@ document.addEventListener('click', function(e) {
     }
     
     if (botao) {
-        const texto = botao.textContent;
-        console.log('🎯 Clique em botão detectado:', texto);
+        const texto = botao.textContent.trim();
+        console.log('🎯 Clique em botão:', texto);
         
-        // Verificar qual botão é e disparar ação
         if (texto.includes('Novo Gasto Fixo')) {
-            e.stopPropagation();
-            e.preventDefault();
+            console.log('→ Abrindo modal Novo Gasto Fixo');
             window.abrirModal('novoGastoFixo');
-        } else if (texto.includes('Novo Gasto Variável')) {
-            e.stopPropagation();
-            e.preventDefault();
+        } else if (texto.includes('Novo Gasto Variável') || texto.includes('Novo Gasto Variavel')) {
+            console.log('→ Abrindo modal Novo Gasto Variável');
             window.abrirModal('novoGastoVariavel');
         } else if (texto.includes('Novo Gasto Extra')) {
-            e.stopPropagation();
-            e.preventDefault();
+            console.log('→ Abrindo modal Novo Gasto Extra');
             window.abrirModal('novoGastoExtra');
-        } else if (texto.includes('Novo Cartão')) {
-            e.stopPropagation();
-            e.preventDefault();
+        } else if (texto.includes('Novo Cartão') || texto.includes('Novo Cartao')) {
+            console.log('→ Abrindo modal Novo Cartão');
             window.abrirModal('novoCartao');
         } else if (texto.includes('Gerenciar Categorias')) {
-            e.stopPropagation();
-            e.preventDefault();
+            console.log('→ Abrindo modal Gerenciar Categorias');
             window.abrirModal('gerenciarCategorias');
         }
     }
-}, true); // true = capture phase
-</script>
+}, true);
 
+console.log('✅ Event listeners instalados!');
+</script>
 </body>
 </html>
