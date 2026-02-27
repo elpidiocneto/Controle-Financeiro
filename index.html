@@ -55,5 +55,52 @@ window.abrirModal = function(tipo) {
     <script src="js/dashboard.js"></script>
     <script src="js/diagnostico.js"></script>
     <script src="js/app-compiled.js"></script>
+
+<script>
+// Capturar TODOS os cliques na fase de captura (antes de tudo)
+document.addEventListener('click', function(e) {
+    // Verificar se clicou em um botão ou dentro de um botão
+    let target = e.target;
+    let botao = null;
+    
+    // Subir na árvore DOM até encontrar um button
+    while (target && target !== document) {
+        if (target.tagName === 'BUTTON') {
+            botao = target;
+            break;
+        }
+        target = target.parentElement;
+    }
+    
+    if (botao) {
+        const texto = botao.textContent;
+        console.log('🎯 Clique em botão detectado:', texto);
+        
+        // Verificar qual botão é e disparar ação
+        if (texto.includes('Novo Gasto Fixo')) {
+            e.stopPropagation();
+            e.preventDefault();
+            window.abrirModal('novoGastoFixo');
+        } else if (texto.includes('Novo Gasto Variável')) {
+            e.stopPropagation();
+            e.preventDefault();
+            window.abrirModal('novoGastoVariavel');
+        } else if (texto.includes('Novo Gasto Extra')) {
+            e.stopPropagation();
+            e.preventDefault();
+            window.abrirModal('novoGastoExtra');
+        } else if (texto.includes('Novo Cartão')) {
+            e.stopPropagation();
+            e.preventDefault();
+            window.abrirModal('novoCartao');
+        } else if (texto.includes('Gerenciar Categorias')) {
+            e.stopPropagation();
+            e.preventDefault();
+            window.abrirModal('gerenciarCategorias');
+        }
+    }
+}, true); // true = capture phase
+</script>
+
 </body>
 </html>
