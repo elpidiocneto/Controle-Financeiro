@@ -935,6 +935,17 @@ function App({
   }, [user, ultimaAtividade]);
   
   const [modalAberto, setModalAberto] = useState(null);
+  
+  // Listener para abrir modal via evento global
+  React.useEffect(() => {
+    const handleAbrirModal = (e) => {
+      console.log('🎯 Evento abrirModal recebido:', e.detail);
+      setModalAberto(e.detail.tipo);
+    };
+    
+    window.addEventListener('abrirModal', handleAbrirModal);
+    return () => window.removeEventListener('abrirModal', handleAbrirModal);
+  }, []);
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
   const [gastosFixos, setGastosFixos] = useState(() => {

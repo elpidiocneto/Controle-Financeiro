@@ -26,13 +26,34 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/responsive.css">
 <link rel="stylesheet" href="css/fix-clicks.css">
+
+<script>
+// Expor setModalAberto globalmente para testes
+window.abrirModal = function(tipo) {
+    console.log('🎯 abrirModal chamado:', tipo);
+    
+    // Encontrar o root do React
+    const root = document.getElementById('root');
+    if (!root || !root._reactRootContainer) {
+        alert('React ainda não inicializou!');
+        return;
+    }
+    
+    // Tentar disparar evento customizado
+    const event = new CustomEvent('abrirModal', { detail: { tipo: tipo } });
+    window.dispatchEvent(event);
+    
+    alert('Evento disparado! Verifique se modal abre.');
+};
+</script>
+
 </head>
 <body>
     
 <!-- BOTÃO DE TESTE -->
 <div style="position:fixed;top:10px;right:10px;z-index:999999999;">
-    <button onclick="alert('HTML INLINE FUNCIONA!')" style="background:lime;color:black;padding:20px;font-weight:bold;border:3px solid black;cursor:pointer;">
-        TESTE HTML
+    <button onclick="window.abrirModal('novoGastoFixo')" style="background:lime;color:black;padding:20px;font-weight:bold;border:3px solid black;cursor:pointer;">
+        ABRIR MODAL
     </button>
 </div>
 
