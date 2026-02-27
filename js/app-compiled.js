@@ -396,7 +396,7 @@ function AuthWrapper() {
         padding: '4px',
         marginBottom: '1.5rem'
       }
-    }, ['login', 'register'].map(mode => /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, ['login', 'register'].map(mode => /*#__PURE__*/React.createElement("button", {
       key: mode,
       onClick: () => {
         setAuthMode(mode);
@@ -551,7 +551,7 @@ function AuthWrapper() {
         textAlign: 'center',
         marginTop: '1rem'
       }
-    }, /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, /*#__PURE__*/React.createElement("button", {
       onClick: async () => {
         const emailInput = prompt('📧 Digite seu email:');
         if (emailInput) {
@@ -730,7 +730,7 @@ function FormEdicao({
     required: true
   }), formData.data && /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-gray-500 mt-1"
-  }, "Exibido como: ", formData.data)), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+  }, "Exibido como: ", formData.data)), /*#__PURE__*/React.createElement("button", {
     type: "submit",
     className: "w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
   }, "\uD83D\uDCBE Salvar Altera\xE7\xF5es"));
@@ -769,7 +769,7 @@ const UserMenu = ({
       position: 'relative',
       flexShrink: 0
     }
-  }, /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+  }, /*#__PURE__*/React.createElement("button", {
     onClick: e => {
       e.stopPropagation();
       setAberto(p => !p);
@@ -935,10 +935,6 @@ function App({
   }, [user, ultimaAtividade]);
   
   const [modalAberto, setModalAberto] = useState(null);
-  React.useEffect(() => {
-    console.log('🟢 modalAberto mudou para:', modalAberto);
-  }, [modalAberto]);
-  console.log("🟢 Estado modalAberto inicializado");
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
   const [gastosFixos, setGastosFixos] = useState(() => {
@@ -2863,7 +2859,7 @@ function App({
     onClose
   }) => /*#__PURE__*/React.createElement("div", {
     className: "modal-overlay",
-    onClick: (e) => { if (e.target === e.currentTarget) onClose(); }
+    onClick: onClose
   }, /*#__PURE__*/React.createElement("div", {
     className: "modal-content",
     onClick: e => e.stopPropagation()
@@ -2871,7 +2867,7 @@ function App({
     className: "flex justify-between items-center mb-4"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "text-lg font-bold text-gray-800"
-  }, titulo), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+  }, titulo), /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
     className: "text-gray-500 hover:text-gray-700 text-xl font-bold"
   }, "\xD7")), children));
@@ -2949,7 +2945,7 @@ function App({
       placeholder: "Ex: 10000.00"
     }), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-gray-500 mt-1"
-    }, "Deixe vazio se n\xE3o quiser controlar limite")), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, "Deixe vazio se n\xE3o quiser controlar limite")), /*#__PURE__*/React.createElement("button", {
       type: "submit",
       className: "w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
     }, "\u2705 Adicionar Cart\xE3o"));
@@ -3060,7 +3056,7 @@ function App({
     }, todasCategorias.map(cat => /*#__PURE__*/React.createElement("option", {
       key: cat,
       value: cat
-    }, cat))), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, cat))), /*#__PURE__*/React.createElement("button", {
       type: "button",
       onClick: () => setMostrarNovaCategoria(true),
       className: "mt-2 text-sm text-purple-600 hover:text-purple-700 font-semibold"
@@ -3073,7 +3069,7 @@ function App({
       autoFocus: true
     }), /*#__PURE__*/React.createElement("div", {
       className: "flex gap-2 mt-2"
-    }, /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, /*#__PURE__*/React.createElement("button", {
       type: "button",
       onClick: () => {
         setMostrarNovaCategoria(false);
@@ -3177,7 +3173,7 @@ function App({
       className: "text-gray-600"
     }, "\u2022 In\xEDcio: ", mesesNomes[mesesList.indexOf(mesInicio)], "/", anoInicio), /*#__PURE__*/React.createElement("div", {
       className: "text-gray-600"
-    }, "\u2022 Vencimento: todo dia ", vencimento)))), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, "\u2022 Vencimento: todo dia ", vencimento)))), /*#__PURE__*/React.createElement("button", {
       type: "submit",
       className: "w-full px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
     }, temporario ? `✅ Criar ${totalParcelas} Parcelas` : '✅ Adicionar Gasto Fixo'));
@@ -3240,7 +3236,7 @@ function App({
     }, todasCategorias.map(cat => /*#__PURE__*/React.createElement("option", {
       key: cat,
       value: cat
-    }, cat))), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, cat))), /*#__PURE__*/React.createElement("button", {
       type: "button",
       onClick: () => setMostrarNovaCategoria(true),
       className: "mt-2 text-sm text-orange-600 hover:text-orange-700 font-semibold"
@@ -3253,7 +3249,7 @@ function App({
       autoFocus: true
     }), /*#__PURE__*/React.createElement("div", {
       className: "flex gap-2 mt-2"
-    }, /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, /*#__PURE__*/React.createElement("button", {
       type: "button",
       onClick: () => {
         setMostrarNovaCategoria(false);
@@ -3301,7 +3297,7 @@ function App({
       className: "text-sm font-semibold text-gray-700"
     }, "\uD83D\uDEA6 Mostrar no Gestão de Pagamentos")), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-gray-500 mt-1 ml-7"
-    }, "Para gastos recorrentes como IPTU, seguro anual, etc.")), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, "Para gastos recorrentes como IPTU, seguro anual, etc.")), /*#__PURE__*/React.createElement("button", {
       type: "submit",
       className: "w-full px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700"
     }, "\u2705 Adicionar Gasto Vari\xE1vel"));
@@ -3365,7 +3361,7 @@ function App({
     }, todasCategorias.map(cat => /*#__PURE__*/React.createElement("option", {
       key: cat,
       value: cat
-    }, cat))), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, cat))), /*#__PURE__*/React.createElement("button", {
       type: "button",
       onClick: () => setMostrarNovaCategoria(true),
       className: "mt-2 text-sm text-amber-600 hover:text-amber-700 font-semibold"
@@ -3376,7 +3372,7 @@ function App({
       className: "w-full px-4 py-2 border-2 border-amber-300 rounded-lg focus:border-amber-500",
       placeholder: "Ex: CURSO, EQUIPAMENTO...",
       autoFocus: true
-    }), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }), /*#__PURE__*/React.createElement("button", {
       type: "button",
       onClick: () => {
         setMostrarNovaCategoria(false);
@@ -3424,7 +3420,7 @@ function App({
       className: "text-sm font-semibold text-gray-700"
     }, "\uD83D\uDEA6 Mostrar no Gestão de Pagamentos")), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-gray-500 mt-1 ml-7"
-    }, "Para gastos recorrentes como seguro, licenciamento, etc.")), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, "Para gastos recorrentes como seguro, licenciamento, etc.")), /*#__PURE__*/React.createElement("button", {
       type: "submit",
       className: "w-full px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700"
     }, "\u2705 Adicionar Gasto Extra"));
@@ -3468,7 +3464,7 @@ function App({
       }),
       className: "w-full px-4 py-2 border border-gray-300 rounded-lg",
       placeholder: "20000.00"
-    }), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }), /*#__PURE__*/React.createElement("button", {
       onClick: aplicarParaTodos,
       className: "mt-2 w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300"
     }, "\uD83D\uDCCB Aplicar para Todos os Meses")), /*#__PURE__*/React.createElement("div", {
@@ -3494,7 +3490,7 @@ function App({
       className: "pt-4 border-t"
     }, /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-gray-600 mb-3"
-    }, /*#__PURE__*/React.createElement("strong", null, "Total Anual:"), " R$ ", (metasTemp.jan + metasTemp.fev + metasTemp.mar + metasTemp.abr + metasTemp.mai + metasTemp.jun + metasTemp.jul + metasTemp.ago + metasTemp.set + metasTemp.out + metasTemp.nov + metasTemp.dez).toFixed(2)), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, /*#__PURE__*/React.createElement("strong", null, "Total Anual:"), " R$ ", (metasTemp.jan + metasTemp.fev + metasTemp.mar + metasTemp.abr + metasTemp.mai + metasTemp.jun + metasTemp.jul + metasTemp.ago + metasTemp.set + metasTemp.out + metasTemp.nov + metasTemp.dez).toFixed(2)), /*#__PURE__*/React.createElement("button", {
       onClick: handleSalvar,
       className: "w-full px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
     }, "\u2705 Salvar Metas")));
@@ -3546,7 +3542,7 @@ function App({
       className: "pt-4 border-t"
     }, /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-gray-600 mb-3"
-    }, /*#__PURE__*/React.createElement("strong", null, "Total Or\xE7ado:"), " R$ ", total.toFixed(2)), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, /*#__PURE__*/React.createElement("strong", null, "Total Or\xE7ado:"), " R$ ", total.toFixed(2)), /*#__PURE__*/React.createElement("button", {
       onClick: handleSalvar,
       className: "w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
     }, "\u2705 Salvar Or\xE7amento")));
@@ -3601,7 +3597,7 @@ function App({
       className: "w-full px-4 py-2 border border-gray-300 rounded-lg",
       placeholder: "0.00",
       required: true
-    })), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    })), /*#__PURE__*/React.createElement("button", {
       type: "submit",
       className: "w-full px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
     }, "\u2705 Adicionar Planejado"));
@@ -3698,7 +3694,7 @@ function App({
       className: "text-sm text-gray-600"
     }, "Meses: ", mesesPreview.join(', '), parseInt(parcelas) > 12 && /*#__PURE__*/React.createElement("span", {
       className: "text-orange-600"
-    }, " (continua no ano seguinte)"))), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, " (continua no ano seguinte)"))), /*#__PURE__*/React.createElement("button", {
       type: "submit",
       className: "w-full px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
     }, "\u2705 Adicionar Compra Parcelada"));
@@ -3763,7 +3759,7 @@ function App({
       className: "w-full px-4 py-2 border border-gray-300 rounded-lg",
       placeholder: "0.00",
       required: true
-    })), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    })), /*#__PURE__*/React.createElement("button", {
       type: "submit",
       className: "w-full px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
     }, "\u2705 Adicionar Receita"));
@@ -3896,7 +3892,7 @@ function App({
         className: "bg-gray-200 px-2 py-1 rounded"
       }, user?.email || 'null')), /*#__PURE__*/React.createElement("div", null, "\u2022 Firestore: ", /*#__PURE__*/React.createElement("code", {
         className: "bg-gray-200 px-2 py-1 rounded"
-      }, db ? 'Conectado' : 'Desconectado'))), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+      }, db ? 'Conectado' : 'Desconectado'))), /*#__PURE__*/React.createElement("button", {
         onClick: async () => {
           if (!db || !user) {
             alert('❌ DB ou User não disponível');
@@ -3938,7 +3934,7 @@ function App({
       className: "text-xl font-bold mb-2"
     }, "\uD83D\uDC51 Painel de Administra\xE7\xE3o"), /*#__PURE__*/React.createElement("p", {
       className: "opacity-90"
-    }, "Gerencie usu\xE1rios e visualize estat\xEDsticas do sistema")), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, "Gerencie usu\xE1rios e visualize estat\xEDsticas do sistema")), /*#__PURE__*/React.createElement("button", {
       onClick: () => {
         console.log('🔍 DIAGNÓSTICO COMPLETO:');
         console.log('• isUserAdmin:', isUserAdminProp);
@@ -4017,7 +4013,7 @@ function App({
         }
       })())), /*#__PURE__*/React.createElement("div", {
         className: "flex gap-2"
-      }, /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+      }, /*#__PURE__*/React.createElement("button", {
         onClick: async () => {
           if (confirm(`✅ Aprovar acesso de ${usuario.nome}?`)) {
             try {
@@ -4032,7 +4028,7 @@ function App({
           }
         },
         className: "px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
-      }, "\u2705 Aprovar"), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+      }, "\u2705 Aprovar"), /*#__PURE__*/React.createElement("button", {
         onClick: async () => {
           if (confirm(`❌ Rejeitar acesso de ${usuario.nome}?\n\nEsta pessoa não poderá acessar o sistema.`)) {
             try {
@@ -4122,7 +4118,7 @@ function App({
       className: `px-3 py-1 rounded-full text-xs font-semibold ${usuario.isAdmin ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`
     }, usuario.isAdmin ? 'ADMIN' : 'USUÁRIO')), /*#__PURE__*/React.createElement("td", {
       className: "px-4 py-2"
-    }, usuario.uid !== user.uid && /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, usuario.uid !== user.uid && /*#__PURE__*/React.createElement("button", {
       onClick: () => toggleAdmin(usuario.uid, usuario.isAdmin),
       className: `px-3 py-1 rounded-lg text-xs font-semibold ${usuario.isAdmin ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`
     }, usuario.isAdmin ? '⬇️ Rebaixar' : '⬆️ Promover'), usuario.uid === user.uid && /*#__PURE__*/React.createElement("span", {
@@ -4135,7 +4131,7 @@ function App({
       className: "text-sm text-blue-800 space-y-1"
     }, /*#__PURE__*/React.createElement("li", null, "\u2022 ", /*#__PURE__*/React.createElement("strong", null, "Admin:"), " Pode acessar este painel e gerenciar outros usu\xE1rios"), /*#__PURE__*/React.createElement("li", null, "\u2022 ", /*#__PURE__*/React.createElement("strong", null, "Usu\xE1rio:"), " Acessa apenas seus pr\xF3prios dados financeiros"), /*#__PURE__*/React.createElement("li", null, "\u2022 Voc\xEA n\xE3o pode alterar suas pr\xF3prias permiss\xF5es"), /*#__PURE__*/React.createElement("li", null, "\u2022 Para gerenciar contas (excluir, desativar), use o Firebase Console"))), /*#__PURE__*/React.createElement("div", {
       className: "flex justify-center"
-    }, /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, /*#__PURE__*/React.createElement("button", {
       onClick: carregarUsuarios,
       className: "px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
     }, "\uD83D\uDD04 Atualizar Lista")));
@@ -4211,7 +4207,7 @@ function App({
               const info = totaisPorCartao[c.nome] || {total:0};
               const st   = getStatusFarol(c.nome, mesAtual);
               const pago = st === 'PAGO';
-              return /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+              return /*#__PURE__*/React.createElement("button", {
                 key:c.id,
                 onClick: () => { const el = document.getElementById('cartao-'+c.nome); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); },
                 style:{width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 10px', border:'none', borderRadius:'8px', cursor:'pointer', textAlign:'left', background: pago?'#f0fdf4':'#f8fafc', borderLeft: pago?'3px solid #059669':'3px solid #0284c7'}
@@ -4225,7 +4221,7 @@ function App({
 
         /*#__PURE__*/React.createElement("button", {
           onClick:()=>setModalAberto('novoCartao'),
-          style:{position:"relative",zIndex:999999,width:'100%', padding:'12px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(2,132,199,0.35)'}
+          style:{width:'100%', padding:'12px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(2,132,199,0.35)'}
         }, "\u2795 Novo Cart\xE3o")
       ),
 
@@ -4239,7 +4235,7 @@ function App({
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'700', color:'#9ca3af', marginBottom:'20px'}}, "Nenhum cart\xE3o cadastrado"),
           /*#__PURE__*/React.createElement("button", {
             onClick:()=>setModalAberto('novoCartao'),
-            style:{position:"relative",zIndex:999999,padding:'11px 28px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'700', cursor:'pointer'}
+            style:{padding:'11px 28px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'700', cursor:'pointer'}
           }, "\u2795 Adicionar Primeiro Cart\xE3o")
         ),
 
@@ -4302,9 +4298,9 @@ function App({
                 )
               ),
               /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px'}},
-                /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:()=>{setItemEditando(cartao);setTipoEditando('cartao');setModalAberto('editar');}, style:{width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#eff6ff',color:'#3b82f6',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\u270F\uFE0F"),
-                /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarCartao(cartao), style:{position:"relative",zIndex:999999,width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#faf5ff',color:'#8b5cf6',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\uD83D\uDCCB"),
-                /*#__PURE__*/React.createElement("button", {onClick:()=>deletarCartao(cartao.id), style:{position:"relative",zIndex:999999,width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#fff1f2',color:'#f43f5e',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(cartao);setTipoEditando('cartao');setModalAberto('editar');}, style:{width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#eff6ff',color:'#3b82f6',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\u270F\uFE0F"),
+                /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarCartao(cartao), style:{width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#faf5ff',color:'#8b5cf6',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\uD83D\uDCCB"),
+                /*#__PURE__*/React.createElement("button", {onClick:()=>deletarCartao(cartao.id), style:{width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#fff1f2',color:'#f43f5e',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
               )
             ),
 
@@ -4348,7 +4344,7 @@ function App({
                     )
                   : /*#__PURE__*/React.createElement("div", null,
                       /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:'#9ca3af', marginBottom:'12px'}}, "Limite n\xE3o definido"),
-                      /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+                      /*#__PURE__*/React.createElement("button", {
                         onClick:()=>{ const v=prompt('Limite do cart\xE3o:','10000'); if(v&&!isNaN(v)){ const n=cartoes.map(c=>c.id===cartao.id?{...c,limite:parseFloat(v)}:c); setCartoes(n); localStorage.setItem('cartoes',JSON.stringify(n)); } },
                         style:{fontSize:'0.75rem', padding:'6px 14px', border:'none', borderRadius:'8px', background:'#0284c7', color:'#fff', cursor:'pointer', fontWeight:'600'}
                       }, "\u2795 Definir")
@@ -4490,7 +4486,7 @@ function App({
               /*#__PURE__*/React.createElement("button", {
                 key:cat,
                 onClick:()=>setCategoriaFiltro(cat),
-                style:{position:"relative",zIndex:999999,
+                style:{
                   width:'100%', padding:'7px 10px', border:'none', borderRadius:'8px', cursor:'pointer',
                   textAlign:'left', fontSize:'0.75rem', fontWeight:'600',
                   background: categoriaFiltro===cat?'#ede9fe':'transparent',
@@ -4508,8 +4504,8 @@ function App({
         ),
 
         // Botões de ação
-        /*#__PURE__*/React.createElement("button", {onClick:()=>alert("BOTÃO FUNCIONOU!"), style:{position:"relative",zIndex:999999,width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Novo Gasto Fixo"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{position:"relative",zIndex:999999,width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Novo Gasto Fixo"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       // COLUNA DIREITA — lista por vencimento
@@ -4527,7 +4523,7 @@ function App({
           ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83C\uDFE0"),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, "Nenhum gasto fixo"),
-              /*#__PURE__*/React.createElement("button", {onClick:()=>alert("BOTÃO FUNCIONOU!"), style:{position:"relative",zIndex:999999,padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'580px', overflowY:'auto'}},
               ...diasOrdenados.map(dia => {
@@ -4580,9 +4576,9 @@ function App({
                         style:{width:'88px', padding:'5px 8px', border:'2px solid #e5e7eb', borderRadius:'8px', fontSize:'0.82rem', fontWeight:'700', textAlign:'right', outline:'none'}
                       }),
                       /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px'}},
-                        /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:()=>{setItemEditando(gasto);setTipoEditando('fixo');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
-                        /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoFixo(gasto), style:{position:"relative",zIndex:999999,width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
-                        /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoFixo(gasto.id), style:{position:"relative",zIndex:999999,width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('fixo');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoFixo(gasto), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoFixo(gasto.id), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
                       )
                     )
                   )
@@ -4651,7 +4647,7 @@ function App({
               /*#__PURE__*/React.createElement("button", {
                 key:cat,
                 onClick:()=>setCategoriaFiltro(cat),
-                style:{position:"relative",zIndex:999999,width:'100%', padding:'7px 10px', border:'none', borderRadius:'8px', cursor:'pointer', textAlign:'left', fontSize:'0.75rem', fontWeight:'600', background:categoriaFiltro===cat?'#fff7ed':'transparent', color:categoriaFiltro===cat?'#c2410c':'#6b7280', display:'flex', justifyContent:'space-between', alignItems:'center'}
+                style:{width:'100%', padding:'7px 10px', border:'none', borderRadius:'8px', cursor:'pointer', textAlign:'left', fontSize:'0.75rem', fontWeight:'600', background:categoriaFiltro===cat?'#fff7ed':'transparent', color:categoriaFiltro===cat?'#c2410c':'#6b7280', display:'flex', justifyContent:'space-between', alignItems:'center'}
               },
                 /*#__PURE__*/React.createElement("span", null, cat==='TODAS'?'Todas':cat),
                 cat!=='TODAS' && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.7rem', fontWeight:'700', color:categoriaFiltro===cat?'#c2410c':'#9ca3af'}}, "R$ "+(totaisPorCat[cat]||0).toFixed(0))
@@ -4660,8 +4656,8 @@ function App({
           )
         ),
 
-        /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:(e)=>{e.stopPropagation();setModalAberto('novoGastoVariavel');}, style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(234,88,12,0.35)'}}, "\u2795 Novo Gasto Vari\xE1vel"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{position:"relative",zIndex:999999,width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(234,88,12,0.35)'}}, "\u2795 Novo Gasto Vari\xE1vel"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
@@ -4677,7 +4673,7 @@ function App({
           ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83D\uDCCA"),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhum gasto vari\xE1vel em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
-              /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:(e)=>{e.stopPropagation();setModalAberto('novoGastoVariavel');}, style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
               ...datasOrdenadas.map(dataKey => {
@@ -4716,9 +4712,9 @@ function App({
                       ),
                       /*#__PURE__*/React.createElement("div", {style:{fontWeight:'800', fontSize:'0.9rem', color:'#c2410c', flexShrink:0, marginRight:'8px'}}, "R$ "+gasto.valor.toFixed(2)),
                       /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px'}},
-                        /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:()=>{setItemEditando(gasto);setTipoEditando('variavel');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
-                        /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoVariavel(gasto), style:{position:"relative",zIndex:999999,width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
-                        /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoVariavel(gasto.id), style:{position:"relative",zIndex:999999,width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('variavel');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoVariavel(gasto), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoVariavel(gasto.id), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
                       )
                     )
                   )
@@ -4770,7 +4766,7 @@ function App({
               /*#__PURE__*/React.createElement("button", {
                 key:cat,
                 onClick:()=>setCategoriaFiltro(cat),
-                style:{position:"relative",zIndex:999999,width:'100%', padding:'7px 10px', border:'none', borderRadius:'8px', cursor:'pointer', textAlign:'left', fontSize:'0.75rem', fontWeight:'600', background:categoriaFiltro===cat?'#fffbeb':'transparent', color:categoriaFiltro===cat?'#b45309':'#6b7280', display:'flex', justifyContent:'space-between', alignItems:'center'}
+                style:{width:'100%', padding:'7px 10px', border:'none', borderRadius:'8px', cursor:'pointer', textAlign:'left', fontSize:'0.75rem', fontWeight:'600', background:categoriaFiltro===cat?'#fffbeb':'transparent', color:categoriaFiltro===cat?'#b45309':'#6b7280', display:'flex', justifyContent:'space-between', alignItems:'center'}
               },
                 /*#__PURE__*/React.createElement("span", null, cat==='TODAS'?'Todas':cat),
                 cat!=='TODAS' && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.7rem', fontWeight:'700', color:categoriaFiltro===cat?'#b45309':'#9ca3af'}}, "R$ "+(totaisPorCat[cat]||0).toFixed(0))
@@ -4779,8 +4775,8 @@ function App({
           )
         ),
 
-        /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:(e)=>{e.stopPropagation();setModalAberto('novoGastoExtra');}, style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(217,119,6,0.35)'}}, "\u2795 Novo Gasto Extra"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{position:"relative",zIndex:999999,width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoExtra'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(217,119,6,0.35)'}}, "\u2795 Novo Gasto Extra"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
@@ -4797,7 +4793,7 @@ function App({
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\u26A1"),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhum gasto extra em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:'#d1d5db', marginBottom:'18px'}}, "Registre compras pontuais, surpresas ou gastos imprevistos"),
-              /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:(e)=>{e.stopPropagation();setModalAberto('novoGastoExtra');}, style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoExtra'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
               ...sortedGastos.map((gasto,idx)=>
@@ -4817,9 +4813,9 @@ function App({
                   ),
                   /*#__PURE__*/React.createElement("div", {style:{fontWeight:'800', fontSize:'0.92rem', color:'#b45309', flexShrink:0, marginRight:'8px'}}, "R$ "+gasto.valor.toFixed(2)),
                   /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px', flexShrink:0}},
-                    /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:()=>{setItemEditando(gasto);setTipoEditando('extra');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
-                    /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoExtra(gasto), style:{position:"relative",zIndex:999999,width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
-                    /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoExtra(gasto.id), style:{position:"relative",zIndex:999999,width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('extra');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoExtra(gasto), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoExtra(gasto.id), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
                   )
                 )
               )
@@ -4905,7 +4901,7 @@ function App({
 
         /*#__PURE__*/React.createElement("button", {
           onClick: () => setModalAberto('novaReceita'),
-          style:{position:"relative",zIndex:999999,width:'100%', padding:'13px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontSize:'0.83rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 14px rgba(16,185,129,0.35)', letterSpacing:'0.3px'}
+          style:{width:'100%', padding:'13px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontSize:'0.83rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 14px rgba(16,185,129,0.35)', letterSpacing:'0.3px'}
         }, "\u2795 Nova Receita")
       ),
 
@@ -4924,7 +4920,7 @@ function App({
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:'#d1d5db', marginBottom:'22px'}}, "Registre sal\xE1rio, freelance, b\xF4nus ou qualquer entrada"),
           /*#__PURE__*/React.createElement("button", {
             onClick: () => setModalAberto('novaReceita'),
-            style:{position:"relative",zIndex:999999,padding:'10px 26px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontSize:'0.82rem', fontWeight:'700', cursor:'pointer', boxShadow:'0 3px 10px rgba(16,185,129,0.3)'}
+            style:{padding:'10px 26px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontSize:'0.82rem', fontWeight:'700', cursor:'pointer', boxShadow:'0 3px 10px rgba(16,185,129,0.3)'}
           }, "\u2795 Registrar Receita")
         ),
 
@@ -4946,9 +4942,9 @@ function App({
               ),
               /*#__PURE__*/React.createElement("div", {style:{fontWeight:'900', fontSize:'0.95rem', color:'#059669', flexShrink:0, marginRight:'8px'}}, "R$ " + receita.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})),
               /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px', flexShrink:0}},
-                /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:()=>{ setItemEditando(receita); setTipoEditando('receita'); setModalAberto('editar'); }, title:"Editar", style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
-                /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarReceita(receita), title:"Duplicar", style:{position:"relative",zIndex:999999,width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
-                /*#__PURE__*/React.createElement("button", {onClick:()=>deletarReceita(receita.id), title:"Excluir", style:{position:"relative",zIndex:999999,width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                /*#__PURE__*/React.createElement("button", {onClick:()=>{ setItemEditando(receita); setTipoEditando('receita'); setModalAberto('editar'); }, title:"Editar", style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
+                /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarReceita(receita), title:"Duplicar", style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
+                /*#__PURE__*/React.createElement("button", {onClick:()=>deletarReceita(receita.id), title:"Excluir", style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
               )
             )
           )
@@ -5639,7 +5635,7 @@ function App({
     }, "📝 Pré-Mês")),
     /*#__PURE__*/React.createElement("div", {
       className: "flex justify-end"
-    }, /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, /*#__PURE__*/React.createElement("button", {
       onClick: () => setModalAberto('novoPlanejado'),
       className: "px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
     }, "\u2795 Adicionar Planejado")), /*#__PURE__*/React.createElement("div", {
@@ -5689,7 +5685,7 @@ function App({
       className: "text-xl font-bold text-gray-800 mb-4"
     }, "Gastos Planejados - ", mesAtual.toUpperCase()), planejadosDoMes.length === 0 ? /*#__PURE__*/React.createElement("div", {
       className: "text-center py-12 text-gray-500"
-    }, "Nenhum gasto planejado para este m\xEAs.", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, "Nenhum gasto planejado para este m\xEAs.", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("button", {
       onClick: () => setModalAberto('novoPlanejado'),
       className: "mt-4 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
     }, "\u2795 Adicionar Primeiro Planejado")) : /*#__PURE__*/React.createElement("div", {
@@ -5699,7 +5695,7 @@ function App({
       className: `flex items-center justify-between p-4 rounded-lg border-2 transition-all ${planejado.executado ? 'bg-green-50 border-green-300' : 'bg-white border-gray-200 hover:border-gray-300'}`
     }, /*#__PURE__*/React.createElement("div", {
       className: "flex items-center gap-4 flex-1"
-    }, /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, /*#__PURE__*/React.createElement("button", {
       onClick: () => togglePlanejado(planejado.id),
       className: `w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${planejado.executado ? 'bg-green-500 border-green-500' : 'border-gray-300 hover:border-green-500'}`
     }, planejado.executado && /*#__PURE__*/React.createElement("svg", {
@@ -5720,7 +5716,7 @@ function App({
       className: "text-sm text-gray-500"
     }, planejado.categoria)), /*#__PURE__*/React.createElement("div", {
       className: `text-2xl font-bold ${planejado.executado ? 'text-green-600' : 'text-gray-800'}`
-    }, "R$ ", planejado.valor.toFixed(2)), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, "R$ ", planejado.valor.toFixed(2)), /*#__PURE__*/React.createElement("button", {
       onClick: () => deletarPlanejado(planejado.id),
       className: "px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm"
     }, "\uD83D\uDDD1\uFE0F")))))), planejadosDoMes.length > 0 && /*#__PURE__*/React.createElement("div", {
@@ -6041,7 +6037,7 @@ function App({
       className: "text-lg font-bold text-gray-800"
     }, "\uD83D\uDCB3 Gerenciamento de D\xEDvidas"), /*#__PURE__*/React.createElement("p", {
       className: "text-gray-600"
-    }, "Estrat\xE9gias inteligentes para quitar suas d\xEDvidas")), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, "Estrat\xE9gias inteligentes para quitar suas d\xEDvidas")), /*#__PURE__*/React.createElement("button", {
       onClick: () => setModalAberto('novaDivida'),
       className: "px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700"
     }, "\u2795 Nova D\xEDvida")), dividas.length === 0 ? /*#__PURE__*/React.createElement("div", {
@@ -6052,7 +6048,7 @@ function App({
       className: "text-xl font-bold text-gray-800 mb-2"
     }, "Nenhuma d\xEDvida cadastrada"), /*#__PURE__*/React.createElement("p", {
       className: "text-gray-600 mb-3"
-    }, "Cadastre suas d\xEDvidas para calcular a melhor estrat\xE9gia de pagamento"), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, "Cadastre suas d\xEDvidas para calcular a melhor estrat\xE9gia de pagamento"), /*#__PURE__*/React.createElement("button", {
       onClick: () => setModalAberto('novaDivida'),
       className: "px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700"
     }, "\u2795 Cadastrar Primeira D\xEDvida")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
@@ -6098,7 +6094,7 @@ function App({
       className: "font-bold text-gray-800 text-lg"
     }, divida.nome), /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-gray-600 mt-1"
-    }, "Valor total: R$ ", divida.valorTotal.toFixed(2), " \u2022 Juros: ", divida.taxaJuros, "% a.m. \u2022 Venc: dia ", divida.vencimento)), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+    }, "Valor total: R$ ", divida.valorTotal.toFixed(2), " \u2022 Juros: ", divida.taxaJuros, "% a.m. \u2022 Venc: dia ", divida.vencimento)), /*#__PURE__*/React.createElement("button", {
       onClick: () => deletarDivida(divida.id),
       className: "px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200"
     }, "\uD83D\uDDD1\uFE0F")), /*#__PURE__*/React.createElement("div", {
@@ -6211,8 +6207,8 @@ function App({
     }, "Você está gastando tudo ou mais que sua renda. Para usar as estratégias de pagamento, é preciso ter sobra mensal. Revise seus gastos no orçamento!"))))),
   (abaAtiva === 'simulacoes' && subAba === 'compra') && /*#__PURE__*/React.createElement("div", {className:"space-y-3"},
     /*#__PURE__*/React.createElement("div", {style:{display:'flex',gap:'8px',marginBottom:'16px'}},
-      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-compra'),style:{position:"relative",zIndex:999999,padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#6366f1',color:'#fff'}}, "🛒 Simul. Compra"),
-      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-simulador'),style:{position:"relative",zIndex:999999,padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#f3f4f6',color:'#6b7280'}}, "🎲 Simulador")
+      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-compra'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#6366f1',color:'#fff'}}, "🛒 Simul. Compra"),
+      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-simulador'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#f3f4f6',color:'#6b7280'}}, "🎲 Simulador")
     ),
     /*#__PURE__*/React.createElement("div", {style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
       /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'14px'}},
@@ -6234,8 +6230,8 @@ function App({
           /*#__PURE__*/React.createElement("div", {style:{marginBottom:'12px'}},
             /*#__PURE__*/React.createElement("label", {style:{fontSize:'0.75rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'6px'}}, "Forma de Pagamento"),
             /*#__PURE__*/React.createElement("div", {style:{display:'flex',gap:'8px'}},
-              /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:()=>setSimCompra({...simCompra,forma:'avista',resultado:null}),style:{flex:1,padding:'10px',borderRadius:'10px',border:'2px solid',borderColor:simCompra.forma==='avista'?'#6366f1':'#e5e7eb',background:simCompra.forma==='avista'?'#eef2ff':'#fff',color:simCompra.forma==='avista'?'#4f46e5':'#6b7280',fontSize:'0.78rem',fontWeight:'700',cursor:'pointer'}}, "💵 À Vista"),
-              /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:()=>setSimCompra({...simCompra,forma:'parcelado',resultado:null}),style:{flex:1,padding:'10px',borderRadius:'10px',border:'2px solid',borderColor:simCompra.forma==='parcelado'?'#6366f1':'#e5e7eb',background:simCompra.forma==='parcelado'?'#eef2ff':'#fff',color:simCompra.forma==='parcelado'?'#4f46e5':'#6b7280',fontSize:'0.78rem',fontWeight:'700',cursor:'pointer'}}, "💳 Parcelado")
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setSimCompra({...simCompra,forma:'avista',resultado:null}),style:{flex:1,padding:'10px',borderRadius:'10px',border:'2px solid',borderColor:simCompra.forma==='avista'?'#6366f1':'#e5e7eb',background:simCompra.forma==='avista'?'#eef2ff':'#fff',color:simCompra.forma==='avista'?'#4f46e5':'#6b7280',fontSize:'0.78rem',fontWeight:'700',cursor:'pointer'}}, "💵 À Vista"),
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setSimCompra({...simCompra,forma:'parcelado',resultado:null}),style:{flex:1,padding:'10px',borderRadius:'10px',border:'2px solid',borderColor:simCompra.forma==='parcelado'?'#6366f1':'#e5e7eb',background:simCompra.forma==='parcelado'?'#eef2ff':'#fff',color:simCompra.forma==='parcelado'?'#4f46e5':'#6b7280',fontSize:'0.78rem',fontWeight:'700',cursor:'pointer'}}, "💳 Parcelado")
             )
           ),
           simCompra.forma === 'parcelado' && /*#__PURE__*/React.createElement("div", {style:{marginBottom:'12px'}},
@@ -6252,7 +6248,7 @@ function App({
               )
             )
           ),
-          /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+          /*#__PURE__*/React.createElement("button", {
             onClick:()=>{
               const v=parseFloat(simCompra.valor)||0;
               if(!v)return;
@@ -6354,8 +6350,8 @@ function App({
 
   (abaAtiva === 'simulacoes' && subAba === 'simulador') && /*#__PURE__*/React.createElement("div", {className:"space-y-3"},
     /*#__PURE__*/React.createElement("div", {style:{display:'flex',gap:'8px',marginBottom:'16px'}},
-      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-compra'),style:{position:"relative",zIndex:999999,padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#f3f4f6',color:'#6b7280'}}, "🛒 Simul. Compra"),
-      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-simulador'),style:{position:"relative",zIndex:999999,padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#6366f1',color:'#fff'}}, "🎲 Simulador")
+      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-compra'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#f3f4f6',color:'#6b7280'}}, "🛒 Simul. Compra"),
+      /*#__PURE__*/React.createElement("button", {onClick:()=>setTelaAtiva('planejamento-simulador'),style:{padding:'6px 16px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:'700',background:'#6366f1',color:'#fff'}}, "🎲 Simulador")
     ),
     /*#__PURE__*/React.createElement("div", {style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
       /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'14px'}},
@@ -6383,7 +6379,7 @@ function App({
         /*#__PURE__*/React.createElement("div", {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, "⚡ Cenários Rápidos"),
           /*#__PURE__*/React.createElement("div", {style:{display:'flex',flexDirection:'column',gap:'8px'}},
-            /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:0}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #d1fae5',background:simulacao.rendaAjuste===20&&simulacao.gastosAjuste===0?'#d1fae5':'#fff',cursor:'pointer'}},
+            /*#__PURE__*/React.createElement("button", {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:0}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #d1fae5',background:simulacao.rendaAjuste===20&&simulacao.gastosAjuste===0?'#d1fae5':'#fff',cursor:'pointer'}},
               /*#__PURE__*/React.createElement("div", {style:{display:'flex',alignItems:'center',gap:'10px'}},
                 /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.3rem'}}, "📈"),
                 /*#__PURE__*/React.createElement("div", null,
@@ -6392,7 +6388,7 @@ function App({
                 )
               )
             ),
-            /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:()=>setSimulacao({...simulacao,rendaAjuste:0,gastosAjuste:-20}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #dbeafe',background:simulacao.rendaAjuste===0&&simulacao.gastosAjuste===-20?'#dbeafe':'#fff',cursor:'pointer'}},
+            /*#__PURE__*/React.createElement("button", {onClick:()=>setSimulacao({...simulacao,rendaAjuste:0,gastosAjuste:-20}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #dbeafe',background:simulacao.rendaAjuste===0&&simulacao.gastosAjuste===-20?'#dbeafe':'#fff',cursor:'pointer'}},
               /*#__PURE__*/React.createElement("div", {style:{display:'flex',alignItems:'center',gap:'10px'}},
                 /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.3rem'}}, "💰"),
                 /*#__PURE__*/React.createElement("div", null,
@@ -6401,7 +6397,7 @@ function App({
                 )
               )
             ),
-            /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:-20}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #ede9fe',background:simulacao.rendaAjuste===20&&simulacao.gastosAjuste===-20?'#ede9fe':'#fff',cursor:'pointer'}},
+            /*#__PURE__*/React.createElement("button", {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:-20}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #ede9fe',background:simulacao.rendaAjuste===20&&simulacao.gastosAjuste===-20?'#ede9fe':'#fff',cursor:'pointer'}},
               /*#__PURE__*/React.createElement("div", {style:{display:'flex',alignItems:'center',gap:'10px'}},
                 /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.3rem'}}, "🚀"),
                 /*#__PURE__*/React.createElement("div", null,
@@ -6410,7 +6406,7 @@ function App({
                 )
               )
             ),
-            /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},onClick:()=>setSimulacao({rendaAjuste:0,gastosAjuste:0,quitarDivida:null,novaReceita:0,novaDespesa:0}),style:{width:'100%',padding:'10px',borderRadius:'10px',border:'2px solid #f3f4f6',background:'#fff',cursor:'pointer',fontSize:'0.75rem',fontWeight:'700',color:'#9ca3af'}}, "🔄 Resetar")
+            /*#__PURE__*/React.createElement("button", {onClick:()=>setSimulacao({rendaAjuste:0,gastosAjuste:0,quitarDivida:null,novaReceita:0,novaDespesa:0}),style:{width:'100%',padding:'10px',borderRadius:'10px',border:'2px solid #f3f4f6',background:'#fff',cursor:'pointer',fontSize:'0.75rem',fontWeight:'700',color:'#9ca3af'}}, "🔄 Resetar")
           )
         )
       ),
@@ -6611,7 +6607,7 @@ function App({
               const qtd = f==='todos' ? itensTodos.length : f==='pagos' ? pagamentos.qtdPago : pagamentos.qtdTotal-pagamentos.qtdPago;
               const cor = f==='todos' ? '#6d28d9' : f==='pagos' ? '#059669' : '#ea580c';
               return /*#__PURE__*/React.createElement("button", {key:f, onClick:()=>setFiltroStatus(f),
-                style:{position:"relative",zIndex:999999,width:'100%', padding:'9px 12px', border:'none', borderRadius:'10px', textAlign:'left', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center',
+                style:{width:'100%', padding:'9px 12px', border:'none', borderRadius:'10px', textAlign:'left', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center',
                   background: ativo ? cor : '#fff',
                   color: ativo ? '#fff' : '#374151',
                   fontWeight: ativo ? '700' : '500',
@@ -6735,8 +6731,8 @@ function App({
         )
       ),
 
-      false && modalPagamento && /*#__PURE__*/React.createElement("div", {
-        style:{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display: modalPagamento ? 'flex' : 'none', alignItems:'center', justifyContent:'center', zIndex:9999, pointerEvents: modalPagamento ? 'auto' : 'none'},
+      modalPagamento && /*#__PURE__*/React.createElement("div", {
+        style:{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999},
         onClick:()=>setModalPagamento(null)
       },
         /*#__PURE__*/React.createElement("div", {
@@ -6758,7 +6754,7 @@ function App({
               return null;
             })()
           ),
-          /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+          /*#__PURE__*/React.createElement("button", {
             onClick:()=>{ marcarPago(modalPagamento.nome, mesAtual); setModalPagamento(null); },
             style:{width:'100%', padding:'12px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontSize:'0.85rem', fontWeight:'700', cursor:'pointer', marginBottom:'12px'}
           }, "\u2705 Marcar como PAGO"),
@@ -6768,7 +6764,7 @@ function App({
               type:"number", step:"0.01", value:valorParcial, onChange:e=>setValorParcial(e.target.value), placeholder:"Valor",
               style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'8px', fontSize:'0.85rem', marginBottom:'8px', outline:'none'}
             }),
-            /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+            /*#__PURE__*/React.createElement("button", {
               onClick:()=>{ if(valorParcial){ marcarPagoParcial(modalPagamento.nome, mesAtual, parseFloat(valorParcial)); setModalPagamento(null); setValorParcial(''); } },
               style:{width:'100%', padding:'10px', border:'none', borderRadius:'8px', background:'#3b82f6', color:'#fff', fontSize:'0.8rem', fontWeight:'600', cursor:'pointer'}
             }, "\uD83D\uDCB5 Confirmar Pagamento Parcial")
@@ -6855,13 +6851,12 @@ function App({
       overflowX: 'auto',
       scrollbarWidth: 'none'
     }
-  }, MESES.map(mes => /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+  }, MESES.map(mes => /*#__PURE__*/React.createElement("button", {
     key: mes,
     onClick: () => setMesAtual(mes),
     className: `mes-btn${mesAtual === mes ? ' ativo' : ''}`
   }, mes.charAt(0).toUpperCase() + mes.slice(1)))))), /*#__PURE__*/React.createElement("div", {
-    className: "max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 main-content animate-in",
-    style: {pointerEvents: 'none'}
+    className: "max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 main-content animate-in", style: {pointerEvents: "none"}
   }, React.useMemo(() => {
     if (telaAtiva !== 'dashboard') return null;
     return /*#__PURE__*/React.createElement(Dashboard, {
@@ -6957,7 +6952,7 @@ function App({
     placeholder: "10",
     className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500",
     required: true
-  })), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+  })), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       try {
         const nome = document.getElementById('dividaNome').value;
@@ -7014,7 +7009,7 @@ function App({
     className: "flex items-center gap-1 px-3 py-1 bg-purple-100 rounded-lg"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-sm font-semibold text-purple-700"
-  }, cat), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+  }, cat), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       if (confirm(`Excluir categoria "${cat}"?`)) {
         setCategoriasPersonalizadas({
@@ -7048,7 +7043,7 @@ function App({
     className: "flex items-center gap-1 px-3 py-1 bg-orange-100 rounded-lg"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-sm font-semibold text-orange-700"
-  }, cat), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+  }, cat), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       if (confirm(`Excluir categoria "${cat}"?`)) {
         setCategoriasPersonalizadas({
@@ -7082,7 +7077,7 @@ function App({
     className: "flex items-center gap-1 px-3 py-1 bg-amber-100 rounded-lg"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-sm font-semibold text-amber-700"
-  }, cat), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+  }, cat), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       if (confirm(`Excluir categoria "${cat}"?`)) {
         setCategoriasPersonalizadas({
@@ -7195,7 +7190,7 @@ function App({
     })()
   }), /*#__PURE__*/React.createElement("div", {
     className: "text-xs text-gray-500 mt-1"
-  }, "\u26A0\uFE0F Campo obrigat\xF3rio - ajuste conforme necess\xE1rio"))), /*#__PURE__*/React.createElement("button", {style:{position:"relative",zIndex:999999},
+  }, "\u26A0\uFE0F Campo obrigat\xF3rio - ajuste conforme necess\xE1rio"))), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       try {
         const titulo = document.getElementById('metaTitulo').value;
@@ -7235,7 +7230,7 @@ function App({
   }, "\u2705 Criar Meta"))), modalAberto === 'novoCartao' && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Cart\xE3o",
     onClose: () => setModalAberto(null)
-  }, /*#__PURE__*/React.createElement(FormNovoCartao, null)), (console.log('🔵 Verificando se deve renderizar modal:', modalAberto === 'novoGastoFixo'), modalAberto === 'novoGastoFixo') && /*#__PURE__*/React.createElement(Modal, {
+  }, /*#__PURE__*/React.createElement(FormNovoCartao, null)), modalAberto === 'novoGastoFixo' && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Gasto Fixo",
     onClose: () => setModalAberto(null)
   }, /*#__PURE__*/React.createElement(FormNovoGastoFixo, null)), modalAberto === 'novoGastoVariavel' && /*#__PURE__*/React.createElement(Modal, {

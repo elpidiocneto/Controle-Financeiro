@@ -1,0 +1,8 @@
+/* Correção para permitir cliques nos botões */
+.main-content {
+    pointer-events: none !important;
+}
+
+.main-content * {
+    pointer-events: auto !important;
+}

@@ -25,40 +25,7 @@
     <!-- Estilos CSS -->
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/responsive.css">
-<link rel="stylesheet" href="css/fix-urgent.css">
-
-<script>
-// Capturar TODOS os cliques antes de qualquer coisa
-document.addEventListener('click', function(e) {
-    console.log('🔴 CLIQUE DETECTADO:', {
-        elemento: e.target.tagName,
-        classe: e.target.className,
-        id: e.target.id,
-        texto: e.target.textContent?.substring(0, 50)
-    });
-}, true); // true = capture phase (antes de tudo)
-
-// Verificar se algum elemento está bloqueando
-window.addEventListener('load', function() {
-    console.log('🟢 Página carregada');
-    
-    // Encontrar todos os botões
-    const botoes = document.querySelectorAll('button');
-    console.log('🟢 Total de botões na página:', botoes.length);
-    
-    // Verificar pointer-events de cada botão
-    botoes.forEach((btn, i) => {
-        const style = window.getComputedStyle(btn);
-        console.log(`Botão ${i}:`, {
-            texto: btn.textContent.substring(0, 30),
-            pointerEvents: style.pointerEvents,
-            zIndex: style.zIndex,
-            position: style.position
-        });
-    });
-});
-</script>
-
+<link rel="stylesheet" href="css/fix-clicks.css">
 </head>
 <body>
     <div id="root"></div>
@@ -73,58 +40,5 @@ window.addEventListener('load', function() {
     <script src="js/dashboard.js"></script>
     <script src="js/diagnostico.js"></script>
     <script src="js/app-compiled.js"></script>
-
-<!-- OVERLAY DE TESTE -->
-<div style="
-  position: fixed;
-  top: 100px;
-  right: 20px;
-  z-index: 999999;
-  background: red;
-  color: white;
-  padding: 20px;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
-" onclick="alert('TESTE FUNCIONOU!')">
-  CLIQUE AQUI PARA TESTAR
-</div>
-
-
-<script>
-window.addEventListener('load', function() {
-    console.log('🟢 Forçando event listeners nos botões...');
-    
-    // Esperar React renderizar
-    setTimeout(function() {
-        const botoes = document.querySelectorAll('button');
-        console.log('🟢 Total de botões encontrados:', botoes.length);
-        
-        // Adicionar event listener em CADA botão
-        botoes.forEach(function(btn, i) {
-            const texto = btn.textContent;
-            
-            // Se é o botão "Novo Gasto Fixo"
-            if (texto.includes('Novo Gasto Fixo')) {
-                console.log('✅ Botão "Novo Gasto Fixo" encontrado!');
-                
-                // Remover qualquer listener existente e adicionar novo
-                const novoBtn = btn.cloneNode(true);
-                btn.parentNode.replaceChild(novoBtn, btn);
-                
-                novoBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    console.log('🎯 CLIQUE DIRETO NO BOTÃO FUNCIONOU!');
-                    alert('BOTÃO "NOVO GASTO FIXO" FUNCIONOU!');
-                }, true);
-                
-                console.log('✅ Event listener adicionado ao botão');
-            }
-        });
-    }, 2000); // 2 segundos depois
-});
-</script>
-
 </body>
 </html>
