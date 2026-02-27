@@ -936,6 +936,21 @@ function App({
   
   const [modalAberto, setModalAberto] = useState(null);
   
+  // Escutar evento global abrirModal
+  React.useEffect(() => {
+    const handleAbrirModal = (e) => {
+      console.log('🎯 React recebeu evento abrirModal:', e.detail);
+      setModalAberto(e.detail.tipo);
+    };
+    
+    window.addEventListener('abrirModal', handleAbrirModal);
+    console.log('✅ React está escutando evento abrirModal');
+    
+    return () => {
+      window.removeEventListener('abrirModal', handleAbrirModal);
+    };
+  }, []);
+  
   // Listener para abrir modal via evento global
   React.useEffect(() => {
     const handleAbrirModal = (e) => {
