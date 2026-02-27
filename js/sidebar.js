@@ -321,7 +321,7 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
         onMouseLeave: e => { if (telaAtiva !== 'dashboard') e.currentTarget.style.background = 'transparent'; }
       },
         React.createElement('span', { style: { fontSize: '1.3rem' } }, '📊'),
-        expandido && React.createElement('span', null, 'Visão Geral')
+        expandido && React.createElement('span', null, 'Dashboard')
       ),
 
       // Admin

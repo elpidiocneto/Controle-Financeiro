@@ -236,12 +236,6 @@ function AuthWrapper() {
         emailVerificado: false,
         plano: 'trial',
         dataFimTrial: fimTrial,
-        newsletter: aceitaNewsletter,
-        notificacoes: {
-          vencimentos: true,
-          metas: true,
-          newsletter: aceitaNewsletter
-        },
         criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
         ultimoAcesso: firebase.firestore.FieldValue.serverTimestamp()
       });
@@ -890,77 +884,7 @@ function App({
   });
   const [telaAtiva, setTelaAtiva] = useState('dashboard');
   const [sidebarExpandida, setSidebarExpandida] = useState(true);
-  
-  // 🔒 LOGOUT AUTOMÁTICO POR INATIVIDADE - 30 MINUTOS
-  const [ultimaAtividade, setUltimaAtividade] = useState(Date.now());
-  
-  useEffect(() => {
-    if (!user) return;
-    
-    const TIMEOUT_INATIVIDADE = 30 * 60 * 1000; // 30 minutos
-    
-    // Atualizar timestamp de atividade
-    const registrarAtividade = () => setUltimaAtividade(Date.now());
-    
-    // Monitorar eventos do usuário
-    window.addEventListener('mousedown', registrarAtividade);
-    window.addEventListener('keydown', registrarAtividade);
-    window.addEventListener('scroll', registrarAtividade);
-    window.addEventListener('touchstart', registrarAtividade);
-    
-    // Verificar inatividade a cada 1 minuto
-    const intervalo = setInterval(() => {
-      const tempoInativo = Date.now() - ultimaAtividade;
-      
-      if (tempoInativo >= TIMEOUT_INATIVIDADE) {
-        console.log('🔒 Logout automático: 30 minutos de inatividade');
-        alert('⏰ Sua sessão expirou por inatividade (30 minutos).\\n\\nPor segurança, você será desconectado.');
-        
-        // Limpar todos os dados
-        ['cartoes', 'gastosFixos', 'gastosVariaveis', 'gastosExtras', 'receitas', 'orcamentos', 'metasMensais', 'metasFinanceiras', 'planejados', 'dividas', 'categorias', 'farol', '_currentUserId'].forEach(k => localStorage.removeItem(k));
-        
-        // Fazer logout
-        firebase.auth().signOut();
-      }
-    }, 60000); // Verificar a cada 1 minuto
-    
-    // Cleanup ao desmontar
-    return () => {
-      window.removeEventListener('mousedown', registrarAtividade);
-      window.removeEventListener('keydown', registrarAtividade);
-      window.removeEventListener('scroll', registrarAtividade);
-      window.removeEventListener('touchstart', registrarAtividade);
-      clearInterval(intervalo);
-    };
-  }, [user, ultimaAtividade]);
-  
   const [modalAberto, setModalAberto] = useState(null);
-  
-  // Escutar evento global abrirModal
-  React.useEffect(() => {
-    const handleAbrirModal = (e) => {
-      console.log('🎯 React recebeu evento abrirModal:', e.detail);
-      setModalAberto(e.detail.tipo);
-    };
-    
-    window.addEventListener('abrirModal', handleAbrirModal);
-    console.log('✅ React está escutando evento abrirModal');
-    
-    return () => {
-      window.removeEventListener('abrirModal', handleAbrirModal);
-    };
-  }, []);
-  
-  // Listener para abrir modal via evento global
-  React.useEffect(() => {
-    const handleAbrirModal = (e) => {
-      console.log('🎯 Evento abrirModal recebido:', e.detail);
-      setModalAberto(e.detail.tipo);
-    };
-    
-    window.addEventListener('abrirModal', handleAbrirModal);
-    return () => window.removeEventListener('abrirModal', handleAbrirModal);
-  }, []);
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
   const [gastosFixos, setGastosFixos] = useState(() => {
@@ -3321,7 +3245,7 @@ function App({
       className: "w-5 h-5 text-orange-600 border-2 border-gray-300 rounded focus:ring-orange-500"
     }), /*#__PURE__*/React.createElement("span", {
       className: "text-sm font-semibold text-gray-700"
-    }, "\uD83D\uDEA6 Mostrar no Gestão de Pagamentos")), /*#__PURE__*/React.createElement("p", {
+    }, "\uD83D\uDEA6 Mostrar no Farol de Pagamentos")), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-gray-500 mt-1 ml-7"
     }, "Para gastos recorrentes como IPTU, seguro anual, etc.")), /*#__PURE__*/React.createElement("button", {
       type: "submit",
@@ -3444,7 +3368,7 @@ function App({
       className: "w-5 h-5 text-amber-600 border-2 border-gray-300 rounded focus:ring-amber-500"
     }), /*#__PURE__*/React.createElement("span", {
       className: "text-sm font-semibold text-gray-700"
-    }, "\uD83D\uDEA6 Mostrar no Gestão de Pagamentos")), /*#__PURE__*/React.createElement("p", {
+    }, "\uD83D\uDEA6 Mostrar no Farol de Pagamentos")), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-gray-500 mt-1 ml-7"
     }, "Para gastos recorrentes como seguro, licenciamento, etc.")), /*#__PURE__*/React.createElement("button", {
       type: "submit",
@@ -4246,7 +4170,7 @@ function App({
         ),
 
         /*#__PURE__*/React.createElement("button", {
-          onClick:()=>window.abrirModal('novoCartao'),
+          onClick:()=>setModalAberto('novoCartao'),
           style:{width:'100%', padding:'12px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(2,132,199,0.35)'}
         }, "\u2795 Novo Cart\xE3o")
       ),
@@ -4260,7 +4184,7 @@ function App({
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83D\uDCB3"),
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'700', color:'#9ca3af', marginBottom:'20px'}}, "Nenhum cart\xE3o cadastrado"),
           /*#__PURE__*/React.createElement("button", {
-            onClick:()=>window.abrirModal('novoCartao'),
+            onClick:()=>setModalAberto('novoCartao'),
             style:{padding:'11px 28px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'700', cursor:'pointer'}
           }, "\u2795 Adicionar Primeiro Cart\xE3o")
         ),
@@ -4274,24 +4198,10 @@ function App({
           const limite     = cartao.limite || 0;
 
           // Status da fatura
+          const hoje = new Date().getDate();
           const fech = cartao.diaFechamento || cartao.vencimento - 7;
-          
-          // Verificar se foi pago no farol
-          const chaveStatusFarol = cartao.nome + '-' + mesAtual + '-' + anoAtual;
-          const statusPagamento = getStatusFarol(cartao.nome, mesAtual);
-          const estaPago = statusPagamento === 'PAGO';
-          
-          // Determinar status da fatura
-          let statusFat;
-          if (estaPago) {
-            statusFat = 'PAGA'; // Se está marcado como pago no farol
-          } else if (estamosNoMesAtual) {
-            statusFat = hoje <= fech ? 'ABERTA' : hoje <= cartao.vencimento ? 'FECHADA' : 'VENCIDA';
-          } else {
-            statusFat = 'ABERTA'; // Meses futuros/passados não pagos
-          }
-          
-          const corStatus = statusFat==='PAGA' ? {bg:'#d1fae5',txt:'#065f46'} : statusFat==='ABERTA' ? {bg:'#dbeafe',txt:'#1e40af'} : statusFat==='FECHADA' ? {bg:'#fef3c7',txt:'#92400e'} : {bg:'#fecdd3',txt:'#be123c'};
+          const statusFat = hoje <= fech ? 'ABERTA' : hoje <= cartao.vencimento ? 'FECHADA' : 'VENCIDA';
+          const corStatus = statusFat==='ABERTA' ? {bg:'#dbeafe',txt:'#1e40af'} : statusFat==='FECHADA' ? {bg:'#d1fae5',txt:'#065f46'} : {bg:'#fecdd3',txt:'#be123c'};
 
           // Limite usado (simplificado)
           let totalUsado = 0, totalPago = 0;
@@ -4452,7 +4362,7 @@ function App({
     );
   };
 
-  const TelaGastosFixos = ({setModalAberto}) => {
+  const TelaGastosFixos = () => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
 
     // CORREÇÃO: Verificar se estamos no mês atual
@@ -4530,8 +4440,8 @@ function App({
         ),
 
         // Botões de ação
-        /*#__PURE__*/React.createElement("button", {className:"btn-novo-gasto-fixo", onClick:()=>window.abrirModal('novoGastoFixo')}, "\u2795 Novo Gasto Fixo"),
-        /*#__PURE__*/React.createElement("button", {className:"btn-gerenciar-categorias", onClick:()=>window.abrirModal('gerenciarCategorias')}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Novo Gasto Fixo"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       // COLUNA DIREITA — lista por vencimento
@@ -4549,7 +4459,7 @@ function App({
           ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83C\uDFE0"),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, "Nenhum gasto fixo"),
-              /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('novoGastoFixo'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'580px', overflowY:'auto'}},
               ...diasOrdenados.map(dia => {
@@ -4620,7 +4530,7 @@ function App({
     );
   };
 
-  const TelaGastosVariaveis = ({setModalAberto}) => {
+  const TelaGastosVariaveis = () => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
     
     // CORREÇÃO: Verificar se estamos no mês atual
@@ -4682,8 +4592,8 @@ function App({
           )
         ),
 
-        /*#__PURE__*/React.createElement("button", {className:"btn-novo-gasto-variavel", onClick:()=>window.abrirModal('novoGastoVariavel')}, "\u2795 Novo Gasto Vari\xE1vel"),
-        /*#__PURE__*/React.createElement("button", {className:"btn-gerenciar-categorias", onClick:()=>window.abrirModal('gerenciarCategorias')}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(234,88,12,0.35)'}}, "\u2795 Novo Gasto Vari\xE1vel"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
@@ -4699,7 +4609,7 @@ function App({
           ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83D\uDCCA"),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhum gasto vari\xE1vel em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
-              /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('novoGastoVariavel'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
               ...datasOrdenadas.map(dataKey => {
@@ -4756,7 +4666,7 @@ function App({
     );
   };
 
-  const TelaGastosExtras = ({setModalAberto}) => {
+  const TelaGastosExtras = () => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
     const gastosDoMes = gastosExtras.filter(g => g.mes===mesAtual && g.ano===anoAtual);
     const totaisPorCat = {};
@@ -4801,8 +4711,8 @@ function App({
           )
         ),
 
-        /*#__PURE__*/React.createElement("button", {className:"btn-novo-gasto-extra", onClick:()=>window.abrirModal('novoGastoExtra')}, "\u2795 Novo Gasto Extra"),
-        /*#__PURE__*/React.createElement("button", {className:"btn-gerenciar-categorias", onClick:()=>window.abrirModal('gerenciarCategorias')}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoExtra'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(217,119,6,0.35)'}}, "\u2795 Novo Gasto Extra"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
@@ -4819,7 +4729,7 @@ function App({
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\u26A1"),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#9ca3af', marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhum gasto extra em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:'#d1d5db', marginBottom:'18px'}}, "Registre compras pontuais, surpresas ou gastos imprevistos"),
-              /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('novoGastoExtra'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
+              /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoExtra'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
               ...sortedGastos.map((gasto,idx)=>
@@ -6651,7 +6561,7 @@ function App({
         /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
           /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center'}},
             /*#__PURE__*/React.createElement("div", null,
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:'#111827'}}, "Gestão de Pagamentos \u2014 " + mesAtual.charAt(0).toUpperCase() + mesAtual.slice(1)),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:'#111827'}}, "Farol de Pagamentos \u2014 " + mesAtual.charAt(0).toUpperCase() + mesAtual.slice(1)),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}}, 
                 estamosNoMesAtual ? "Hoje: " + hoje + " de " + mesAtual : "Visualizando: " + mesAtual + "/" + anoAtual
               )
@@ -6882,7 +6792,7 @@ function App({
     onClick: () => setMesAtual(mes),
     className: `mes-btn${mesAtual === mes ? ' ativo' : ''}`
   }, mes.charAt(0).toUpperCase() + mes.slice(1)))))), /*#__PURE__*/React.createElement("div", {
-    className: "max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 main-content"
+    className: "max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 main-content animate-in"
   }, React.useMemo(() => {
     if (telaAtiva !== 'dashboard') return null;
     return /*#__PURE__*/React.createElement(Dashboard, {
@@ -6892,7 +6802,7 @@ function App({
     isUserAdmin: isUserAdmin
   }), telaAtiva.startsWith('planejamento') && /*#__PURE__*/React.createElement(TelaPlanejamento, null), telaAtiva === 'receitas' && /*#__PURE__*/React.createElement(TelaReceitas, null), telaAtiva === 'cartoes' && /*#__PURE__*/React.createElement(TelaCartoes, {
     key: JSON.stringify(farol)
-  }), telaAtiva === 'fixos' && /*#__PURE__*/React.createElement(TelaGastosFixos, {setModalAberto}), telaAtiva === 'variaveis' && /*#__PURE__*/React.createElement(TelaGastosVariaveis, {setModalAberto}), telaAtiva === 'extras' && /*#__PURE__*/React.createElement(TelaGastosExtras, {setModalAberto}), telaAtiva === 'farol' && /*#__PURE__*/React.createElement(TelaFarol, null)), modalAberto === 'editar' && itemEditando && /*#__PURE__*/React.createElement(Modal, {
+  }), telaAtiva === 'fixos' && /*#__PURE__*/React.createElement(TelaGastosFixos, null), telaAtiva === 'variaveis' && /*#__PURE__*/React.createElement(TelaGastosVariaveis, null), telaAtiva === 'extras' && /*#__PURE__*/React.createElement(TelaGastosExtras, null), telaAtiva === 'farol' && /*#__PURE__*/React.createElement(TelaFarol, null)), modalAberto === 'editar' && itemEditando && /*#__PURE__*/React.createElement(Modal, {
     titulo: `✏️ Editar ${tipoEditando === 'receita' ? 'Receita' : tipoEditando === 'cartao' ? 'Cartão' : tipoEditando === 'fixo' ? 'Gasto Fixo' : 'Gasto Variável'}`,
     onClose: () => {
       setModalAberto(null);
