@@ -90,5 +90,41 @@ window.addEventListener('load', function() {
   CLIQUE AQUI PARA TESTAR
 </div>
 
+
+<script>
+window.addEventListener('load', function() {
+    console.log('🟢 Forçando event listeners nos botões...');
+    
+    // Esperar React renderizar
+    setTimeout(function() {
+        const botoes = document.querySelectorAll('button');
+        console.log('🟢 Total de botões encontrados:', botoes.length);
+        
+        // Adicionar event listener em CADA botão
+        botoes.forEach(function(btn, i) {
+            const texto = btn.textContent;
+            
+            // Se é o botão "Novo Gasto Fixo"
+            if (texto.includes('Novo Gasto Fixo')) {
+                console.log('✅ Botão "Novo Gasto Fixo" encontrado!');
+                
+                // Remover qualquer listener existente e adicionar novo
+                const novoBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(novoBtn, btn);
+                
+                novoBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    console.log('🎯 CLIQUE DIRETO NO BOTÃO FUNCIONOU!');
+                    alert('BOTÃO "NOVO GASTO FIXO" FUNCIONOU!');
+                }, true);
+                
+                console.log('✅ Event listener adicionado ao botão');
+            }
+        });
+    }, 2000); // 2 segundos depois
+});
+</script>
+
 </body>
 </html>
