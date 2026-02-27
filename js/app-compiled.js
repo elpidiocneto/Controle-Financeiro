@@ -4231,7 +4231,7 @@ function App({
         ),
 
         /*#__PURE__*/React.createElement("button", {
-          onClick:()=>setModalAberto('novoCartao'),
+          onClick:()=>window.abrirModal('novoCartao'),
           style:{width:'100%', padding:'12px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(2,132,199,0.35)'}
         }, "\u2795 Novo Cart\xE3o")
       ),
@@ -4245,7 +4245,7 @@ function App({
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83D\uDCB3"),
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'700', color:'#9ca3af', marginBottom:'20px'}}, "Nenhum cart\xE3o cadastrado"),
           /*#__PURE__*/React.createElement("button", {
-            onClick:()=>setModalAberto('novoCartao'),
+            onClick:()=>window.abrirModal('novoCartao'),
             style:{padding:'11px 28px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'700', cursor:'pointer'}
           }, "\u2795 Adicionar Primeiro Cart\xE3o")
         ),
@@ -4516,7 +4516,7 @@ function App({
 
         // Botões de ação
         /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('novoGastoFixo'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Novo Gasto Fixo"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       // COLUNA DIREITA — lista por vencimento
@@ -4668,7 +4668,7 @@ function App({
         ),
 
         /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('novoGastoVariavel'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(234,88,12,0.35)'}}, "\u2795 Novo Gasto Vari\xE1vel"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
@@ -4787,7 +4787,7 @@ function App({
         ),
 
         /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('novoGastoExtra'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(217,119,6,0.35)'}}, "\u2795 Novo Gasto Extra"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>window.abrirModal('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
       /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
