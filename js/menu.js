@@ -59,7 +59,7 @@ window.MenuNavegacao = function MenuNavegacao({ telaAtiva, setTelaAtiva, isUserA
     const h = React.createElement;
 
     // Quais rotas pertencem a cada grupo
-    const isSimulacoes = ['planejamento-compra','planejamento-simulador'].includes(telaAtiva);
+    const isSimulacoes = ['planejamento-compra','planejamento-simulador','planejamento-aposentadoria','planejamento-quitacao'].includes(telaAtiva);
     const isOrcamento  = ['planejamento-orcamento','planejamento-premes'].includes(telaAtiva);
     const isMetas      = ['planejamento-metas','planejamento-dividas'].includes(telaAtiva);
 
