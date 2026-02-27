@@ -32,18 +32,11 @@
 window.abrirModal = function(tipo) {
     console.log('🎯 abrirModal chamado:', tipo);
     
-    // Encontrar o root do React
-    const root = document.getElementById('root');
-    if (!root || !root._reactRootContainer) {
-        alert('React ainda não inicializou!');
-        return;
-    }
-    
-    // Tentar disparar evento customizado
+    // Disparar evento customizado que o React vai capturar
     const event = new CustomEvent('abrirModal', { detail: { tipo: tipo } });
     window.dispatchEvent(event);
     
-    alert('Evento disparado! Verifique se modal abre.');
+    console.log('✅ Evento abrirModal disparado');
 };
 </script>
 
