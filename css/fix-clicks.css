@@ -1,8 +1,18 @@
-/* Correção para permitir cliques nos botões */
-.main-content {
-    pointer-events: none !important;
+/* CORREÇÃO AGRESSIVA - FORÇAR CLIQUES EM TUDO */
+
+/* Remover qualquer bloqueio global */
+* {
+    pointer-events: auto !important;
 }
 
-.main-content * {
+/* Garantir que botões SEMPRE funcionem */
+button {
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 100 !important;
+}
+
+/* Garantir que elementos interativos funcionem */
+a, input, select, textarea, [onclick], [onClick] {
     pointer-events: auto !important;
 }
