@@ -23,3 +23,17 @@ div, button, a, input, select, textarea {
     pointer-events: auto !important;
     cursor: pointer !important;
 }
+
+/* CORREÇÃO DEFINITIVA - Container bloqueador */
+.main-content {
+    pointer-events: none !important;
+}
+
+.main-content > * {
+    pointer-events: auto !important;
+}
+
+/* Garantir que TUDO dentro aceita cliques */
+.main-content * {
+    pointer-events: auto !important;
+}
