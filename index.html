@@ -26,6 +26,39 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/responsive.css">
 <link rel="stylesheet" href="css/fix-urgent.css">
+
+<script>
+// Capturar TODOS os cliques antes de qualquer coisa
+document.addEventListener('click', function(e) {
+    console.log('🔴 CLIQUE DETECTADO:', {
+        elemento: e.target.tagName,
+        classe: e.target.className,
+        id: e.target.id,
+        texto: e.target.textContent?.substring(0, 50)
+    });
+}, true); // true = capture phase (antes de tudo)
+
+// Verificar se algum elemento está bloqueando
+window.addEventListener('load', function() {
+    console.log('🟢 Página carregada');
+    
+    // Encontrar todos os botões
+    const botoes = document.querySelectorAll('button');
+    console.log('🟢 Total de botões na página:', botoes.length);
+    
+    // Verificar pointer-events de cada botão
+    botoes.forEach((btn, i) => {
+        const style = window.getComputedStyle(btn);
+        console.log(`Botão ${i}:`, {
+            texto: btn.textContent.substring(0, 30),
+            pointerEvents: style.pointerEvents,
+            zIndex: style.zIndex,
+            position: style.position
+        });
+    });
+});
+</script>
+
 </head>
 <body>
     <div id="root"></div>
