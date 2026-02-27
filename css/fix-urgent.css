@@ -1,0 +1,25 @@
+/* CORREÇÃO URGENTE - FORÇAR CLIQUES */
+
+* {
+    pointer-events: auto !important;
+}
+
+/* Exceto elementos que devem bloquear */
+.modal-overlay {
+    pointer-events: auto !important;
+}
+
+/* TODOS os elementos na área principal devem aceitar cliques */
+#root > * {
+    pointer-events: auto !important;
+}
+
+body > * {
+    pointer-events: auto !important;
+}
+
+/* Remover qualquer bloqueio */
+div, button, a, input, select, textarea {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}

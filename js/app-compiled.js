@@ -6735,8 +6735,8 @@ function App({
         )
       ),
 
-      modalPagamento && /*#__PURE__*/React.createElement("div", {
-        style:{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999},
+      false && modalPagamento && /*#__PURE__*/React.createElement("div", {
+        style:{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display: modalPagamento ? 'flex' : 'none', alignItems:'center', justifyContent:'center', zIndex:9999, pointerEvents: modalPagamento ? 'auto' : 'none'},
         onClick:()=>setModalPagamento(null)
       },
         /*#__PURE__*/React.createElement("div", {
