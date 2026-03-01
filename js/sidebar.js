@@ -368,7 +368,7 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
           }, '🎯 Metas'),
           React.createElement('div', {
             onClick: () => navegar('planejamento-compra', true),
-            style: subItemStyle(telaAtiva === 'planejamento-compra' || telaAtiva === 'planejamento-simulador'),
+            style: subItemStyle(['planejamento-compra','planejamento-simulador','planejamento-aposentadoria','planejamento-quitacao'].includes(telaAtiva)),
             onMouseEnter: e => { if (!['planejamento-compra','planejamento-simulador'].includes(telaAtiva)) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (!['planejamento-compra','planejamento-simulador'].includes(telaAtiva)) e.currentTarget.style.background = 'transparent'; }
           }, '🎲 Simulações')

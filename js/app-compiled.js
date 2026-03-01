@@ -4972,8 +4972,8 @@ function App({
       novaDespesa: 0 // valor adicional
     });
     const [simCompra, setSimCompra] = useState({ nome:'', valor:'', forma:'avista', parcelas:12, taxaJuros:2.5, resultado:null });
-    const [simApos, setSimApos] = useState({ idadeAtual:30, idadeAposentadoria:65, patrimonio:0, aporteMensal:500, taxaAnual:8, inflacao:4.5, rendaDesejada:5000, resultado:null });
-    const [simQuit, setSimQuit] = useState({ dividaSelecionada:'manual', nomeDivida:'', saldoDevedor:'', taxaMensal:'', pagamentoAtual:'', pagamentoExtra:0, estrategia:'avalanche', resultado:null });
+    const [simApos, setSimApos] = useState({ idadeAtual:30, idadeAposentadoria:65, patrimonioAtual:0, aporteMensal:500, taxaAnual:8, inflacao:4, rendaDesejada:5000, resultado:null });
+    const [simQuit, setSimQuit] = useState({ nomeDiv:'', saldoDevedor:'', taxaMensal:'', pagamentoAtual:'', pagamentoExtra:'', estrategia:'avalanche', resultado:null });
     const orcadoTotal = orcamento.cartoes + orcamento.fixos + orcamento.variaveis;
     const gastadoTotal = totais.total;
     const diferenca = orcadoTotal - gastadoTotal;
@@ -6148,10 +6148,10 @@ function App({
     /* ── BARRA DE ABAS DAS 4 SIMULAÇÕES ── */
     React.createElement('div', {style:{display:'flex',gap:'6px',marginBottom:'20px',background:'#f8fafc',borderRadius:'14px',padding:'6px',border:'1px solid #e2e8f0',flexWrap:'wrap'}},
       [
-        {key:'compra',      icon:'🛒', label:'Simul. Compra',       rota:'planejamento-compra'},
-        {key:'simulador',   icon:'🎲', label:'Cenários',             rota:'planejamento-simulador'},
-        {key:'aposentadoria',icon:'🏖️',label:'Aposentadoria',       rota:'planejamento-aposentadoria'},
-        {key:'quitacao',    icon:'💳', label:'Quitar Dívida',        rota:'planejamento-quitacao'}
+        {key:'compra',       icon:'🛒', label:'Simul. Compra',    rota:'planejamento-compra'},
+        {key:'simulador',    icon:'🎲', label:'Cenários',          rota:'planejamento-simulador'},
+        {key:'aposentadoria',icon:'🏖️', label:'Aposentadoria',    rota:'planejamento-aposentadoria'},
+        {key:'quitacao',     icon:'💳', label:'Quitar Dívida',     rota:'planejamento-quitacao'}
       ].map(tab =>
         React.createElement('button', {
           key: tab.key,
@@ -6174,144 +6174,102 @@ function App({
 
       /* Coluna Esquerda: saldo + formulário */
       React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-
-        React.createElement('div', {style:{background:saldo.positivo?'linear-gradient(135deg,#064e3b,#065f46)':'linear-gradient(135deg,#7f1d1d,#991b1b)',borderRadius:'16px',padding:'20px',color:'#fff',boxShadow:'0 4px 20px rgba(0,0,0,0.25)'}},
+        React.createElement('div', {style:{background:saldo.positivo?'linear-gradient(135deg,#064e3b,#065f46)':'linear-gradient(135deg,#7f1d1d,#991b1b)',borderRadius:'16px',padding:'20px',color:'#fff',border:saldo.positivo?'1px solid rgba(16,185,129,0.3)':'1px solid rgba(239,68,68,0.3)',boxShadow:'0 4px 20px rgba(0,0,0,0.25)'}},
           React.createElement('div', {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'10px'}}, '💰 Saldo Disponível'),
           React.createElement('div', {style:{fontSize:'1.8rem',fontWeight:'900',marginBottom:'4px'}}, 'R$ ' + Math.abs(saldo.saldo).toFixed(2)),
           React.createElement('div', {style:{fontSize:'0.75rem',opacity:0.8}}, saldo.positivo ? 'Sobra mensal disponível' : 'Saldo negativo — cuidado!')
         ),
-
-        React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-          React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'16px'}}, '📝 Detalhes da Compra'),
-
-          React.createElement('div', {style:{marginBottom:'12px'}},
-            React.createElement('label', {style:{fontSize:'0.75rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'6px'}}, 'Produto / Serviço'),
-            React.createElement('input', {type:'text',placeholder:'Ex: Geladeira, TV, Curso...',value:simCompra.nome,onChange:e=>setSimCompra({...simCompra,nome:e.target.value,resultado:null}),style:{width:'100%',padding:'10px 12px',borderRadius:'10px',border:'2px solid #e5e7eb',fontSize:'0.82rem',outline:'none',boxSizing:'border-box'}})
-          ),
-          React.createElement('div', {style:{marginBottom:'12px'}},
-            React.createElement('label', {style:{fontSize:'0.75rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'6px'}}, 'Valor Total (R$)'),
-            React.createElement('input', {type:'number',placeholder:'0,00',step:'0.01',value:simCompra.valor,onChange:e=>setSimCompra({...simCompra,valor:e.target.value,resultado:null}),style:{width:'100%',padding:'10px 12px',borderRadius:'10px',border:'2px solid #e5e7eb',fontSize:'0.82rem',outline:'none',boxSizing:'border-box'}})
-          ),
-          React.createElement('div', {style:{marginBottom:'12px'}},
-            React.createElement('label', {style:{fontSize:'0.75rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'6px'}}, 'Forma de Pagamento'),
-            React.createElement('div', {style:{display:'flex',gap:'8px'}},
-              React.createElement('button', {onClick:()=>setSimCompra({...simCompra,forma:'avista',resultado:null}),style:{flex:1,padding:'10px',borderRadius:'10px',border:'2px solid',borderColor:simCompra.forma==='avista'?'#6366f1':'#e5e7eb',background:simCompra.forma==='avista'?'#eef2ff':'#fff',color:simCompra.forma==='avista'?'#4f46e5':'#6b7280',fontSize:'0.78rem',fontWeight:'700',cursor:'pointer'}}, '💵 À Vista'),
-              React.createElement('button', {onClick:()=>setSimCompra({...simCompra,forma:'parcelado',resultado:null}),style:{flex:1,padding:'10px',borderRadius:'10px',border:'2px solid',borderColor:simCompra.forma==='parcelado'?'#6366f1':'#e5e7eb',background:simCompra.forma==='parcelado'?'#eef2ff':'#fff',color:simCompra.forma==='parcelado'?'#4f46e5':'#6b7280',fontSize:'0.78rem',fontWeight:'700',cursor:'pointer'}}, '💳 Parcelado')
-            )
-          ),
-          simCompra.forma === 'parcelado' && React.createElement('div', {style:{marginBottom:'12px'}},
-            React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}},
+        React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+          React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#6366f1',marginBottom:'14px'}}, '🛒 Dados da Compra'),
+          React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
+            React.createElement('div', null,
+              React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, 'Nome do produto'),
+              React.createElement('input', {type:'text', value:simCompra.nome, onChange:e=>setSimCompra({...simCompra,nome:e.target.value}), placeholder:'Ex: Notebook, TV, Carro...', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}})
+            ),
+            React.createElement('div', null,
+              React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, 'Valor (R$)'),
+              React.createElement('input', {type:'number', value:simCompra.valor, onChange:e=>setSimCompra({...simCompra,valor:e.target.value,resultado:null}), placeholder:'0,00', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}})
+            ),
+            React.createElement('div', null,
+              React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, 'Forma de pagamento'),
+              React.createElement('select', {value:simCompra.forma, onChange:e=>setSimCompra({...simCompra,forma:e.target.value,resultado:null}), style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}},
+                React.createElement('option', {value:'avista'}, 'À Vista'),
+                React.createElement('option', {value:'parcelado'}, 'Parcelado')
+              )
+            ),
+            simCompra.forma === 'parcelado' && React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}},
               React.createElement('div', null,
-                React.createElement('label', {style:{fontSize:'0.75rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'6px'}}, 'Parcelas'),
-                React.createElement('select', {value:simCompra.parcelas,onChange:e=>setSimCompra({...simCompra,parcelas:parseInt(e.target.value),resultado:null}),style:{width:'100%',padding:'10px 12px',borderRadius:'10px',border:'2px solid #e5e7eb',fontSize:'0.82rem',outline:'none'}},
-                  [2,3,4,6,8,10,12,18,24,36,48,60].map(n => React.createElement('option', {key:n,value:n}, n+'x'))
-                )
+                React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, 'Parcelas'),
+                React.createElement('input', {type:'number', value:simCompra.parcelas, onChange:e=>setSimCompra({...simCompra,parcelas:parseInt(e.target.value)||1,resultado:null}), min:'1', max:'60', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}})
               ),
               React.createElement('div', null,
-                React.createElement('label', {style:{fontSize:'0.75rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'6px'}}, 'Juros/mês (%)'),
-                React.createElement('input', {type:'number',step:'0.1',placeholder:'2.5',value:simCompra.taxaJuros,onChange:e=>setSimCompra({...simCompra,taxaJuros:parseFloat(e.target.value)||0,resultado:null}),style:{width:'100%',padding:'10px 12px',borderRadius:'10px',border:'2px solid #e5e7eb',fontSize:'0.82rem',outline:'none',boxSizing:'border-box'}})
+                React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, 'Juros % a.m.'),
+                React.createElement('input', {type:'number', value:simCompra.taxaJuros, onChange:e=>setSimCompra({...simCompra,taxaJuros:parseFloat(e.target.value)||0,resultado:null}), step:'0.1', min:'0', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}})
               )
-            )
-          ),
-          React.createElement('button', {
-            onClick:()=>{
-              const v=parseFloat(simCompra.valor)||0;
-              if(!v)return;
-              let resultado;
-              if(simCompra.forma==='avista'){
-                const novoSaldo=saldo.saldo-v;
-                const pctRenda=saldo.receitas>0?v/saldo.receitas*100:0;
-                resultado={tipo:'avista',totalPago:v,impactoMensal:v,meses:1,totalJuros:0,novoSaldo,pctRenda,viavel:novoSaldo>=0};
-              } else {
-                const taxa=simCompra.taxaJuros/100;
-                const n=simCompra.parcelas;
-                const parcela=taxa>0?v*(taxa*Math.pow(1+taxa,n))/(Math.pow(1+taxa,n)-1):v/n;
-                const totalPago=parcela*n;
-                resultado={tipo:'parcelado',parcela,totalPago,totalJuros:totalPago-v,meses:n,impactoMensal:parcela,novoSaldoMensal:saldo.saldo-parcela,pctRenda:saldo.receitas>0?parcela/saldo.receitas*100:0,viavel:saldo.saldo-parcela>=0};
-              }
-              setSimCompra({...simCompra,resultado});
-            },
-            style:{width:'100%',padding:'13px',border:'none',borderRadius:'12px',background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',fontSize:'0.88rem',fontWeight:'800',cursor:'pointer',boxShadow:'0 4px 12px rgba(99,102,241,0.3)',marginTop:'4px'}
-          }, '🔍 Simular Compra')
+            ),
+            React.createElement('button', {
+              onClick: () => {
+                const valor = parseFloat(simCompra.valor) || 0;
+                if (!valor) return;
+                let totalPago, parcela, jurosTotal;
+                if (simCompra.forma === 'avista') {
+                  totalPago = valor; parcela = valor; jurosTotal = 0;
+                } else {
+                  const taxa = simCompra.taxaJuros / 100;
+                  const n = simCompra.parcelas;
+                  if (taxa === 0) { parcela = valor / n; } else { parcela = valor * (taxa * Math.pow(1+taxa,n)) / (Math.pow(1+taxa,n)-1); }
+                  totalPago = parcela * n;
+                  jurosTotal = totalPago - valor;
+                }
+                const novoSaldo = saldo.saldo - (simCompra.forma === 'avista' ? valor : parcela);
+                const pctRenda = saldo.receitas > 0 ? (parcela / saldo.receitas * 100) : 0;
+                setSimCompra({...simCompra, resultado:{totalPago,parcela,jurosTotal,novoSaldo,pctRenda,viavel:novoSaldo>=0}});
+              },
+              style:{background:'linear-gradient(135deg,#6366f1,#4f46e5)',color:'#fff',border:'none',borderRadius:'10px',padding:'11px',fontSize:'0.82rem',fontWeight:'700',cursor:'pointer',width:'100%'}
+            }, '📊 Simular')
+          )
         )
       ),
 
-      /* Coluna Centro: resultado */
-      simCompra.resultado === null
-        ? React.createElement('div', {style:{background:'linear-gradient(135deg,#f8fafc,#f1f5f9)',borderRadius:'16px',padding:'60px 20px',textAlign:'center',border:'2px dashed #e2e8f0',color:'#94a3b8'}},
-            React.createElement('div', {style:{fontSize:'3.5rem',marginBottom:'12px',opacity:0.5}}, '🛒'),
-            React.createElement('div', {style:{fontSize:'1rem',fontWeight:'700',color:'#64748b',marginBottom:'6px'}}, 'Preencha e simule'),
-            React.createElement('div', {style:{fontSize:'0.8rem'}}, 'Veja o impacto da compra no seu orçamento')
-          )
-        : React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-            React.createElement('div', {style:{background:simCompra.resultado.viavel?'linear-gradient(135deg,#064e3b,#065f46)':'linear-gradient(135deg,#7f1d1d,#991b1b)',borderRadius:'16px',padding:'22px',color:'#fff',boxShadow:'0 4px 24px rgba(0,0,0,0.3)'}},
-              React.createElement('div', {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'10px'}}, simCompra.resultado.viavel?'✅ Compra Viável':'⚠️ Atenção — Impacto Alto'),
-              simCompra.nome && React.createElement('div', {style:{fontSize:'1rem',fontWeight:'700',marginBottom:'8px',opacity:0.9}}, simCompra.nome),
-              React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginTop:'12px'}},
-                React.createElement('div', null,
-                  React.createElement('div', {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, simCompra.resultado.tipo==='parcelado'?'Parcela Mensal':'Desembolso'),
-                  React.createElement('div', {style:{fontSize:'1.6rem',fontWeight:'900'}}, 'R$ '+simCompra.resultado.impactoMensal.toFixed(2))
-                ),
-                React.createElement('div', null,
-                  React.createElement('div', {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, '% da Renda'),
-                  React.createElement('div', {style:{fontSize:'1.6rem',fontWeight:'900',color:simCompra.resultado.pctRenda>30?'#fca5a5':'#86efac'}}, simCompra.resultado.pctRenda.toFixed(1)+'%')
-                )
-              )
+      /* Coluna Central: resultado */
+      React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+        simCompra.resultado ? React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+          React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#6366f1',marginBottom:'16px'}}, '📊 Resultado da Simulação'),
+          React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'12px'}},
+            React.createElement('div', {style:{background: simCompra.resultado.viavel ? '#f0fdf4' : '#fef2f2', borderRadius:'12px', padding:'14px', border: simCompra.resultado.viavel ? '1px solid #86efac' : '1px solid #fca5a5'}},
+              React.createElement('div', {style:{fontSize:'1.1rem',fontWeight:'800',color: simCompra.resultado.viavel ? '#166534' : '#991b1b',marginBottom:'4px'}}, simCompra.resultado.viavel ? '✅ Compra Viável' : '❌ Compra Inviável'),
+              React.createElement('div', {style:{fontSize:'0.78rem',color: simCompra.resultado.viavel ? '#166534' : '#991b1b'}}, simCompra.resultado.viavel ? 'Você tem saldo suficiente' : 'Saldo insuficiente para esta compra')
             ),
-            React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-              React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, '📋 Resumo'),
-              React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
-                React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
-                  React.createElement('span', {style:{fontSize:'0.8rem',color:'#6b7280'}}, 'Total Pago'),
-                  React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'800',color:'#111827'}}, 'R$ '+simCompra.resultado.totalPago.toFixed(2))
-                ),
-                simCompra.resultado.tipo==='parcelado' && React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
-                  React.createElement('span', {style:{fontSize:'0.8rem',color:'#6b7280'}}, 'Juros Totais'),
-                  React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'800',color:'#ef4444'}}, 'R$ '+simCompra.resultado.totalJuros.toFixed(2))
-                ),
-                simCompra.resultado.tipo==='parcelado' && React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
-                  React.createElement('span', {style:{fontSize:'0.8rem',color:'#6b7280'}}, 'Prazo'),
-                  React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'800',color:'#111827'}}, simCompra.resultado.meses+' meses')
-                ),
-                React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
-                  React.createElement('span', {style:{fontSize:'0.8rem',color:'#6b7280'}}, simCompra.resultado.tipo==='parcelado'?'Saldo Após Parcela':'Saldo Após Compra'),
-                  React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'800',color:(simCompra.resultado.novoSaldo??simCompra.resultado.novoSaldoMensal)>=0?'#10b981':'#ef4444'}}, 'R$ '+(simCompra.resultado.novoSaldo??simCompra.resultado.novoSaldoMensal).toFixed(2))
-                )
-              )
-            )
-          ),
+            [
+              {label:'💳 Valor da parcela', value:'R$ '+simCompra.resultado.parcela.toFixed(2)},
+              {label:'💰 Total a pagar', value:'R$ '+simCompra.resultado.totalPago.toFixed(2)},
+              {label:'📈 Total em juros', value:'R$ '+simCompra.resultado.jurosTotal.toFixed(2), destaque: simCompra.resultado.jurosTotal > 0},
+              {label:'🏦 Novo saldo mensal', value:'R$ '+simCompra.resultado.novoSaldo.toFixed(2)},
+              {label:'📊 % da renda comprometida', value:simCompra.resultado.pctRenda.toFixed(1)+'%', alerta: simCompra.resultado.pctRenda > 30}
+            ].map((item,i) => React.createElement('div', {key:i, style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background: item.alerta ? '#fef3c7' : '#f8fafc',borderRadius:'8px',border:'1px solid '+(item.alerta?'#fcd34d':'#e2e8f0')}},
+              React.createElement('span', {style:{fontSize:'0.78rem',color:'#64748b'}}, item.label),
+              React.createElement('span', {style:{fontSize:'0.88rem',fontWeight:'800',color: item.alerta ? '#92400e' : item.destaque ? '#dc2626' : '#1e293b'}}, item.value)
+            ))
+          )
+        ) : React.createElement('div', {style:{background:'#f8fafc',borderRadius:'16px',padding:'32px',textAlign:'center',border:'1px solid #e2e8f0'}},
+          React.createElement('div', {style:{fontSize:'2.5rem',marginBottom:'12px'}}, '🛒'),
+          React.createElement('div', {style:{fontSize:'0.85rem',color:'#94a3b8',fontWeight:'500'}}, 'Preencha os dados e clique em Simular para ver a análise')
+        )
+      ),
 
       /* Coluna Direita: dicas */
-      React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-        React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-          React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, '📏 Regra dos 30%'),
-          React.createElement('div', {style:{fontSize:'0.78rem',color:'#374151',lineHeight:1.6,marginBottom:'12px'}}, 'Especialistas recomendam que nenhuma compra comprometa mais de ', React.createElement('strong', null, '30% da renda mensal.')),
-          React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'8px'}},
-            React.createElement('div', {style:{display:'flex',justifyContent:'space-between'}},
-              React.createElement('span', {style:{fontSize:'0.75rem',color:'#6b7280'}}, 'Limite recomendado'),
-              React.createElement('span', {style:{fontSize:'0.8rem',fontWeight:'800',color:'#10b981'}}, 'R$ '+(saldo.receitas*0.3).toFixed(0))
-            ),
-            React.createElement('div', {style:{display:'flex',justifyContent:'space-between'}},
-              React.createElement('span', {style:{fontSize:'0.75rem',color:'#6b7280'}}, 'Sua renda mensal'),
-              React.createElement('span', {style:{fontSize:'0.8rem',fontWeight:'800',color:'#111827'}}, 'R$ '+saldo.receitas.toFixed(0))
-            )
-          )
-        ),
-        React.createElement('div', {style:{background:'linear-gradient(135deg,#ede9fe,#ddd6fe)',borderRadius:'16px',padding:'16px',border:'1px solid #ddd6fe'}},
-          React.createElement('div', {style:{fontSize:'0.8rem',fontWeight:'700',color:'#5b21b6',marginBottom:'8px'}}, '⚡ À Vista vs Parcelado'),
-          React.createElement('div', {style:{fontSize:'0.75rem',color:'#4c1d95',lineHeight:1.6}}, 'Parcelado parece mais barato, mas os juros acumulam. Se tiver o valor disponível, pagar à vista sempre sai mais em conta.')
-        ),
-        React.createElement('div', {style:{background:'linear-gradient(135deg,#fef3c7,#fde68a)',borderRadius:'16px',padding:'16px',border:'1px solid #fde68a'}},
-          React.createElement('div', {style:{fontSize:'0.8rem',fontWeight:'700',color:'#92400e',marginBottom:'6px'}}, '💡 Análise'),
-          React.createElement('div', {style:{fontSize:'0.75rem',color:'#78350f',lineHeight:1.5}},
-            simCompra.resultado
-              ? simCompra.resultado.viavel
-                ? simCompra.resultado.pctRenda < 15
-                  ? 'Ótima compra! O impacto na sua renda é baixo e cabe bem no orçamento.'
-                  : 'Compra viável, mas representa uma fatia significativa da sua renda.'
-                : 'Esta compra compromete seu saldo. Considere poupar antes ou parcelar em mais vezes.'
-              : 'Preencha os dados para receber uma análise personalizada da compra.'
-          )
+      React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+        React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f59e0b',marginBottom:'14px'}}, '💡 Dicas Financeiras'),
+        React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
+          [
+            {icon:'⚡',title:'Regra dos 30%',desc:'A parcela não deve comprometer mais que 30% da sua renda mensal.'},
+            {icon:'🏆',title:'À vista é melhor',desc:'Sempre que possível, negocie desconto no pagamento à vista.'},
+            {icon:'📉',title:'Juros compostos',desc:'Nos parcelamentos com juros, o custo final pode ser muito maior que o preço original.'},
+            {icon:'🎯',title:'Reserve 3x o valor',desc:'Idealmente, tenha 3x o valor da compra reservado antes de comprar.'}
+          ].map((d,i) => React.createElement('div', {key:i, style:{padding:'10px 12px',background:'#fffbeb',borderRadius:'8px',border:'1px solid #fcd34d'}},
+            React.createElement('div', {style:{fontSize:'0.78rem',fontWeight:'700',color:'#92400e',marginBottom:'3px'}}, d.icon+' '+d.title),
+            React.createElement('div', {style:{fontSize:'0.72rem',color:'#78350f',lineHeight:'1.4'}}, d.desc)
+          ))
         )
       )
     ),
@@ -6321,9 +6279,9 @@ function App({
     ══════════════════════════════════════════════════════ */
     (subAba === 'simulador') && React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
 
-      /* Esquerda: situação atual + cenários rápidos */
+      /* Coluna Esquerda: situação atual + sliders */
       React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-        React.createElement('div', {style:{background:saldo.positivo?'linear-gradient(135deg,#1e1b4b,#312e81)':'linear-gradient(135deg,#7f1d1d,#991b1b)',borderRadius:'16px',padding:'20px',color:'#fff',border:'1px solid rgba(255,255,255,0.1)',boxShadow:'0 4px 24px rgba(0,0,0,0.3)'}},
+        React.createElement('div', {style:{background:'linear-gradient(135deg,#1e1b4b,#312e81)',borderRadius:'16px',padding:'20px',color:'#fff',border:'1px solid rgba(255,255,255,0.1)',boxShadow:'0 4px 24px rgba(0,0,0,0.3)'}},
           React.createElement('div', {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'14px'}}, '📊 Situação Atual'),
           React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
             React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
@@ -6332,161 +6290,94 @@ function App({
             ),
             React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
               React.createElement('span', {style:{fontSize:'0.75rem',opacity:0.7}}, 'Despesas'),
-              React.createElement('span', {style:{fontSize:'0.95rem',fontWeight:'800'}}, 'R$ '+totais.total.toFixed(2))
+              React.createElement('span', {style:{fontSize:'0.95rem',fontWeight:'800'}}, 'R$ '+saldo.despesas.toFixed(2))
             ),
-            React.createElement('div', {style:{borderTop:'1px solid rgba(255,255,255,0.15)',paddingTop:'10px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
-              React.createElement('span', {style:{fontSize:'0.75rem',opacity:0.7}}, 'Saldo'),
-              React.createElement('span', {style:{fontSize:'1.3rem',fontWeight:'900',color:saldo.positivo?'#86efac':'#fca5a5'}}, 'R$ '+saldo.saldo.toFixed(2))
-            ),
-            React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
-              React.createElement('span', {style:{fontSize:'0.75rem',opacity:0.7}}, 'Score Saúde'),
-              React.createElement('span', {style:{fontSize:'1.1rem',fontWeight:'900',color:'#fde68a'}}, scoreSaude.score+' pts')
+            React.createElement('div', {style:{borderTop:'1px solid rgba(255,255,255,0.2)',paddingTop:'10px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+              React.createElement('span', {style:{fontSize:'0.8rem',fontWeight:'700'}}, 'Saldo'),
+              React.createElement('span', {style:{fontSize:'1.1rem',fontWeight:'900',color:saldo.positivo?'#34d399':'#f87171'}}, 'R$ '+saldo.saldo.toFixed(2))
             )
           )
         ),
-        React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-          React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, '⚡ Cenários Rápidos'),
-          React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'8px'}},
-            React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:0}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #d1fae5',background:simulacao.rendaAjuste===20&&simulacao.gastosAjuste===0?'#d1fae5':'#fff',cursor:'pointer'}},
-              React.createElement('div', {style:{display:'flex',alignItems:'center',gap:'10px'}},
-                React.createElement('span', {style:{fontSize:'1.3rem'}}, '📈'),
-                React.createElement('div', null,
-                  React.createElement('div', {style:{fontSize:'0.78rem',fontWeight:'700',color:'#065f46'}}, 'Promoção +20%'),
-                  React.createElement('div', {style:{fontSize:'0.68rem',color:'#6b7280'}}, 'Aumento de renda')
-                )
-              )
+        React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+          React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#6366f1',marginBottom:'14px'}}, '🎛️ Ajustar Cenário'),
+          React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+            React.createElement('div', null,
+              React.createElement('div', {style:{display:'flex',justifyContent:'space-between',marginBottom:'6px'}},
+                React.createElement('label', {style:{fontSize:'0.75rem',fontWeight:'600',color:'#64748b'}}, '💰 Ajuste de Renda'),
+                React.createElement('span', {style:{fontSize:'0.82rem',fontWeight:'800',color: simulacao.rendaAjuste >= 0 ? '#16a34a' : '#dc2626'}}, (simulacao.rendaAjuste >= 0 ? '+' : '')+simulacao.rendaAjuste+'%')
+              ),
+              React.createElement('input', {type:'range', min:'-50', max:'100', value:simulacao.rendaAjuste, onChange:e=>setSimulacao({...simulacao,rendaAjuste:parseInt(e.target.value)}), style:{width:'100%',accentColor:'#6366f1'}})
             ),
-            React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:0,gastosAjuste:-20}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #dbeafe',background:simulacao.rendaAjuste===0&&simulacao.gastosAjuste===-20?'#dbeafe':'#fff',cursor:'pointer'}},
-              React.createElement('div', {style:{display:'flex',alignItems:'center',gap:'10px'}},
-                React.createElement('span', {style:{fontSize:'1.3rem'}}, '💰'),
-                React.createElement('div', null,
-                  React.createElement('div', {style:{fontSize:'0.78rem',fontWeight:'700',color:'#1e40af'}}, 'Economizar -20%'),
-                  React.createElement('div', {style:{fontSize:'0.68rem',color:'#6b7280'}}, 'Redução de gastos')
-                )
-              )
+            React.createElement('div', null,
+              React.createElement('div', {style:{display:'flex',justifyContent:'space-between',marginBottom:'6px'}},
+                React.createElement('label', {style:{fontSize:'0.75rem',fontWeight:'600',color:'#64748b'}}, '💸 Ajuste de Despesas'),
+                React.createElement('span', {style:{fontSize:'0.82rem',fontWeight:'800',color: simulacao.gastosAjuste <= 0 ? '#16a34a' : '#dc2626'}}, (simulacao.gastosAjuste >= 0 ? '+' : '')+simulacao.gastosAjuste+'%')
+              ),
+              React.createElement('input', {type:'range', min:'-50', max:'50', value:simulacao.gastosAjuste, onChange:e=>setSimulacao({...simulacao,gastosAjuste:parseInt(e.target.value)}), style:{width:'100%',accentColor:'#6366f1'}})
             ),
-            React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:-20}),style:{width:'100%',padding:'12px',borderRadius:'10px',textAlign:'left',border:'2px solid #ede9fe',background:simulacao.rendaAjuste===20&&simulacao.gastosAjuste===-20?'#ede9fe':'#fff',cursor:'pointer'}},
-              React.createElement('div', {style:{display:'flex',alignItems:'center',gap:'10px'}},
-                React.createElement('span', {style:{fontSize:'1.3rem'}}, '🚀'),
-                React.createElement('div', null,
-                  React.createElement('div', {style:{fontSize:'0.78rem',fontWeight:'700',color:'#5b21b6'}}, 'Combo Perfeito'),
-                  React.createElement('div', {style:{fontSize:'0.68rem',color:'#6b7280'}}, '+20% renda e -20% gastos')
-                )
-              )
+            React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'6px'}},
+              React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20}), style:{padding:'7px 4px',borderRadius:'8px',border:'1px solid #86efac',background:'#f0fdf4',color:'#166534',fontSize:'0.68rem',fontWeight:'700',cursor:'pointer'}}, '+20% Renda'),
+              React.createElement('button', {onClick:()=>setSimulacao({...simulacao,gastosAjuste:-20}), style:{padding:'7px 4px',borderRadius:'8px',border:'1px solid #86efac',background:'#f0fdf4',color:'#166534',fontSize:'0.68rem',fontWeight:'700',cursor:'pointer'}}, '-20% Desp.'),
+              React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:-20}), style:{padding:'7px 4px',borderRadius:'8px',border:'1px solid #6366f1',background:'#eef2ff',color:'#4338ca',fontSize:'0.68rem',fontWeight:'700',cursor:'pointer'}}, 'Combo')
             ),
-            React.createElement('button', {onClick:()=>setSimulacao({rendaAjuste:0,gastosAjuste:0,quitarDivida:null,novaReceita:0,novaDespesa:0}),style:{width:'100%',padding:'10px',borderRadius:'10px',border:'2px solid #f3f4f6',background:'#fff',cursor:'pointer',fontSize:'0.75rem',fontWeight:'700',color:'#9ca3af'}}, '🔄 Resetar')
+            React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:0,gastosAjuste:0}), style:{padding:'8px',borderRadius:'8px',border:'1px solid #e2e8f0',background:'#f8fafc',color:'#64748b',fontSize:'0.75rem',cursor:'pointer',width:'100%'}}, '↩️ Resetar')
           )
         )
       ),
 
-      /* Centro: controles + resultado simulado */
+      /* Coluna Central: resultados do cenário */
       React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-        React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-          React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'18px'}}, '🎮 Ajuste os Valores'),
-          React.createElement('div', {style:{marginBottom:'20px'}},
-            React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}},
-              React.createElement('span', {style:{fontSize:'0.8rem',fontWeight:'700',color:'#374151'}}, '💰 Ajuste de Renda'),
-              React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'900',color:simulacao.rendaAjuste>0?'#10b981':simulacao.rendaAjuste<0?'#ef4444':'#6b7280'}}, (simulacao.rendaAjuste>0?'+':'')+simulacao.rendaAjuste+'%')
-            ),
-            React.createElement('input', {type:'range',min:'-50',max:'100',step:'1',value:simulacao.rendaAjuste,onChange:e=>setSimulacao({...simulacao,rendaAjuste:parseFloat(e.target.value)}),style:{width:'100%',accentColor:'#10b981',cursor:'pointer'}}),
-            React.createElement('div', {style:{display:'flex',justifyContent:'space-between',fontSize:'0.65rem',color:'#9ca3af',marginTop:'4px'}},
-              React.createElement('span', null, '-50%'),
-              React.createElement('span', null, '+100%')
-            )
-          ),
-          React.createElement('div', null,
-            React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}},
-              React.createElement('span', {style:{fontSize:'0.8rem',fontWeight:'700',color:'#374151'}}, '📉 Ajuste de Gastos'),
-              React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'900',color:simulacao.gastosAjuste<0?'#10b981':simulacao.gastosAjuste>0?'#ef4444':'#6b7280'}}, (simulacao.gastosAjuste>0?'+':'')+simulacao.gastosAjuste+'%')
-            ),
-            React.createElement('input', {type:'range',min:'-50',max:'50',step:'1',value:simulacao.gastosAjuste,onChange:e=>setSimulacao({...simulacao,gastosAjuste:parseFloat(e.target.value)}),style:{width:'100%',accentColor:'#6366f1',cursor:'pointer'}}),
-            React.createElement('div', {style:{display:'flex',justifyContent:'space-between',fontSize:'0.65rem',color:'#9ca3af',marginTop:'4px'}},
-              React.createElement('span', null, '-50%'),
-              React.createElement('span', null, '+50%')
-            )
-          )
-        ),
-        React.createElement('div', {
-          style:{
-            background: simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0 ? 'linear-gradient(135deg,#f8fafc,#f1f5f9)' : (saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))>=0 ? 'linear-gradient(135deg,#064e3b,#065f46)' : 'linear-gradient(135deg,#7f1d1d,#991b1b)',
-            borderRadius:'16px',padding:'20px',
-            color: simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0?'#64748b':'#fff',
-            border: simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0?'2px dashed #e2e8f0':'1px solid rgba(255,255,255,0.2)',
-            boxShadow: simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0?'none':'0 4px 24px rgba(0,0,0,0.25)'
-          }
-        },
-          simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0
-            ? React.createElement('div', {style:{textAlign:'center',padding:'10px 0'}},
-                React.createElement('div', {style:{fontSize:'2.5rem',marginBottom:'8px',opacity:0.4}}, '🎲'),
-                React.createElement('div', {style:{fontSize:'0.85rem',fontWeight:'600'}}, 'Mova os controles para ver o cenário simulado')
+        (() => {
+          const rendaSim = saldo.receitas * (1 + simulacao.rendaAjuste/100);
+          const despSim  = saldo.despesas * (1 + simulacao.gastosAjuste/100);
+          const saldoSim = rendaSim - despSim;
+          const txPoup   = rendaSim > 0 ? (saldoSim / rendaSim * 100) : 0;
+          const meta20   = rendaSim * 0.20;
+          return React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+            React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+              React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#6366f1',marginBottom:'16px'}}, '🎲 Cenário Simulado'),
+              React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
+                [
+                  {label:'💰 Receita Simulada',  value:'R$ '+rendaSim.toFixed(2),  color:'#16a34a'},
+                  {label:'💸 Despesas Simuladas', value:'R$ '+despSim.toFixed(2),   color:'#dc2626'},
+                  {label:'💼 Saldo Resultante',   value:'R$ '+saldoSim.toFixed(2),  color: saldoSim >= 0 ? '#16a34a' : '#dc2626'},
+                  {label:'📊 Taxa de Poupança',   value:txPoup.toFixed(1)+'%',      color: txPoup >= 20 ? '#16a34a' : txPoup >= 10 ? '#f59e0b' : '#dc2626'},
+                ].map((item,i) => React.createElement('div', {key:i, style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:'#f8fafc',borderRadius:'8px',border:'1px solid #e2e8f0'}},
+                  React.createElement('span', {style:{fontSize:'0.78rem',color:'#64748b'}}, item.label),
+                  React.createElement('span', {style:{fontSize:'0.88rem',fontWeight:'800',color:item.color}}, item.value)
+                ))
               )
-            : React.createElement('div', null,
-                React.createElement('div', {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'14px'}}, '🔮 Cenário Simulado'),
-                React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}},
-                  React.createElement('div', null,
-                    React.createElement('div', {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, 'Receitas'),
-                    React.createElement('div', {style:{fontSize:'1rem',fontWeight:'900'}}, 'R$ '+(saldo.receitas*(1+simulacao.rendaAjuste/100)).toFixed(0)),
-                    simulacao.rendaAjuste!==0&&React.createElement('div', {style:{fontSize:'0.7rem',color:simulacao.rendaAjuste>=0?'#86efac':'#fca5a5'}}, (simulacao.rendaAjuste>=0?'▲ +':'▼ ')+'R$ '+Math.abs(saldo.receitas*simulacao.rendaAjuste/100).toFixed(0))
-                  ),
-                  React.createElement('div', null,
-                    React.createElement('div', {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, 'Despesas'),
-                    React.createElement('div', {style:{fontSize:'1rem',fontWeight:'900'}}, 'R$ '+(totais.total*(1+simulacao.gastosAjuste/100)).toFixed(0)),
-                    simulacao.gastosAjuste!==0&&React.createElement('div', {style:{fontSize:'0.7rem',color:simulacao.gastosAjuste<=0?'#86efac':'#fca5a5'}}, (simulacao.gastosAjuste>=0?'▲ +':'▼ ')+'R$ '+Math.abs(totais.total*simulacao.gastosAjuste/100).toFixed(0))
-                  ),
-                  React.createElement('div', null,
-                    React.createElement('div', {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, 'Saldo'),
-                    React.createElement('div', {style:{fontSize:'1.2rem',fontWeight:'900',color:(saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))>=0?'#86efac':'#fca5a5'}}, 'R$ '+(saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100)).toFixed(0))
-                  ),
-                  React.createElement('div', null,
-                    React.createElement('div', {style:{fontSize:'0.65rem',opacity:0.6,marginBottom:'4px'}}, 'Score Est.'),
-                    React.createElement('div', {style:{fontSize:'1.2rem',fontWeight:'900',color:'#fde68a'}},
-                      Math.min(100, Math.max(0,
-                        ((saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))>=0?30:0)+
-                        (totais.total*(1+simulacao.gastosAjuste/100)<=saldo.receitas*(1+simulacao.rendaAjuste/100)*0.9?25:0)+
-                        Math.min(30,Math.floor(reservaEmergencia/(totais.total*(1+simulacao.gastosAjuste/100)*6)*30))
-                      ))+' pts'
-                    )
-                  )
-                )
+            ),
+            React.createElement('div', {style:{background: txPoup >= 20 ? '#f0fdf4' : txPoup >= 10 ? '#fffbeb' : '#fef2f2', borderRadius:'16px',padding:'18px',border:'1px solid '+(txPoup>=20?'#86efac':txPoup>=10?'#fcd34d':'#fca5a5')}},
+              React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color: txPoup>=20?'#166534':txPoup>=10?'#92400e':'#991b1b',marginBottom:'10px'}}, '🎯 Análise do Cenário'),
+              React.createElement('div', {style:{fontSize:'0.82rem',color: txPoup>=20?'#166534':txPoup>=10?'#92400e':'#991b1b',lineHeight:'1.5'}},
+                txPoup >= 20 ? '🏆 Excelente! Com este cenário você economiza '+txPoup.toFixed(1)+'% da renda.' :
+                txPoup >= 10 ? '⚠️ Razoável. A meta ideal é 20%. Tente reduzir mais despesas.' :
+                saldoSim < 0 ? '🚨 Saldo negativo! Reveja urgentemente receitas e despesas.' :
+                '📉 Poupança baixa. Foque em aumentar renda ou cortar despesas.'
+              ),
+              saldoSim > 0 && React.createElement('div', {style:{marginTop:'10px',padding:'8px 12px',background:'rgba(255,255,255,0.6)',borderRadius:'8px'}},
+                React.createElement('div', {style:{fontSize:'0.75rem',fontWeight:'600',color:'#374151'}}, '💡 Meta recomendada: R$ '+meta20.toFixed(2)+'/mês (20% da renda)'),
+                React.createElement('div', {style:{fontSize:'0.75rem',color:'#6b7280',marginTop:'4px'}}, 'Economia anual estimada: R$ '+(saldoSim*12).toFixed(2))
               )
-        )
+            )
+          );
+        })()
       ),
 
-      /* Direita: análise de impacto */
-      React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-        React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-          React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, '🔬 Análise de Impacto'),
-          simulacao.rendaAjuste===0&&simulacao.gastosAjuste===0
-            ? React.createElement('div', {style:{textAlign:'center',padding:'20px 0',color:'#d1d5db'}},
-                React.createElement('div', {style:{fontSize:'2rem',marginBottom:'8px'}}, '⬆️'),
-                React.createElement('div', {style:{fontSize:'0.8rem'}}, 'Ajuste os controles para ver a análise')
-              )
-            : React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
-                React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
-                  React.createElement('span', {style:{fontSize:'0.75rem',color:'#6b7280'}}, 'Taxa Poupança'),
-                  React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'800',color:((saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))/(saldo.receitas*(1+simulacao.rendaAjuste/100))*100)>=20?'#10b981':((saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))/(saldo.receitas*(1+simulacao.rendaAjuste/100))*100)>=10?'#f59e0b':'#ef4444'}},
-                    Math.max(0,(saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))/(saldo.receitas*(1+simulacao.rendaAjuste/100))*100).toFixed(1)+'%'
-                  )
-                ),
-                (saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))>0&&React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
-                  React.createElement('span', {style:{fontSize:'0.75rem',color:'#6b7280'}}, 'Poupança/mês'),
-                  React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'800',color:'#6366f1'}}, 'R$ '+(saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100)).toFixed(0))
-                ),
-                (saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))>0&&React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
-                  React.createElement('span', {style:{fontSize:'0.75rem',color:'#6b7280'}}, 'Poupança/ano'),
-                  React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'800',color:'#10b981'}}, 'R$ '+((saldo.receitas*(1+simulacao.rendaAjuste/100)-totais.total*(1+simulacao.gastosAjuste/100))*12).toFixed(0))
-                )
-              )
-        ),
-        React.createElement('div', {style:{background:'linear-gradient(135deg,#fef3c7,#fde68a)',borderRadius:'16px',padding:'16px',border:'1px solid #fde68a'}},
-          React.createElement('div', {style:{fontSize:'0.8rem',fontWeight:'700',color:'#92400e',marginBottom:'6px'}}, '💡 Meta Recomendada'),
-          React.createElement('div', {style:{fontSize:'0.75rem',color:'#78350f',lineHeight:1.5}},
-            'Economistas recomendam poupar pelo menos ',
-            React.createElement('strong', null, '20% da renda'),
-            '. Com sua renda isso seria ',
-            React.createElement('strong', null, 'R$ '+(saldo.receitas*0.2).toFixed(0)+'/mês'),
-            '.'
-          )
+      /* Coluna Direita: dicas */
+      React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+        React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f59e0b',marginBottom:'14px'}}, '💡 Estratégias'),
+        React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
+          [
+            {icon:'📈',title:'Regra 50/30/20',desc:'50% necessidades, 30% desejos, 20% investimentos e poupança.'},
+            {icon:'🎯',title:'Meta de Poupança',desc:'Guarde pelo menos 10% da renda. O ideal é 20%.'},
+            {icon:'💼',title:'Renda Extra',desc:'Cada 10% a mais na renda pode transformar seu cenário financeiro.'},
+            {icon:'✂️',title:'Corte Gradual',desc:'Reduza despesas variáveis 5% por mês até atingir sua meta.'}
+          ].map((d,i) => React.createElement('div', {key:i, style:{padding:'10px 12px',background:'#fffbeb',borderRadius:'8px',border:'1px solid #fcd34d'}},
+            React.createElement('div', {style:{fontSize:'0.78rem',fontWeight:'700',color:'#92400e',marginBottom:'3px'}}, d.icon+' '+d.title),
+            React.createElement('div', {style:{fontSize:'0.72rem',color:'#78350f',lineHeight:'1.4'}}, d.desc)
+          ))
         )
       )
     ),
@@ -6496,153 +6387,89 @@ function App({
     ══════════════════════════════════════════════════════ */
     (subAba === 'aposentadoria') && React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
 
-      /* Esquerda: formulário */
-      React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-        React.createElement('div', {style:{background:'linear-gradient(135deg,#0f172a,#1e1b4b)',borderRadius:'16px',padding:'20px',color:'#fff',boxShadow:'0 4px 20px rgba(0,0,0,0.3)'}},
-          React.createElement('div', {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'10px'}}, '🏖️ Meta de Aposentadoria'),
-          React.createElement('div', {style:{fontSize:'1.4rem',fontWeight:'900',marginBottom:'4px'}}, simApos.rendaDesejada > 0 ? 'R$ '+simApos.rendaDesejada.toLocaleString('pt-BR')+'/mês' : '— /mês'),
-          React.createElement('div', {style:{fontSize:'0.75rem',opacity:0.7}}, 'Renda mensal desejada na aposentadoria')
-        ),
-        React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-          React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'16px'}}, '⚙️ Parâmetros'),
-
+      /* Coluna Esquerda: formulário */
+      React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+        React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#0891b2',marginBottom:'14px'}}, '🏖️ Dados da Aposentadoria'),
+        React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
           [
-            {label:'Sua Idade Atual',          key:'idadeAtual',          type:'number', min:18, max:70,  step:1,   suffix:'anos'},
-            {label:'Idade para Aposentar',      key:'idadeAposentadoria',  type:'number', min:40, max:80,  step:1,   suffix:'anos'},
-            {label:'Patrimônio Atual (R$)',     key:'patrimonio',          type:'number', min:0,           step:1000, suffix:'R$'},
-            {label:'Aporte Mensal (R$)',        key:'aporteMensal',        type:'number', min:0,           step:50,   suffix:'R$/mês'},
-            {label:'Rentabilidade Anual (%)',   key:'taxaAnual',           type:'number', min:0, max:30,   step:0.5,  suffix:'%/ano'},
-            {label:'Inflação Estimada (%)',     key:'inflacao',            type:'number', min:0, max:20,   step:0.5,  suffix:'%/ano'},
-            {label:'Renda Desejada/mês (R$)',   key:'rendaDesejada',       type:'number', min:0,           step:100,  suffix:'R$/mês'},
-          ].map(f =>
-            React.createElement('div', {key:f.key, style:{marginBottom:'12px'}},
-              React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'5px'}}, f.label),
-              React.createElement('input', {
-                type:f.type, min:f.min, max:f.max, step:f.step,
-                value: simApos[f.key],
-                onChange: e => setSimApos({...simApos, [f.key]: parseFloat(e.target.value)||0, resultado:null}),
-                style:{width:'100%',padding:'9px 12px',borderRadius:'9px',border:'2px solid #e5e7eb',fontSize:'0.82rem',outline:'none',boxSizing:'border-box'}
-              })
-            )
-          ),
-
+            {label:'Idade atual', key:'idadeAtual', type:'number', min:18, max:80},
+            {label:'Idade de aposentadoria', key:'idadeAposentadoria', type:'number', min:30, max:90},
+            {label:'Patrimônio atual (R$)', key:'patrimonioAtual', type:'number', min:0},
+            {label:'Aporte mensal (R$)', key:'aporteMensal', type:'number', min:0},
+            {label:'Rentabilidade anual (%)', key:'taxaAnual', type:'number', min:0, step:0.1},
+            {label:'Inflação anual (%)', key:'inflacao', type:'number', min:0, step:0.1},
+            {label:'Renda desejada/mês (R$)', key:'rendaDesejada', type:'number', min:0},
+          ].map(f => React.createElement('div', {key:f.key},
+            React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, f.label),
+            React.createElement('input', {
+              type:f.type, value:simApos[f.key], min:f.min, max:f.max, step:f.step||1,
+              onChange:e=>setSimApos({...simApos,[f.key]:parseFloat(e.target.value)||0,resultado:null}),
+              style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}
+            })
+          )),
           React.createElement('button', {
-            onClick:()=>{
+            onClick: () => {
               const anos = simApos.idadeAposentadoria - simApos.idadeAtual;
-              if(anos <= 0){ alert('A idade de aposentadoria deve ser maior que a idade atual!'); return; }
+              if (anos <= 0) return;
               const meses = anos * 12;
-              const taxaMensal = (Math.pow(1 + simApos.taxaAnual/100, 1/12) - 1);
-              const taxaReal = (Math.pow((1+simApos.taxaAnual/100)/(1+simApos.inflacao/100), 1/12) - 1);
-              // Valor futuro do patrimônio atual
-              const vfPatrimonio = simApos.patrimonio * Math.pow(1+taxaMensal, meses);
-              // Valor futuro dos aportes (série uniforme)
-              const vfAportes = taxaMensal > 0 ? simApos.aporteMensal * ((Math.pow(1+taxaMensal,meses)-1)/taxaMensal) : simApos.aporteMensal * meses;
-              const totalAcumulado = vfPatrimonio + vfAportes;
-              // Patrimônio necessário para gerar a renda desejada (regra dos 4% anual = 0.33% mensal corrigida)
-              const taxaRetirada = taxaReal > 0 ? taxaReal : 0.003;
-              const patrimonioNecessario = simApos.rendaDesejada / taxaRetirada;
-              // Rendimento mensal do patrimônio acumulado
-              const rendaMensal = totalAcumulado * taxaRetirada;
-              const totalInvestido = simApos.patrimonio + simApos.aporteMensal * meses;
-              const jurosGanhos = totalAcumulado - totalInvestido;
-              const atingeMeta = totalAcumulado >= patrimonioNecessario;
-              const percentualMeta = Math.min(200, (totalAcumulado / patrimonioNecessario) * 100);
-              // Quantos meses a mais para atingir (se não atingiu)
-              let mesesFaltando = 0;
-              if(!atingeMeta && taxaMensal > 0){
-                let acc = simApos.patrimonio;
-                while(acc < patrimonioNecessario && mesesFaltando < 600){
-                  acc = acc*(1+taxaMensal) + simApos.aporteMensal;
-                  mesesFaltando++;
-                }
-              }
-              setSimApos({...simApos, resultado:{anos,meses,totalAcumulado,patrimonioNecessario,rendaMensal,totalInvestido,jurosGanhos,atingeMeta,percentualMeta,mesesFaltando}});
+              const taxaMensal = Math.pow(1 + simApos.taxaAnual/100, 1/12) - 1;
+              const patrimonioFV = simApos.patrimonioAtual * Math.pow(1+taxaMensal, meses);
+              const aportesFV = taxaMensal > 0 ? simApos.aporteMensal * (Math.pow(1+taxaMensal,meses)-1) / taxaMensal : simApos.aporteMensal * meses;
+              const totalAcumulado = patrimonioFV + aportesFV;
+              const rendaMensal = totalAcumulado * 0.04 / 12;
+              const pctMeta = simApos.rendaDesejada > 0 ? (rendaMensal / simApos.rendaDesejada * 100) : 0;
+              setSimApos({...simApos, resultado:{totalAcumulado,rendaMensal,pctMeta,anos,meses}});
             },
-            style:{width:'100%',padding:'13px',border:'none',borderRadius:'12px',background:'linear-gradient(135deg,#0f172a,#6366f1)',color:'#fff',fontSize:'0.88rem',fontWeight:'800',cursor:'pointer',boxShadow:'0 4px 12px rgba(99,102,241,0.3)',marginTop:'4px'}
-          }, '🏖️ Calcular Aposentadoria')
+            style:{background:'linear-gradient(135deg,#0891b2,#0e7490)',color:'#fff',border:'none',borderRadius:'10px',padding:'11px',fontSize:'0.82rem',fontWeight:'700',cursor:'pointer',width:'100%',marginTop:'4px'}
+          }, '📊 Calcular')
         )
       ),
 
-      /* Centro: resultado */
-      simApos.resultado === null
-        ? React.createElement('div', {style:{background:'linear-gradient(135deg,#f8fafc,#f1f5f9)',borderRadius:'16px',padding:'60px 20px',textAlign:'center',border:'2px dashed #e2e8f0',color:'#94a3b8'}},
-            React.createElement('div', {style:{fontSize:'3.5rem',marginBottom:'12px',opacity:0.5}}, '🏖️'),
-            React.createElement('div', {style:{fontSize:'1rem',fontWeight:'700',color:'#64748b',marginBottom:'6px'}}, 'Configure os parâmetros'),
-            React.createElement('div', {style:{fontSize:'0.8rem'}}, 'Veja sua projeção de aposentadoria')
-          )
-        : React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-
-            /* Card principal: atingiu ou não a meta */
-            React.createElement('div', {style:{background:simApos.resultado.atingeMeta?'linear-gradient(135deg,#064e3b,#065f46)':'linear-gradient(135deg,#1e3a5f,#1e40af)',borderRadius:'16px',padding:'22px',color:'#fff',boxShadow:'0 4px 24px rgba(0,0,0,0.3)'}},
-              React.createElement('div', {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'10px'}},
-                simApos.resultado.atingeMeta ? '✅ Meta Atingida!' : '📈 Projeção — Abaixo da Meta'
-              ),
-              React.createElement('div', {style:{fontSize:'0.75rem',opacity:0.7,marginBottom:'6px'}}, 'Patrimônio projetado em '+simApos.resultado.anos+' anos'),
-              React.createElement('div', {style:{fontSize:'2rem',fontWeight:'900',marginBottom:'12px'}}, 'R$ '+(simApos.resultado.totalAcumulado/1000).toFixed(0)+'K'),
-              /* barra de progresso */
-              React.createElement('div', {style:{background:'rgba(255,255,255,0.15)',borderRadius:'100px',overflow:'hidden',height:'8px',marginBottom:'6px'}},
-                React.createElement('div', {style:{height:'8px',borderRadius:'100px',background:simApos.resultado.atingeMeta?'#86efac':'#fbbf24',width:simApos.resultado.percentualMeta+'%',transition:'width 0.6s ease'}})
-              ),
-              React.createElement('div', {style:{fontSize:'0.72rem',opacity:0.8}}, simApos.resultado.percentualMeta.toFixed(1)+'% da meta de R$ '+(simApos.resultado.patrimonioNecessario/1000).toFixed(0)+'K')
-            ),
-
-            /* Renda mensal gerada */
-            React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-              React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, '💰 Resumo Financeiro'),
-              React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
-                React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
-                  React.createElement('span', {style:{fontSize:'0.8rem',color:'#6b7280'}}, 'Renda mensal gerada'),
-                  React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'800',color:'#10b981'}}, 'R$ '+simApos.resultado.rendaMensal.toFixed(0)+'/mês')
-                ),
-                React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
-                  React.createElement('span', {style:{fontSize:'0.8rem',color:'#6b7280'}}, 'Total investido'),
-                  React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'800',color:'#111827'}}, 'R$ '+(simApos.resultado.totalInvestido/1000).toFixed(0)+'K')
-                ),
-                React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:'1px solid #f3f4f6'}},
-                  React.createElement('span', {style:{fontSize:'0.8rem',color:'#6b7280'}}, 'Juros ganhos'),
-                  React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'800',color:'#6366f1'}}, 'R$ '+(simApos.resultado.jurosGanhos/1000).toFixed(0)+'K')
-                ),
-                React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
-                  React.createElement('span', {style:{fontSize:'0.8rem',color:'#6b7280'}}, 'Patrimônio necessário'),
-                  React.createElement('span', {style:{fontSize:'0.9rem',fontWeight:'800',color:simApos.resultado.atingeMeta?'#10b981':'#ef4444'}}, 'R$ '+(simApos.resultado.patrimonioNecessario/1000).toFixed(0)+'K')
-                )
-              )
-            ),
-
-            !simApos.resultado.atingeMeta && simApos.resultado.mesesFaltando > 0 &&
-            React.createElement('div', {style:{background:'linear-gradient(135deg,#fef3c7,#fde68a)',borderRadius:'16px',padding:'16px',border:'1px solid #fde68a'}},
-              React.createElement('div', {style:{fontSize:'0.8rem',fontWeight:'700',color:'#92400e',marginBottom:'6px'}}, '⏱️ Para atingir a meta'),
-              React.createElement('div', {style:{fontSize:'0.75rem',color:'#78350f',lineHeight:1.6}},
-                'Com os aportes atuais, você precisaria de mais ',
-                React.createElement('strong', null, Math.ceil(simApos.resultado.mesesFaltando/12)+' anos'),
-                ' — total de ',
-                React.createElement('strong', null, (simApos.resultado.anos + Math.ceil(simApos.resultado.mesesFaltando/12))+ ' anos'),
-                ' de investimento.'
-              )
-            )
-          ),
-
-      /* Direita: dicas */
+      /* Coluna Central: resultados */
       React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-        React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-          React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, '📐 Regra dos 25x'),
-          React.createElement('div', {style:{fontSize:'0.78rem',color:'#374151',lineHeight:1.6}},
-            'Para se aposentar com segurança, você precisa acumular ',
-            React.createElement('strong', null, '25x o valor da sua renda anual desejada'),
-            '. Ex: renda de R$ 5.000/mês = patrimônio de R$ 1.500.000.'
+        simApos.resultado ? React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+          React.createElement('div', {style:{background:'linear-gradient(135deg,#0c4a6e,#0369a1)',borderRadius:'16px',padding:'20px',color:'#fff',boxShadow:'0 4px 20px rgba(0,0,0,0.25)'}},
+            React.createElement('div', {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'8px'}}, '🏖️ Patrimônio na Aposentadoria'),
+            React.createElement('div', {style:{fontSize:'2rem',fontWeight:'900',marginBottom:'4px'}}, 'R$ '+simApos.resultado.totalAcumulado.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})),
+            React.createElement('div', {style:{fontSize:'0.78rem',opacity:0.8}}, 'Acumulado em '+simApos.resultado.anos+' anos')
+          ),
+          React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+            [
+              {label:'💰 Renda mensal gerada', value:'R$ '+simApos.resultado.rendaMensal.toFixed(2), color: simApos.resultado.rendaMensal >= simApos.rendaDesejada ? '#16a34a' : '#f59e0b'},
+              {label:'🎯 Renda desejada', value:'R$ '+simApos.rendaDesejada.toFixed(2), color:'#6366f1'},
+              {label:'📊 % da meta atingida', value:simApos.resultado.pctMeta.toFixed(1)+'%', color: simApos.resultado.pctMeta >= 100 ? '#16a34a' : '#dc2626'},
+              {label:'📅 Meses de acumulação', value:simApos.resultado.meses+' meses', color:'#64748b'},
+            ].map((item,i) => React.createElement('div', {key:i, style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:'#f8fafc',borderRadius:'8px',border:'1px solid #e2e8f0',marginBottom:'8px'}},
+              React.createElement('span', {style:{fontSize:'0.78rem',color:'#64748b'}}, item.label),
+              React.createElement('span', {style:{fontSize:'0.88rem',fontWeight:'800',color:item.color}}, item.value)
+            ))
+          ),
+          React.createElement('div', {style:{background: simApos.resultado.pctMeta >= 100 ? '#f0fdf4' : '#fffbeb', borderRadius:'12px', padding:'14px', border:'1px solid '+(simApos.resultado.pctMeta>=100?'#86efac':'#fcd34d')}},
+            React.createElement('div', {style:{fontSize:'0.82rem',color: simApos.resultado.pctMeta>=100?'#166534':'#92400e',fontWeight:'600',lineHeight:'1.5'}},
+              simApos.resultado.pctMeta >= 100
+                ? '🏆 Parabéns! Com este aporte você atingirá sua meta de aposentadoria!'
+                : '⚠️ Você atingirá '+(simApos.resultado.pctMeta.toFixed(0))+'% da sua meta. Considere aumentar o aporte mensal em R$ '+((simApos.rendaDesejada-simApos.resultado.rendaMensal)/0.04*12/(simApos.resultado.meses||1)).toFixed(0)+'/mês.'
+            )
           )
-        ),
-        React.createElement('div', {style:{background:'linear-gradient(135deg,#ede9fe,#ddd6fe)',borderRadius:'16px',padding:'16px',border:'1px solid #ddd6fe'}},
-          React.createElement('div', {style:{fontSize:'0.8rem',fontWeight:'700',color:'#5b21b6',marginBottom:'8px'}}, '📈 Poder dos Juros Compostos'),
-          React.createElement('div', {style:{fontSize:'0.75rem',color:'#4c1d95',lineHeight:1.6}}, 'Quanto mais cedo você começar, mais os juros trabalham por você. Começar 10 anos antes pode dobrar o patrimônio final.')
-        ),
-        React.createElement('div', {style:{background:'linear-gradient(135deg,#fef3c7,#fde68a)',borderRadius:'16px',padding:'16px',border:'1px solid #fde68a'}},
-          React.createElement('div', {style:{fontSize:'0.8rem',fontWeight:'700',color:'#92400e',marginBottom:'6px'}}, '💡 Sugestão de Aporte'),
-          React.createElement('div', {style:{fontSize:'0.75rem',color:'#78350f',lineHeight:1.5}},
-            'Especialistas recomendam investir ',
-            React.createElement('strong', null, '15-20% da renda'),
-            '. No seu caso: R$ '+(saldo.receitas*0.15).toFixed(0)+' a R$ '+(saldo.receitas*0.2).toFixed(0)+'/mês.'
-          )
+        ) : React.createElement('div', {style:{background:'#f8fafc',borderRadius:'16px',padding:'32px',textAlign:'center',border:'1px solid #e2e8f0'}},
+          React.createElement('div', {style:{fontSize:'2.5rem',marginBottom:'12px'}}, '🏖️'),
+          React.createElement('div', {style:{fontSize:'0.85rem',color:'#94a3b8',fontWeight:'500'}}, 'Preencha os dados e clique em Calcular')
+        )
+      ),
+
+      /* Coluna Direita: dicas */
+      React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+        React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#0891b2',marginBottom:'14px'}}, '💡 Dicas de Aposentadoria'),
+        React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
+          [
+            {icon:'⏰',title:'Comece cedo',desc:'Começar aos 25 anos pode gerar 2x mais patrimônio do que começar aos 35.'},
+            {icon:'📈',title:'Regra dos 4%',desc:'Com a regra dos 4%, você retira 4% ao ano do patrimônio sem esgotá-lo.'},
+            {icon:'🔄',title:'Aporte constante',desc:'Consistência é mais importante que valor. Não pare de investir.'},
+            {icon:'🛡️',title:'Diversifique',desc:'Mescle renda fixa (segurança) e renda variável (crescimento).'}
+          ].map((d,i) => React.createElement('div', {key:i, style:{padding:'10px 12px',background:'#e0f7fa',borderRadius:'8px',border:'1px solid #b2ebf2'}},
+            React.createElement('div', {style:{fontSize:'0.78rem',fontWeight:'700',color:'#006064',marginBottom:'3px'}}, d.icon+' '+d.title),
+            React.createElement('div', {style:{fontSize:'0.72rem',color:'#00838f',lineHeight:'1.4'}}, d.desc)
+          ))
         )
       )
     ),
@@ -6652,191 +6479,104 @@ function App({
     ══════════════════════════════════════════════════════ */
     (subAba === 'quitacao') && React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
 
-      /* Esquerda: seleção da dívida + parâmetros */
-      React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-
-        dividas.length > 0 && React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'18px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-          React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'12px'}}, '📋 Suas Dívidas Cadastradas'),
-          React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'6px'}},
-            React.createElement('button', {
-              onClick:()=>setSimQuit({...simQuit,dividaSelecionada:'manual',nomeDivida:'',saldoDevedor:'',taxaMensal:'',pagamentoAtual:'',resultado:null}),
-              style:{padding:'9px 12px',borderRadius:'9px',textAlign:'left',border:'2px solid',borderColor:simQuit.dividaSelecionada==='manual'?'#6366f1':'#e5e7eb',background:simQuit.dividaSelecionada==='manual'?'#eef2ff':'#f9fafb',fontSize:'0.78rem',fontWeight:'700',cursor:'pointer',color:simQuit.dividaSelecionada==='manual'?'#4f46e5':'#6b7280'}
-            }, '✏️ Inserir manualmente'),
-            dividas.map((d,i) =>
-              React.createElement('button', {
-                key:i,
-                onClick:()=>setSimQuit({...simQuit,dividaSelecionada:i,nomeDivida:d.descricao||d.nome||'Dívida',saldoDevedor:d.saldoDevedor||d.valor||'',taxaMensal:d.taxaJuros||'',pagamentoAtual:d.pagamentoMinimo||'',resultado:null}),
-                style:{padding:'9px 12px',borderRadius:'9px',textAlign:'left',border:'2px solid',borderColor:simQuit.dividaSelecionada===i?'#ef4444':'#e5e7eb',background:simQuit.dividaSelecionada===i?'#fef2f2':'#f9fafb',fontSize:'0.78rem',fontWeight:'600',cursor:'pointer',color:simQuit.dividaSelecionada===i?'#dc2626':'#374151'}
-              },
-                React.createElement('div', {style:{fontWeight:'700'}}, d.descricao||d.nome||'Dívida '+i),
-                React.createElement('div', {style:{fontSize:'0.68rem',color:'#6b7280',marginTop:'2px'}}, 'R$ '+(d.saldoDevedor||d.valor||0))
-              )
-            )
-          )
-        ),
-
-        React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-          React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'16px'}}, '⚙️ Dados da Dívida'),
-
+      /* Coluna Esquerda: formulário */
+      React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+        React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#dc2626',marginBottom:'14px'}}, '💳 Dados da Dívida'),
+        React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
           [
-            {label:'Nome da Dívida',          key:'nomeDivida',      type:'text',   placeholder:'Ex: Cartão Nubank'},
-            {label:'Saldo Devedor (R$)',       key:'saldoDevedor',    type:'number', placeholder:'0,00'},
-            {label:'Taxa de Juros/mês (%)',    key:'taxaMensal',      type:'number', placeholder:'Ex: 12,5'},
-            {label:'Pagamento Atual (R$/mês)', key:'pagamentoAtual',  type:'number', placeholder:'0,00'},
-            {label:'Pagamento Extra (R$/mês)', key:'pagamentoExtra',  type:'number', placeholder:'0,00'},
-          ].map(f =>
-            React.createElement('div', {key:f.key, style:{marginBottom:'12px'}},
-              React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'700',color:'#374151',display:'block',marginBottom:'5px'}}, f.label),
-              React.createElement('input', {
-                type:f.type, placeholder:f.placeholder,
-                value: simQuit[f.key],
-                onChange: e => setSimQuit({...simQuit, [f.key]: e.target.value, resultado:null}),
-                style:{width:'100%',padding:'9px 12px',borderRadius:'9px',border:'2px solid #e5e7eb',fontSize:'0.82rem',outline:'none',boxSizing:'border-box'}
-              })
-            )
-          ),
-
-          React.createElement('div', {style:{marginBottom:'16px'}},
-            React.createElement('div', {style:{fontSize:'0.72rem',fontWeight:'700',color:'#374151',marginBottom:'8px'}}, 'Estratégia de Quitação'),
-            React.createElement('div', {style:{display:'flex',gap:'6px'}},
-              React.createElement('button', {
-                onClick:()=>setSimQuit({...simQuit,estrategia:'avalanche',resultado:null}),
-                style:{flex:1,padding:'9px',borderRadius:'9px',border:'2px solid',borderColor:simQuit.estrategia==='avalanche'?'#ef4444':'#e5e7eb',background:simQuit.estrategia==='avalanche'?'#fef2f2':'#fff',fontSize:'0.72rem',fontWeight:'700',cursor:'pointer',color:simQuit.estrategia==='avalanche'?'#dc2626':'#6b7280'}
-              }, '🔥 Avalanche'),
-              React.createElement('button', {
-                onClick:()=>setSimQuit({...simQuit,estrategia:'normal',resultado:null}),
-                style:{flex:1,padding:'9px',borderRadius:'9px',border:'2px solid',borderColor:simQuit.estrategia==='normal'?'#6366f1':'#e5e7eb',background:simQuit.estrategia==='normal'?'#eef2ff':'#fff',fontSize:'0.72rem',fontWeight:'700',cursor:'pointer',color:simQuit.estrategia==='normal'?'#4f46e5':'#6b7280'}
-              }, '📅 Normal')
-            )
-          ),
-
+            {label:'Nome da dívida', key:'nomeDiv', type:'text', placeholder:'Ex: Cartão, Financiamento...'},
+            {label:'Saldo devedor (R$)', key:'saldoDevedor', type:'number', placeholder:'0,00'},
+            {label:'Taxa de juros % a.m.', key:'taxaMensal', type:'number', placeholder:'0,00', step:'0.1'},
+            {label:'Pagamento atual (R$/mês)', key:'pagamentoAtual', type:'number', placeholder:'0,00'},
+            {label:'Pagamento extra (R$/mês)', key:'pagamentoExtra', type:'number', placeholder:'0,00'},
+          ].map(f => React.createElement('div', {key:f.key},
+            React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, f.label),
+            React.createElement('input', {
+              type:f.type, value:simQuit[f.key], placeholder:f.placeholder, step:f.step||undefined,
+              onChange:e=>setSimQuit({...simQuit,[f.key]:e.target.value,resultado:null}),
+              style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}
+            })
+          )),
           React.createElement('button', {
-            onClick:()=>{
-              const saldo_ = parseFloat(simQuit.saldoDevedor)||0;
-              const taxa = (parseFloat(simQuit.taxaMensal)||0)/100;
-              const pgto = parseFloat(simQuit.pagamentoAtual)||0;
-              const extra = parseFloat(simQuit.pagamentoExtra)||0;
-              if(!saldo_ || !pgto){ alert('Preencha o saldo devedor e o pagamento atual!'); return; }
-              if(pgto <= saldo_ * taxa){ alert('O pagamento mensal precisa ser maior que os juros (R$ '+(saldo_*taxa).toFixed(2)+'/mês)!'); return; }
-
-              // Calcular sem pagamento extra
-              let mesesSem=0, saldoSem=saldo_, jurosTotal=0;
-              while(saldoSem>0 && mesesSem<600){
-                const juro = saldoSem * taxa;
-                jurosTotal += juro;
-                saldoSem = Math.max(0, saldoSem + juro - pgto);
-                mesesSem++;
+            onClick: () => {
+              const saldoD   = parseFloat(simQuit.saldoDevedor) || 0;
+              const taxa     = parseFloat(simQuit.taxaMensal) / 100 || 0;
+              const pgtoAtual = parseFloat(simQuit.pagamentoAtual) || 0;
+              const pgtoExtra = parseFloat(simQuit.pagamentoExtra) || 0;
+              if (!saldoD || pgtoAtual <= saldoD * taxa) {
+                setSimQuit({...simQuit, resultado:{erro:'O pagamento atual deve ser maior que os juros mensais (R$ '+(saldoD*taxa).toFixed(2)+').'}});
+                return;
               }
-              // Calcular com pagamento extra
-              let mesesCom=0, saldoCom=saldo_, jurosTotalCom=0;
-              const pgtoTotal = pgto + extra;
-              while(saldoCom>0 && mesesCom<600){
-                const juro = saldoCom * taxa;
-                jurosTotalCom += juro;
-                saldoCom = Math.max(0, saldoCom + juro - pgtoTotal);
-                mesesCom++;
-              }
-              const mesesEconomizados = mesesSem - mesesCom;
-              const jurosSalvos = jurosTotal - jurosTotalCom;
-
-              setSimQuit({...simQuit, resultado:{
-                saldo_,taxa,pgto,extra,pgtoTotal,
-                mesesSem,mesesCom,
-                jurosTotal,jurosTotalCom,
-                mesesEconomizados,jurosSalvos,
-                totalPagoSem: pgto*mesesSem,
-                totalPagoCom: pgtoTotal*mesesCom,
-              }});
+              // Sem pagamento extra
+              let sS=saldoD, mS=0, jS=0;
+              while(sS>0 && mS<600){ const j=sS*taxa; jS+=j; sS+=j-pgtoAtual; if(sS<0)sS=0; mS++; }
+              // Com pagamento extra
+              let sC=saldoD, mC=0, jC=0;
+              const pgtoTotal = pgtoAtual + pgtoExtra;
+              while(sC>0 && mC<600){ const j=sC*taxa; jC+=j; sC+=j-pgtoTotal; if(sC<0)sC=0; mC++; }
+              setSimQuit({...simQuit, resultado:{mesesSem:mS,mesesCom:mC,jurosSem:jS,jurosCom:jC,mesesEconomia:mS-mC,jurosEconomia:jS-jC,totalSem:saldoD+jS,totalCom:saldoD+jC}});
             },
-            style:{width:'100%',padding:'13px',border:'none',borderRadius:'12px',background:'linear-gradient(135deg,#dc2626,#ef4444)',color:'#fff',fontSize:'0.88rem',fontWeight:'800',cursor:'pointer',boxShadow:'0 4px 12px rgba(239,68,68,0.3)',marginTop:'4px'}
-          }, '💳 Calcular Quitação')
+            style:{background:'linear-gradient(135deg,#dc2626,#b91c1c)',color:'#fff',border:'none',borderRadius:'10px',padding:'11px',fontSize:'0.82rem',fontWeight:'700',cursor:'pointer',width:'100%',marginTop:'4px'}
+          }, '📊 Simular Quitação')
         )
       ),
 
-      /* Centro: resultado */
-      simQuit.resultado === null
-        ? React.createElement('div', {style:{background:'linear-gradient(135deg,#f8fafc,#f1f5f9)',borderRadius:'16px',padding:'60px 20px',textAlign:'center',border:'2px dashed #e2e8f0',color:'#94a3b8'}},
-            React.createElement('div', {style:{fontSize:'3.5rem',marginBottom:'12px',opacity:0.5}}, '💳'),
-            React.createElement('div', {style:{fontSize:'1rem',fontWeight:'700',color:'#64748b',marginBottom:'6px'}}, 'Configure a dívida'),
-            React.createElement('div', {style:{fontSize:'0.8rem'}}, 'Veja quanto você pode economizar pagando a mais')
-          )
-        : React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-
-            /* Comparativo: sem vs com extra */
-            React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}},
-              React.createElement('div', {style:{background:'linear-gradient(135deg,#7f1d1d,#991b1b)',borderRadius:'14px',padding:'18px',color:'#fff',textAlign:'center'}},
-                React.createElement('div', {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',opacity:0.6,marginBottom:'8px'}}, '📅 Sem Extra'),
-                React.createElement('div', {style:{fontSize:'1.8rem',fontWeight:'900',marginBottom:'4px'}}, simQuit.resultado.mesesSem+' m'),
-                React.createElement('div', {style:{fontSize:'0.7rem',opacity:0.8}}, Math.floor(simQuit.resultado.mesesSem/12)+'a '+simQuit.resultado.mesesSem%12+'m'),
-                React.createElement('div', {style:{marginTop:'10px',paddingTop:'10px',borderTop:'1px solid rgba(255,255,255,0.2)',fontSize:'0.72rem',opacity:0.8}}, 'Juros: R$ '+simQuit.resultado.jurosTotal.toFixed(0))
-              ),
-              React.createElement('div', {style:{background:'linear-gradient(135deg,#064e3b,#065f46)',borderRadius:'14px',padding:'18px',color:'#fff',textAlign:'center'}},
-                React.createElement('div', {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',opacity:0.6,marginBottom:'8px'}}, '🚀 Com Extra'),
-                React.createElement('div', {style:{fontSize:'1.8rem',fontWeight:'900',marginBottom:'4px'}}, simQuit.resultado.mesesCom+' m'),
-                React.createElement('div', {style:{fontSize:'0.7rem',opacity:0.8}}, Math.floor(simQuit.resultado.mesesCom/12)+'a '+simQuit.resultado.mesesCom%12+'m'),
-                React.createElement('div', {style:{marginTop:'10px',paddingTop:'10px',borderTop:'1px solid rgba(255,255,255,0.2)',fontSize:'0.72rem',opacity:0.8}}, 'Juros: R$ '+simQuit.resultado.jurosTotalCom.toFixed(0))
+      /* Coluna Central: resultados */
+      React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+        simQuit.resultado ? (
+          simQuit.resultado.erro
+            ? React.createElement('div', {style:{background:'#fef2f2',borderRadius:'16px',padding:'20px',border:'1px solid #fca5a5'}},
+                React.createElement('div', {style:{fontSize:'0.88rem',fontWeight:'700',color:'#991b1b'}}, '⚠️ '+simQuit.resultado.erro)
               )
-            ),
-
-            /* Economia gerada */
-            React.createElement('div', {style:{background:'linear-gradient(135deg,#1e1b4b,#312e81)',borderRadius:'16px',padding:'20px',color:'#fff',boxShadow:'0 4px 20px rgba(0,0,0,0.3)',textAlign:'center'}},
-              React.createElement('div', {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'8px'}}, '💎 Economia com Pagamento Extra'),
-              React.createElement('div', {style:{fontSize:'2.2rem',fontWeight:'900',color:'#86efac',marginBottom:'4px'}}, 'R$ '+simQuit.resultado.jurosSalvos.toFixed(0)),
-              React.createElement('div', {style:{fontSize:'0.8rem',opacity:0.8}}, 'em juros economizados + '+simQuit.resultado.mesesEconomizados+' meses mais rápido')
-            ),
-
-            /* Detalhes */
-            React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-              React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, '📊 Comparativo Detalhado'),
-              [
-                ['Pagamento mensal s/ extra', 'R$ '+simQuit.resultado.pgto.toFixed(2), '#111827'],
-                ['Pagamento mensal c/ extra', 'R$ '+simQuit.resultado.pgtoTotal.toFixed(2), '#6366f1'],
-                ['Total pago s/ extra', 'R$ '+simQuit.resultado.totalPagoSem.toFixed(0), '#ef4444'],
-                ['Total pago c/ extra', 'R$ '+simQuit.resultado.totalPagoCom.toFixed(0), '#10b981'],
-              ].map(([label, valor, cor], i) =>
-                React.createElement('div', {key:i, style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'10px',borderBottom:i<3?'1px solid #f3f4f6':'none',marginBottom:'4px'}},
-                  React.createElement('span', {style:{fontSize:'0.78rem',color:'#6b7280'}}, label),
-                  React.createElement('span', {style:{fontSize:'0.88rem',fontWeight:'800',color:cor}}, valor)
+            : React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
+                React.createElement('div', {style:{background:'linear-gradient(135deg,#7f1d1d,#991b1b)',borderRadius:'16px',padding:'20px',color:'#fff',boxShadow:'0 4px 20px rgba(0,0,0,0.25)'}},
+                  React.createElement('div', {style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'rgba(255,255,255,0.5)',marginBottom:'8px'}}, '💳 Resultado da Quitação'),
+                  React.createElement('div', {style:{fontSize:'1.8rem',fontWeight:'900',marginBottom:'4px',color:'#fca5a5'}}, simQuit.resultado.mesesSem+' meses'),
+                  React.createElement('div', {style:{fontSize:'0.78rem',opacity:0.8}}, 'para quitar sem pagamento extra')
+                ),
+                React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+                  React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#dc2626',marginBottom:'12px'}}, '📊 Comparativo'),
+                  React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'12px'}},
+                    React.createElement('div', {style:{background:'#fef2f2',borderRadius:'10px',padding:'12px',textAlign:'center'}},
+                      React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'700',color:'#991b1b',marginBottom:'4px',textTransform:'uppercase'}}, 'Sem Extra'),
+                      React.createElement('div', {style:{fontSize:'1.1rem',fontWeight:'900',color:'#dc2626'}}, simQuit.resultado.mesesSem+' meses'),
+                      React.createElement('div', {style:{fontSize:'0.72rem',color:'#991b1b'}}, 'R$ '+simQuit.resultado.jurosSem.toFixed(2)+' em juros')
+                    ),
+                    React.createElement('div', {style:{background:'#f0fdf4',borderRadius:'10px',padding:'12px',textAlign:'center'}},
+                      React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'700',color:'#166534',marginBottom:'4px',textTransform:'uppercase'}}, 'Com Extra'),
+                      React.createElement('div', {style:{fontSize:'1.1rem',fontWeight:'900',color:'#16a34a'}}, simQuit.resultado.mesesCom+' meses'),
+                      React.createElement('div', {style:{fontSize:'0.72rem',color:'#166534'}}, 'R$ '+simQuit.resultado.jurosCom.toFixed(2)+' em juros')
+                    )
+                  ),
+                  React.createElement('div', {style:{background:'#f0fdf4',borderRadius:'10px',padding:'14px',border:'1px solid #86efac'}},
+                    React.createElement('div', {style:{fontSize:'0.82rem',fontWeight:'700',color:'#166534',marginBottom:'4px'}}, '🎯 Economia com pagamento extra:'),
+                    React.createElement('div', {style:{fontSize:'1.1rem',fontWeight:'900',color:'#16a34a'}}, simQuit.resultado.mesesEconomia+' meses e R$ '+simQuit.resultado.jurosEconomia.toFixed(2)+' em juros')
+                  )
                 )
               )
-            )
-          ),
+        ) : React.createElement('div', {style:{background:'#f8fafc',borderRadius:'16px',padding:'32px',textAlign:'center',border:'1px solid #e2e8f0'}},
+            React.createElement('div', {style:{fontSize:'2.5rem',marginBottom:'12px'}}, '💳'),
+            React.createElement('div', {style:{fontSize:'0.85rem',color:'#94a3b8',fontWeight:'500'}}, 'Preencha os dados e clique em Simular')
+          )
+      ),
 
-      /* Direita: estratégias + dicas */
-      React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-        React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'20px',border:'1px solid #e5e7eb',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-          React.createElement('div', {style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:'#6b7280',marginBottom:'14px'}}, '🎯 Estratégias'),
-          React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
-            React.createElement('div', {style:{padding:'12px',borderRadius:'10px',background:'#fef2f2',border:'2px solid #fecaca'}},
-              React.createElement('div', {style:{fontSize:'0.78rem',fontWeight:'700',color:'#dc2626',marginBottom:'4px'}}, '🔥 Avalanche (Recomendada)'),
-              React.createElement('div', {style:{fontSize:'0.72rem',color:'#7f1d1d',lineHeight:1.5}}, 'Pague primeiro a dívida com maior taxa de juros. Economiza mais dinheiro no longo prazo.')
-            ),
-            React.createElement('div', {style:{padding:'12px',borderRadius:'10px',background:'#eff6ff',border:'2px solid #bfdbfe'}},
-              React.createElement('div', {style:{fontSize:'0.78rem',fontWeight:'700',color:'#1d4ed8',marginBottom:'4px'}}, '⛄ Bola de Neve'),
-              React.createElement('div', {style:{fontSize:'0.72rem',color:'#1e3a8a',lineHeight:1.5}}, 'Pague primeiro a dívida menor. Gera motivação com vitórias rápidas — mas paga mais juros.')
-            )
-          )
-        ),
-        React.createElement('div', {style:{background:'linear-gradient(135deg,#fef3c7,#fde68a)',borderRadius:'16px',padding:'16px',border:'1px solid #fde68a'}},
-          React.createElement('div', {style:{fontSize:'0.8rem',fontWeight:'700',color:'#92400e',marginBottom:'6px'}}, '💡 Regra de Ouro'),
-          React.createElement('div', {style:{fontSize:'0.75rem',color:'#78350f',lineHeight:1.5}},
-            'Cada real extra no pagamento da dívida te poupa ',
-            React.createElement('strong', null, 'muito mais que um real'),
-            ' em juros futuros. Pequenos extras fazem grande diferença!'
-          )
-        ),
-        saldo.saldo > 0 && React.createElement('div', {style:{background:'linear-gradient(135deg,#d1fae5,#a7f3d0)',borderRadius:'16px',padding:'16px',border:'1px solid #6ee7b7'}},
-          React.createElement('div', {style:{fontSize:'0.8rem',fontWeight:'700',color:'#065f46',marginBottom:'6px'}}, '✅ Sua Sobra Atual'),
-          React.createElement('div', {style:{fontSize:'0.75rem',color:'#064e3b',lineHeight:1.5}},
-            'Você tem R$ '+saldo.saldo.toFixed(0)+' de sobra mensal.',
-            React.createElement('br'),
-            'Considere destinar parte disso para amortização extra das suas dívidas!'
-          )
+      /* Coluna Direita: dicas */
+      React.createElement('div', {style:{background:'#fff',borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+        React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#dc2626',marginBottom:'14px'}}, '💡 Estratégias de Quitação'),
+        React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
+          [
+            {icon:'🏔️',title:'Avalanche',desc:'Pague primeiro a dívida com maior taxa de juros. Economiza mais no longo prazo.'},
+            {icon:'☃️',title:'Bola de Neve',desc:'Quite primeiro a menor dívida. Gera motivação e libera renda mais rápido.'},
+            {icon:'⚡',title:'Pagamento extra',desc:'Qualquer valor extra reduz drasticamente o prazo e os juros totais.'},
+            {icon:'🔄',title:'Renegociação',desc:'Sempre tente renegociar a taxa antes de pagar. Bancos aceitam reduções.'}
+          ].map((d,i) => React.createElement('div', {key:i, style:{padding:'10px 12px',background:'#fff1f2',borderRadius:'8px',border:'1px solid #fecdd3'}},
+            React.createElement('div', {style:{fontSize:'0.78rem',fontWeight:'700',color:'#881337',marginBottom:'3px'}}, d.icon+' '+d.title),
+            React.createElement('div', {style:{fontSize:'0.72rem',color:'#9f1239',lineHeight:'1.4'}}, d.desc)
+          ))
         )
       )
     )
-  )
-
+  ),
 ))
 
   };
