@@ -5288,35 +5288,6 @@ function App({
     }, /*#__PURE__*/React.createElement("h2", {
       className: "text-base font-bold text-gray-800"
     }, "\uD83D\uDCCB Planejamento")),
-    /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex', gap: '6px', marginBottom: '4px',
-        background: '#f8fafc', borderRadius: '14px',
-        padding: '6px', border: '1px solid #e2e8f0', flexWrap: 'wrap'
-      }
-    },
-      [
-        {key: 'diagnostico', rota: 'planejamento',          label: '\uD83C\uDFE5 Diagn\u00F3stico'},
-        {key: 'orcamento',   rota: 'planejamento-orcamento', label: '\uD83D\uDCCA Or\u00E7amento'},
-        {key: 'metas',       rota: 'planejamento-metas',     label: '\uD83C\uDFAF Metas'},
-        {key: 'simulacoes',  rota: 'planejamento-compra',    label: '\uD83C\uDFB2 Simula\u00E7\u00F5es'}
-      ].map(function(tab) {
-        var ativo = abaAtiva === tab.key;
-        return /*#__PURE__*/React.createElement("button", {
-          key: tab.key,
-          onClick: function() { setTelaAtiva(tab.rota); },
-          style: {
-            flex: '1', minWidth: '100px', padding: '8px 12px',
-            borderRadius: '10px', border: 'none',
-            fontSize: '0.78rem', fontWeight: '700',
-            cursor: 'pointer', transition: 'all 0.2s',
-            background: ativo ? 'linear-gradient(135deg,#6366f1,#4f46e5)' : 'transparent',
-            color: ativo ? '#fff' : '#64748b',
-            boxShadow: ativo ? '0 4px 12px rgba(99,102,241,0.3)' : 'none'
-          }
-        }, tab.label);
-      })
-    ),
     abaAtiva === 'diagnostico' && (() => {
       window.__diagCtx = {
         scoreSaude, scoreInfo, saldo, totais, orcamento,
@@ -6204,7 +6175,7 @@ function App({
       className: "font-bold text-yellow-800 mb-1"
     }, "Sem sobra para pagar d\xEDvidas"), /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-yellow-700"
-    }, "Você está gastando tudo ou mais que sua renda. Para usar as estratégias de pagamento, é preciso ter sobra mensal. Revise seus gastos no orçamento!"))))),
+    }, "Você está gastando tudo ou mais que sua renda. Para usar as estratégias de pagamento, é preciso ter sobra mensal. Revise seus gastos no orçamento!")))))),
   (abaAtiva === 'simulacoes') && React.createElement('div', {style:{padding:'0'}},
 
     /* ── BARRA DE ABAS DAS 4 SIMULAÇÕES ── */
@@ -6639,7 +6610,7 @@ function App({
       )
     )
   ),
-))
+)
 
   };
   const TelaFarol = () => {
