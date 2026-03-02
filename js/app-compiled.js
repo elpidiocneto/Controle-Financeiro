@@ -123,16 +123,15 @@ function AuthWrapper() {
       }
 
       // ===================================================
-      // ISOLAMENTO DE DADOS POR USUÁRIO
-      // Compara o uid atual com o uid salvo no localStorage.
-      // Se mudou (troca de conta), limpa tudo, carrega do Firestore
-      // e dá reload para forçar o React a reinicializar com dados limpos.
+      // SINCRONIZAÇÃO DE DADOS POR USUÁRIO
+      // Sempre carrega do Firestore no login/reload para garantir dados
+      // atualizados em todos os dispositivos. Reload apenas em troca de conta.
       // ===================================================
       if (user) {
         const uidAnterior = localStorage.getItem('_currentUserId');
         const uidMudou = uidAnterior && uidAnterior !== user.uid;
-        const primeiroLogin = !uidAnterior;
-        if (uidMudou || primeiroLogin) {
+        // Sempre sincroniza: garante dados atualizados em multi-dispositivo e após limpeza de cache
+        if (true) {
           try {
             // 1. Limpar TODOS os dados do localStorage
             const keysToRemove = ['cartoes', 'gastosFixos', 'gastosVariaveis', 'gastosExtras', 'receitas', 'farol', 'metas', 'metasFinanceiras', 'orcamento', 'orcamentosMensais', 'orcamentoAnual', 'planejadosMes', 'comprasParceladas', 'dividas', 'reservaEmergencia', 'categoriasPersonalizadas', 'anoAtual', 'mesAtual'];
@@ -1224,7 +1223,7 @@ function App({
       setSalvando(true);
       try {
         const dadosBackup = {
-          versao: '3.0',
+          versao: '3.1',
           dataBackup: firebase.firestore.FieldValue.serverTimestamp(),
           email: user.email,
           nome: user.displayName,
@@ -1232,14 +1231,19 @@ function App({
             cartoes,
             gastosFixos,
             gastosVariaveis,
+            gastosExtras,
             receitas,
             farol,
             metas,
+            metasFinanceiras,
             orcamento,
             orcamentosMensais,
             orcamentoAnual,
             planejadosMes,
-            comprasParceladas
+            comprasParceladas,
+            dividas,
+            reservaEmergencia,
+            categoriasPersonalizadas
           }
         };
         await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').set(dadosBackup);
@@ -1254,7 +1258,7 @@ function App({
     // Debounce de 2 segundos para evitar salvar demais
     const timer = setTimeout(autoSave, 2000);
     return () => clearTimeout(timer);
-  }, [cartoes, gastosFixos, gastosVariaveis, receitas, farol, metas, orcamento, orcamentosMensais, orcamentoAnual, planejadosMes, comprasParceladas]);
+  }, [cartoes, gastosFixos, gastosVariaveis, gastosExtras, receitas, farol, metas, metasFinanceiras, orcamento, orcamentosMensais, orcamentoAnual, planejadosMes, comprasParceladas, dividas, reservaEmergencia, categoriasPersonalizadas]);
 
   // Carregar dados da nuvem ao iniciar
   useEffect(() => {
