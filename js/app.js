@@ -13,6 +13,33 @@
 
     const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
+    // Modal genérico de input (substitui prompt() nativo)
+    function InputDialog({ titulo, label, valorPadrao = '', onConfirm, onCancel }) {
+      const [valor, setValor] = useState(valorPadrao);
+      const handleConfirm = () => onConfirm(valor);
+      const handleKeyDown = (e) => { if (e.key === 'Enter') handleConfirm(); if (e.key === 'Escape') onCancel(); };
+      return (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:99999, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
+          <div style={{ background:'#fff', borderRadius:'16px', padding:'1.5rem', width:'100%', maxWidth:'380px', boxShadow:'0 24px 64px rgba(0,0,0,0.3)' }}>
+            <h3 style={{ margin:'0 0 0.75rem', fontSize:'1.05rem', fontWeight:'700', color:'#1e1b4b' }}>{titulo}</h3>
+            <p style={{ margin:'0 0 0.75rem', fontSize:'0.9rem', color:'#4b5563' }}>{label}</p>
+            <input
+              type="number"
+              value={valor}
+              onChange={e => setValor(e.target.value)}
+              onKeyDown={handleKeyDown}
+              autoFocus
+              style={{ width:'100%', padding:'0.6rem 0.75rem', border:'1.5px solid #d1d5db', borderRadius:'8px', fontSize:'1rem', outline:'none', boxSizing:'border-box' }}
+            />
+            <div style={{ display:'flex', gap:'0.75rem', marginTop:'1rem', justifyContent:'flex-end' }}>
+              <button onClick={onCancel} style={{ padding:'0.5rem 1.1rem', border:'1.5px solid #d1d5db', borderRadius:'8px', background:'#fff', cursor:'pointer', fontSize:'0.9rem', color:'#6b7280' }}>Cancelar</button>
+              <button onClick={handleConfirm} style={{ padding:'0.5rem 1.25rem', border:'none', borderRadius:'8px', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', cursor:'pointer', fontSize:'0.9rem', fontWeight:'700' }}>Confirmar</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // COMPONENTE DE AUTENTICAÇÃO
     function AuthWrapper() {
       const [user, setUser] = useState(null);
@@ -23,6 +50,9 @@
       const [password, setPassword] = useState('');
       const [nome, setNome] = useState('');
       const [error, setError] = useState('');
+      const [reenviarModal, setReenviarModal] = useState(false);
+      const [reenviarEmail, setReenviarEmail] = useState('');
+      const [reenviarSenha, setReenviarSenha] = useState('');
 
       useEffect(() => {
         const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
@@ -506,27 +536,7 @@
               {authMode === 'login' && (
                 <div style={{ textAlign: 'center', marginTop: '1rem' }}>
                   <button
-                    onClick={async () => {
-                      const emailInput = prompt('📧 Digite seu email:');
-                      if (emailInput) {
-                        const passwordInput = prompt('🔒 Digite sua senha:');
-                        if (passwordInput) {
-                          try {
-                            const userCredential = await firebase.auth().signInWithEmailAndPassword(emailInput, passwordInput);
-                            if (!userCredential.user.emailVerified) {
-                              await userCredential.user.sendEmailVerification();
-                              await firebase.auth().signOut();
-                              alert('✅ Email de verificação reenviado! Verifique sua caixa de entrada.');
-                            } else {
-                              await firebase.auth().signOut();
-                              alert('✅ Email já verificado! Tente fazer login normalmente.');
-                            }
-                          } catch (error) {
-                            alert('❌ Email ou senha incorretos');
-                          }
-                        }
-                      }
-                    }}
+                    onClick={() => { setReenviarEmail(''); setReenviarSenha(''); setReenviarModal(true); }}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
                       color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem',
@@ -551,6 +561,51 @@
                 ))}
               </div>
             </div>
+
+          {/* Modal Reenviar Email de Verificação */}
+          {reenviarModal && (
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', zIndex:99999, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
+              <div style={{ background:'#fff', borderRadius:'16px', padding:'1.75rem', width:'100%', maxWidth:'400px', boxShadow:'0 24px 64px rgba(0,0,0,0.4)' }}>
+                <h3 style={{ margin:'0 0 1rem', fontSize:'1.1rem', fontWeight:'700', color:'#1e1b4b' }}>📧 Reenviar Email de Verificação</h3>
+                <div style={{ marginBottom:'0.75rem' }}>
+                  <label style={{ display:'block', fontSize:'0.85rem', color:'#4b5563', marginBottom:'0.3rem' }}>Email</label>
+                  <input type="email" value={reenviarEmail} onChange={e => setReenviarEmail(e.target.value)} placeholder="seu@email.com"
+                    style={{ width:'100%', padding:'0.6rem 0.75rem', border:'1.5px solid #d1d5db', borderRadius:'8px', fontSize:'0.95rem', outline:'none', boxSizing:'border-box' }} />
+                </div>
+                <div style={{ marginBottom:'1rem' }}>
+                  <label style={{ display:'block', fontSize:'0.85rem', color:'#4b5563', marginBottom:'0.3rem' }}>Senha</label>
+                  <input type="password" value={reenviarSenha} onChange={e => setReenviarSenha(e.target.value)} placeholder="Sua senha"
+                    style={{ width:'100%', padding:'0.6rem 0.75rem', border:'1.5px solid #d1d5db', borderRadius:'8px', fontSize:'0.95rem', outline:'none', boxSizing:'border-box' }} />
+                </div>
+                <div style={{ display:'flex', gap:'0.75rem', justifyContent:'flex-end' }}>
+                  <button onClick={() => setReenviarModal(false)}
+                    style={{ padding:'0.5rem 1.1rem', border:'1.5px solid #d1d5db', borderRadius:'8px', background:'#fff', cursor:'pointer', fontSize:'0.9rem', color:'#6b7280' }}>
+                    Cancelar
+                  </button>
+                  <button onClick={async () => {
+                    if (!reenviarEmail || !reenviarSenha) return;
+                    try {
+                      const userCredential = await firebase.auth().signInWithEmailAndPassword(reenviarEmail, reenviarSenha);
+                      if (!userCredential.user.emailVerified) {
+                        await userCredential.user.sendEmailVerification();
+                        await firebase.auth().signOut();
+                        setError('✅ Email de verificação reenviado! Verifique sua caixa de entrada.');
+                      } else {
+                        await firebase.auth().signOut();
+                        setError('✅ Email já verificado! Tente fazer login normalmente.');
+                      }
+                    } catch (err) {
+                      setError('❌ Email ou senha incorretos');
+                    }
+                    setReenviarModal(false);
+                  }}
+                    style={{ padding:'0.5rem 1.25rem', border:'none', borderRadius:'8px', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', cursor:'pointer', fontSize:'0.9rem', fontWeight:'700' }}>
+                    Enviar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           </div>
         );
       }
@@ -855,6 +910,7 @@
       const [modalAberto, setModalAberto] = useState(null);
       const [itemEditando, setItemEditando] = useState(null);
       const [tipoEditando, setTipoEditando] = useState(null);
+      const [inputDialog, setInputDialog] = useState(null);
       
       const [gastosFixos, setGastosFixos] = useState(() => {
         const saved = localStorage.getItem('gastosFixos');
@@ -5337,19 +5393,22 @@
                         <>
                           <div className="text-sm text-gray-500 mb-1">Não definido</div>
                           <div className="text-sm text-blue-600 font-semibold">Gasto atual: R$ {valorTotal.toFixed(2)}</div>
-                          <button 
+                          <button
                             onClick={() => {
-                              const novoLimite = prompt('Defina o limite do cartão:', '10000');
-                              if (novoLimite && !isNaN(novoLimite)) {
-                                const cartoesAtualizados = cartoes.map(c => 
-                                  c.id === cartao.id ? {...c, limite: parseFloat(novoLimite)} : c
-                                );
-                                console.log('✅ Atualizando limite:', novoLimite);
-                                setCartoes(cartoesAtualizados);
-                                // Força salvamento imediato
-                                localStorage.setItem('cartoes', JSON.stringify(cartoesAtualizados));
-                                alert(`✅ Limite definido: R$ ${parseFloat(novoLimite).toFixed(2)}`);
-                              }
+                              setInputDialog({
+                                titulo: 'Definir Limite do Cartão',
+                                label: 'Limite do cartão (R$):',
+                                valorPadrao: '10000',
+                                callback: (novoLimite) => {
+                                  if (novoLimite && !isNaN(novoLimite)) {
+                                    const cartoesAtualizados = cartoes.map(c =>
+                                      c.id === cartao.id ? {...c, limite: parseFloat(novoLimite)} : c
+                                    );
+                                    setCartoes(cartoesAtualizados);
+                                    localStorage.setItem('cartoes', JSON.stringify(cartoesAtualizados));
+                                  }
+                                }
+                              });
                             }}
                             className="mt-2 text-xs px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                           >
@@ -6608,10 +6667,12 @@
                     <h3 className="text-base font-bold text-gray-800">🆘 Reserva de Emergência</h3>
                     <button
                       onClick={() => {
-                        const valor = prompt('Quanto você tem de reserva de emergência?', reservaEmergencia);
-                        if (valor !== null) {
-                          setReservaEmergencia(parseFloat(valor) || 0);
-                        }
+                        setInputDialog({
+                          titulo: 'Reserva de Emergência',
+                          label: 'Quanto você tem de reserva de emergência? (R$):',
+                          valorPadrao: reservaEmergencia,
+                          callback: (valor) => { if (valor !== null) setReservaEmergencia(parseFloat(valor) || 0); }
+                        });
                       }}
                       className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700"
                     >
@@ -7124,10 +7185,14 @@
                                     </div>
                                   </div>
                                   <div className="flex gap-2">
-                                    <button 
+                                    <button
                                       onClick={() => {
-                                        const valor = prompt('Digite o valor acumulado:', meta.valorAtual);
-                                        if (valor !== null) atualizarProgressoMeta(meta.id, valor);
+                                        setInputDialog({
+                                          titulo: 'Atualizar Meta',
+                                          label: 'Valor acumulado até agora (R$):',
+                                          valorPadrao: meta.valorAtual,
+                                          callback: (valor) => { if (valor !== null) atualizarProgressoMeta(meta.id, valor); }
+                                        });
                                       }}
                                       className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200"
                                       title="Atualizar progresso"
@@ -7230,10 +7295,14 @@
                                     </div>
                                   </div>
                                   <div className="flex gap-2">
-                                    <button 
+                                    <button
                                       onClick={() => {
-                                        const valor = prompt('Digite o valor acumulado:', meta.valorAtual);
-                                        if (valor !== null) atualizarProgressoMeta(meta.id, valor);
+                                        setInputDialog({
+                                          titulo: 'Atualizar Meta',
+                                          label: 'Valor acumulado até agora (R$):',
+                                          valorPadrao: meta.valorAtual,
+                                          callback: (valor) => { if (valor !== null) atualizarProgressoMeta(meta.id, valor); }
+                                        });
                                       }}
                                       className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200"
                                     >
@@ -7330,10 +7399,14 @@
                                     </div>
                                   </div>
                                   <div className="flex gap-2">
-                                    <button 
+                                    <button
                                       onClick={() => {
-                                        const valor = prompt('Digite o valor acumulado:', meta.valorAtual);
-                                        if (valor !== null) atualizarProgressoMeta(meta.id, valor);
+                                        setInputDialog({
+                                          titulo: 'Atualizar Meta',
+                                          label: 'Valor acumulado até agora (R$):',
+                                          valorPadrao: meta.valorAtual,
+                                          callback: (valor) => { if (valor !== null) atualizarProgressoMeta(meta.id, valor); }
+                                        });
                                       }}
                                       className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200"
                                     >
@@ -9584,6 +9657,15 @@
             </Modal>
           )}
           </div>
+          {inputDialog && (
+            <InputDialog
+              titulo={inputDialog.titulo}
+              label={inputDialog.label}
+              valorPadrao={String(inputDialog.valorPadrao ?? '')}
+              onConfirm={(v) => { setInputDialog(null); inputDialog.callback(v); }}
+              onCancel={() => setInputDialog(null)}
+            />
+          )}
         </div>
       );
     }

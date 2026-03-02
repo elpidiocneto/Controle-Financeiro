@@ -1,0 +1,28 @@
+# Dependências
+node_modules/
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V8
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backups gerados automaticamente
+*.bak
+*.backup
+
+# Arquivos de teste temporários
+teste-*.html
+test-*.html
+
+# Logs
+*.log
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo

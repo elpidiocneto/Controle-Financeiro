@@ -1,6 +1,8 @@
 // Diagnóstico + Timeline — mesmo padrão visual do Dashboard
 window.DiagnosticoComponent = function Diagnostico() {
   const h = React.createElement;
+  const [reservaModalAberto, setReservaModalAberto] = React.useState(false);
+  const [reservaInput, setReservaInput] = React.useState('');
   const ctx              = window.__diagCtx || {};
   const scoreSaude       = ctx.scoreSaude    || { score:0, criterios:[], reservaIdeal:0, reservaAtual:0, percentualReserva:0, percentualPoupanca:0 };
   const scoreInfo        = ctx.scoreInfo     || { text:'—', emoji:'❓' };
@@ -357,7 +359,7 @@ window.DiagnosticoComponent = function Diagnostico() {
       )
     ),
     h('button',{
-      onClick:()=>{const v=prompt('Reserva de emergência (R$):',reservaAtual);if(v!==null)setReserva(parseFloat(v)||0);},
+      onClick:()=>{ setReservaInput(String(reservaAtual)); setReservaModalAberto(true); },
       style:{width:'100%',padding:'9px',border:'none',borderRadius:'10px',background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',fontSize:'0.78rem',fontWeight:'700',cursor:'pointer'}
     },'✏️ Atualizar Reserva')
   );
@@ -387,12 +389,31 @@ window.DiagnosticoComponent = function Diagnostico() {
     )
   );
 
+  const modalReserva = reservaModalAberto && h('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.55)',zIndex:99999,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem'}},
+    h('div',{style:{background:'#fff',borderRadius:'16px',padding:'1.5rem',width:'100%',maxWidth:'360px',boxShadow:'0 24px 64px rgba(0,0,0,0.3)'}},
+      h('h3',{style:{margin:'0 0 0.75rem',fontSize:'1.05rem',fontWeight:'700',color:'#1e1b4b'}},'🆘 Atualizar Reserva de Emergência'),
+      h('p',{style:{margin:'0 0 0.75rem',fontSize:'0.9rem',color:'#4b5563'}},'Valor atual da sua reserva (R$):'),
+      h('input',{
+        type:'number', value:reservaInput,
+        onChange:(e)=>setReservaInput(e.target.value),
+        onKeyDown:(e)=>{ if(e.key==='Enter'){setReserva(parseFloat(reservaInput)||0);setReservaModalAberto(false);} if(e.key==='Escape')setReservaModalAberto(false); },
+        autoFocus:true,
+        style:{width:'100%',padding:'0.6rem 0.75rem',border:'1.5px solid #d1d5db',borderRadius:'8px',fontSize:'1rem',outline:'none',boxSizing:'border-box'}
+      }),
+      h('div',{style:{display:'flex',gap:'0.75rem',marginTop:'1rem',justifyContent:'flex-end'}},
+        h('button',{onClick:()=>setReservaModalAberto(false),style:{padding:'0.5rem 1.1rem',border:'1.5px solid #d1d5db',borderRadius:'8px',background:'#fff',cursor:'pointer',fontSize:'0.9rem',color:'#6b7280'}},'Cancelar'),
+        h('button',{onClick:()=>{setReserva(parseFloat(reservaInput)||0);setReservaModalAberto(false);},style:{padding:'0.5rem 1.25rem',border:'none',borderRadius:'8px',background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',cursor:'pointer',fontSize:'0.9rem',fontWeight:'700'}},'Confirmar')
+      )
+    )
+  );
+
   return h('div', null,
     barraSubAbas,
     h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
       h('div',{style:{display:'flex',flexDirection:'column',gap:'14px'}}, cardScore, cardSituacao),
       h('div',{style:{display:'flex',flexDirection:'column',gap:'0'}}, cardRendaComp, cardPoupanca, cardOrcamento),
       h('div',{style:{display:'flex',flexDirection:'column',gap:'14px'}}, cardReserva, cardPontuacao)
-    )
+    ),
+    modalReserva
   );
 };
