@@ -371,7 +371,13 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
             style: subItemStyle(['planejamento-compra','planejamento-simulador','planejamento-aposentadoria','planejamento-quitacao'].includes(telaAtiva)),
             onMouseEnter: e => { if (!['planejamento-compra','planejamento-simulador'].includes(telaAtiva)) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (!['planejamento-compra','planejamento-simulador'].includes(telaAtiva)) e.currentTarget.style.background = 'transparent'; }
-          }, '🎲 Simulações')
+          }, '🎲 Simulações'),
+          React.createElement('div', {
+            onClick: () => navegar('planejamento-historico', true),
+            style: subItemStyle(telaAtiva === 'planejamento-historico'),
+            onMouseEnter: e => { if (telaAtiva !== 'planejamento-historico') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
+            onMouseLeave: e => { if (telaAtiva !== 'planejamento-historico') e.currentTarget.style.background = 'transparent'; }
+          }, '📈 Histórico')
         )
       ),
 
@@ -435,6 +441,17 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
       },
         React.createElement('span', { style: { fontSize: '1.3rem' } }, '🚦'),
         expandido && React.createElement('span', null, 'Farol')
+      ),
+
+      // Relatórios
+      React.createElement('div', {
+        onClick: () => navegar('relatorios'),
+        style: itemStyle(telaAtiva === 'relatorios'),
+        onMouseEnter: e => { if (telaAtiva !== 'relatorios') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
+        onMouseLeave: e => { if (telaAtiva !== 'relatorios') e.currentTarget.style.background = 'transparent'; }
+      },
+        React.createElement('span', { style: { fontSize: '1.3rem' } }, '📊'),
+        expandido && React.createElement('span', null, 'Relatórios')
       )
     ),
 

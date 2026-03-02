@@ -32,6 +32,62 @@ function InputDialog({titulo, label, valorPadrao = '', onConfirm, onCancel}) {
   );
 }
 
+// ─── SISTEMA DE NOTIFICAÇÕES TOAST ───────────────────────────────────────────
+function ToastContainer() {
+  const [toasts, setToasts] = React.useState([]);
+
+  React.useEffect(() => {
+    // Injetar animação CSS uma única vez
+    if (!document.getElementById('toast-style')) {
+      const s = document.createElement('style');
+      s.id = 'toast-style';
+      s.textContent = '@keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}' +
+                      '@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateX(110%)}}';
+      document.head.appendChild(s);
+    }
+    // Expor função global
+    window.showToast = function(msg, tipo, duracao) {
+      tipo = tipo || 'success';
+      duracao = duracao || (tipo === 'error' || tipo === 'warning' ? 6000 : 4000);
+      const id = Date.now() + Math.random();
+      setToasts(function(prev) { return [...prev.slice(-2), {id: id, msg: msg, tipo: tipo}]; });
+      setTimeout(function() {
+        setToasts(function(prev) { return prev.filter(function(t) { return t.id !== id; }); });
+      }, duracao);
+    };
+    return function() { window.showToast = null; };
+  }, []);
+
+  var CORES = {
+    success: {bg: 'linear-gradient(135deg,#059669,#10b981)', icone: '✅'},
+    error:   {bg: 'linear-gradient(135deg,#dc2626,#ef4444)', icone: '❌'},
+    warning: {bg: 'linear-gradient(135deg,#d97706,#f59e0b)', icone: '⚠️'},
+    info:    {bg: 'linear-gradient(135deg,#4f46e5,#6366f1)', icone: 'ℹ️'}
+  };
+
+  return React.createElement('div', {
+    style: {position:'fixed', bottom:'24px', right:'24px', zIndex:999999,
+            display:'flex', flexDirection:'column-reverse', gap:'10px', pointerEvents:'none'}
+  },
+    toasts.map(function(t) {
+      var c = CORES[t.tipo] || CORES.success;
+      return React.createElement('div', {
+        key: t.id,
+        style: {
+          background: c.bg, color: '#fff',
+          padding: '12px 18px', borderRadius: '14px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+          fontSize: '0.87rem', fontWeight: '600',
+          maxWidth: '340px', lineHeight: '1.5',
+          pointerEvents: 'auto', cursor: 'default',
+          animation: 'toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards'
+        }
+      }, c.icone + '  ' + t.msg);
+    })
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // COMPONENTE DE AUTENTICAÇÃO
 function AuthWrapper() {
   const [user, setUser] = useState(null);
@@ -1497,6 +1553,74 @@ function App({
   const metaMensal = metas[mesAtual] || metas.mensal;
   const orcamentoMensal = orcamentosMensais[mesAtual] || orcamento;
 
+  // ── Alertas Proativos ────────────────────────────────────────────────────
+  useEffect(function() {
+    if (!window.showToast) return;
+    // 1) Orçamento estourado
+    const limiteTotal = (orcamentoMensal.cartoes || 0) + (orcamentoMensal.fixos || 0) + (orcamentoMensal.variaveis || 0);
+    if (limiteTotal > 0 && totais.total > limiteTotal) {
+      const pct = Math.round(totais.total / limiteTotal * 100);
+      setTimeout(function() {
+        showToast('Orçamento de ' + mesAtual.toUpperCase() + ' estourado em ' + pct + '%!', 'warning', 7000);
+      }, 800);
+    }
+    // 2) Metas financeiras próximas do prazo (< 30 dias)
+    const hoje = new Date();
+    metasFinanceiras.filter(function(m) { return !m.concluida && m.dataMeta; }).forEach(function(m) {
+      const diff = Math.ceil((new Date(m.dataMeta) - hoje) / 86400000);
+      if (diff >= 0 && diff <= 30) {
+        setTimeout(function() {
+          showToast('Meta "' + m.nome + '" vence em ' + diff + ' dia(s)!', 'info', 6000);
+        }, 1400);
+      }
+    });
+    // 3) Gastos fixos com vencimento nos próximos 5 dias
+    const diaHoje = hoje.getDate();
+    gastosFixos.filter(function(g) { return g.vencimento; }).forEach(function(g) {
+      const diff = g.vencimento - diaHoje;
+      if (diff >= 0 && diff <= 5) {
+        setTimeout(function() {
+          showToast(g.descricao + ' vence em ' + diff + ' dia(s) (dia ' + g.vencimento + ')', 'warning', 5000);
+        }, 2000);
+      }
+    });
+  }, [mesAtual, anoAtual]);
+  // ────────────────────────────────────────────────────────────────────────
+
+  // ── Recorrência Automática ───────────────────────────────────────────────
+  useEffect(function() {
+    // Clonar receitas recorrentes para o mesAtual/anoAtual se ainda não existirem
+    var recorrentes = receitas.filter(function(r) { return r.recorrente; });
+    if (recorrentes.length === 0) return;
+    var jaExiste = {};
+    receitas.forEach(function(r) {
+      if (r.mes === mesAtual && r.ano === anoAtual) {
+        jaExiste[r.categoria + '|' + r.descricao] = true;
+      }
+    });
+    var novas = [];
+    recorrentes.forEach(function(r) {
+      var chave = r.categoria + '|' + r.descricao;
+      if (!jaExiste[chave]) {
+        novas.push({
+          id: Date.now() + Math.random(),
+          categoria: r.categoria,
+          descricao: r.descricao,
+          valor: r.valor,
+          mes: mesAtual,
+          ano: anoAtual,
+          recorrente: true,
+          data: new Date().toLocaleDateString('pt-BR')
+        });
+      }
+    });
+    if (novas.length > 0) {
+      setReceitas(function(prev) { return [...prev, ...novas]; });
+      if (window.showToast) showToast(novas.length + ' receita(s) recorrente(s) adicionada(s) automaticamente!', 'info');
+    }
+  }, [mesAtual, anoAtual]);
+  // ────────────────────────────────────────────────────────────────────────
+
   // CÁLCULO DE RECEITAS E SALDO
   const calcularSaldo = mes => {
     // Receitas agora filtram por ANO também
@@ -1746,7 +1870,7 @@ function App({
     };
     setCartoes([...cartoes, novoCartao]);
     setModalAberto(null);
-    alert('Cartão adicionado com sucesso!');
+    if(window.showToast) showToast('Cartão adicionado com sucesso!','success'); else alert('Cartão adicionado com sucesso!');
   };
   const adicionarGastoFixo = dados => {
     console.log('Adicionando gasto fixo:', dados);
@@ -1767,7 +1891,7 @@ function App({
     // Só mostra alert se for gasto único (não parcelado)
     if (!dados.temporario || dados.totalParcelas <= 1) {
       setModalAberto(null);
-      alert('Gasto fixo adicionado com sucesso!');
+      if(window.showToast) showToast('Gasto fixo adicionado!','success'); else alert('Gasto fixo adicionado com sucesso!');
     }
   };
   const adicionarGastoVariavel = dados => {
@@ -1784,7 +1908,7 @@ function App({
     };
     setGastosVariaveis([...gastosVariaveis, novoGasto]);
     setModalAberto(null);
-    alert('Gasto variável adicionado com sucesso!');
+    if(window.showToast) showToast('Gasto variável adicionado!','success'); else alert('Gasto variável adicionado com sucesso!');
   };
   const deletarCartao = id => {
     if (confirm('Tem certeza?')) {
@@ -1814,7 +1938,7 @@ function App({
     setCartoes([]);
     setTimeout(() => setCartoes(novosCartoes), 10);
     setModalAberto(null);
-    alert('✅ Cartão atualizado com sucesso!');
+    if(window.showToast) showToast('Cartão atualizado!','success'); else alert('✅ Cartão atualizado com sucesso!');
 
     // Salvar no Firestore
     if (db && user) {
@@ -1845,7 +1969,7 @@ function App({
     setItemEditando(null);
     setTipoEditando(null);
     setModalAberto(null);
-    alert('✅ Cartão atualizado!');
+    if(window.showToast) showToast('Cartão atualizado!','success'); else alert('✅ Cartão atualizado!');
   };
   const duplicarCartao = cartao => {
     const novoCartao = {
@@ -1854,7 +1978,7 @@ function App({
       nome: cartao.nome + ' (Cópia)'
     };
     setCartoes([...cartoes, novoCartao]);
-    alert('✅ Cartão duplicado com sucesso!');
+    if(window.showToast) showToast('Cartão duplicado!','success'); else alert('✅ Cartão duplicado com sucesso!');
   };
   const deletarGastoFixo = id => {
     if (confirm('Tem certeza?')) {
@@ -1907,7 +2031,7 @@ function App({
     setItemEditando(null);
     setTipoEditando(null);
     setModalAberto(null);
-    alert('✅ Gasto fixo atualizado!');
+    if(window.showToast) showToast('Gasto fixo atualizado!','success'); else alert('✅ Gasto fixo atualizado!');
   };
   const duplicarGastoFixo = gasto => {
     const novoGasto = {
@@ -1916,7 +2040,7 @@ function App({
       descricao: gasto.descricao + ' (Cópia)'
     };
     setGastosFixos([...gastosFixos, novoGasto]);
-    alert('✅ Gasto fixo duplicado com sucesso!');
+    if(window.showToast) showToast('Gasto fixo duplicado!','success'); else alert('✅ Gasto fixo duplicado com sucesso!');
   };
   const deletarGastoVariavel = id => {
     if (confirm('Tem certeza?')) {
@@ -1969,7 +2093,7 @@ function App({
     setItemEditando(null);
     setTipoEditando(null);
     setModalAberto(null);
-    alert('✅ Gasto variável atualizado com sucesso!');
+    if(window.showToast) showToast('Gasto variável atualizado!','success'); else alert('✅ Gasto variável atualizado!');
   };
   const duplicarGastoVariavel = gasto => {
     const novoGasto = {
@@ -1978,7 +2102,7 @@ function App({
       descricao: gasto.descricao + ' (Cópia)'
     };
     setGastosVariaveis([...gastosVariaveis, novoGasto]);
-    alert('✅ Gasto variável duplicado com sucesso!');
+    if(window.showToast) showToast('Gasto variável duplicado!','success'); else alert('✅ Gasto variável duplicado!');
   };
 
   // Funções para Gastos Extras
@@ -2022,7 +2146,7 @@ function App({
       descricao: gasto.descricao + ' (Cópia)'
     };
     setGastosExtras([...gastosExtras, novoGasto]);
-    alert('✅ Gasto extra duplicado com sucesso!');
+    if(window.showToast) showToast('Gasto extra duplicado!','success'); else alert('✅ Gasto extra duplicado!');
   };
 
   // 💳 MIGRAÇÃO DE VALORES DE CARTÕES 2025 → 2026 (MOVE, NÃO COPIA)
@@ -2381,12 +2505,13 @@ function App({
       valor: parseFloat(dados.valor),
       mes: mesAtual,
       ano: anoAtual,
+      recorrente: dados.recorrente || false,
       // ADICIONADO
       data: new Date().toLocaleDateString('pt-BR')
     };
     setReceitas([...receitas, novaReceita]);
     setModalAberto(null);
-    alert('Receita adicionada com sucesso!');
+    if(window.showToast) showToast('Receita adicionada!','success'); else alert('Receita adicionada com sucesso!');
   };
   const deletarReceita = id => {
     if (confirm('Tem certeza?')) {
@@ -2451,13 +2576,13 @@ function App({
         console.log('✅ Salvo no Firestore com sucesso!');
       } catch (error) {
         console.error('❌ Erro ao salvar no Firestore:', error);
-        alert('⚠️ Dados atualizados localmente mas erro ao salvar na nuvem: ' + error.message);
+        if(window.showToast) showToast('Dados salvos localmente (erro na nuvem)','warning'); else alert('⚠️ Erro ao salvar na nuvem: ' + error.message);
       }
     }
     setItemEditando(null);
     setTipoEditando(null);
     setModalAberto(null);
-    alert('✅ Receita atualizada! Verifique o badge.');
+    if(window.showToast) showToast('Receita atualizada!','success'); else alert('✅ Receita atualizada!');
   };
   const duplicarReceita = receita => {
     const novaReceita = {
@@ -2466,7 +2591,7 @@ function App({
       descricao: receita.descricao + ' (Cópia)'
     };
     setReceitas([...receitas, novaReceita]);
-    alert('✅ Receita duplicada com sucesso!');
+    if(window.showToast) showToast('Receita duplicada!','success'); else alert('✅ Receita duplicada!');
   };
   const adicionarPlanejado = dados => {
     const novoPlanejado = {
@@ -2553,31 +2678,176 @@ function App({
     }));
   };
   const exportarPDF = () => {
-    const {
-      jsPDF
-    } = window.jspdf;
+    if (!window.jspdf) { if(window.showToast) showToast('Biblioteca PDF não carregada','error'); return; }
+    const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text('Relatorio Financeiro', 20, 20);
-    doc.setFontSize(12);
-    doc.text(`Mes: ${mesAtual}`, 20, 30);
-    let y = 45;
-    doc.text(`Cartoes: R$ ${totais.cartoes.toFixed(2)}`, 20, y);
-    y += 10;
-    doc.text(`Gastos Fixos: R$ ${totais.fixos.toFixed(2)}`, 20, y);
-    y += 10;
-    doc.text(`Gastos Variaveis: R$ ${totais.variaveis.toFixed(2)}`, 20, y);
-    y += 10;
-    doc.setFontSize(14);
-    doc.text(`TOTAL: R$ ${totais.total.toFixed(2)}`, 20, y);
-    doc.save(`relatorio-${mesAtual}.pdf`);
+    const mesNome = mesAtual.charAt(0).toUpperCase() + mesAtual.slice(1);
+    const saldoMes = calcularSaldo(mesAtual);
+    const fmt = v => 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+    const W = 210; // largura A4
+    let y = 0;
+
+    // ── Cabeçalho ───────────────────────────────────────────────────────────
+    doc.setFillColor(79, 70, 229); doc.rect(0, 0, W, 38, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(20); doc.setFont('helvetica','bold');
+    doc.text('Relatório Financeiro', 14, 16);
+    doc.setFontSize(11); doc.setFont('helvetica','normal');
+    doc.text(mesNome + ' / ' + anoAtual + '  |  Gerado em ' + new Date().toLocaleDateString('pt-BR'), 14, 26);
+    const pctEconomia = saldoMes.receitas > 0 ? (saldoMes.saldo / saldoMes.receitas * 100).toFixed(1) : '0.0';
+    doc.text('Taxa de Economia: ' + pctEconomia + '%', 14, 34);
+    y = 50;
+
+    // ── Cards de Resumo ──────────────────────────────────────────────────────
+    doc.setTextColor(30,30,30);
+    const cards = [
+      {label:'RECEITAS', valor:saldoMes.receitas, cor:[16,185,129]},
+      {label:'DESPESAS', valor:saldoMes.despesas, cor:[239,68,68]},
+      {label:'SALDO',    valor:saldoMes.saldo,    cor: saldoMes.positivo ? [16,185,129] : [239,68,68]}
+    ];
+    cards.forEach(function(c, i) {
+      const x = 14 + i * 62;
+      doc.setFillColor(c.cor[0],c.cor[1],c.cor[2]);
+      doc.roundedRect(x, y, 58, 28, 4, 4, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(8); doc.setFont('helvetica','bold');
+      doc.text(c.label, x+4, y+8);
+      doc.setFontSize(11); doc.setFont('helvetica','bold');
+      doc.text(fmt(c.valor), x+4, y+20);
+    });
+    y += 38;
+
+    // ── Tabela de Categorias ─────────────────────────────────────────────────
+    doc.setTextColor(30,30,30);
+    doc.setFontSize(12); doc.setFont('helvetica','bold');
+    doc.text('Composicao das Despesas', 14, y); y += 8;
+    const cats = [
+      ['Cartoes',          totais.cartoes],
+      ['Gastos Fixos',     totais.fixos],
+      ['Gastos Variaveis', totais.variaveis],
+      ['Gastos Extras',    totais.extras]
+    ];
+    cats.forEach(function(row) {
+      const pct = totais.total > 0 ? (row[1]/totais.total*100).toFixed(1) : '0.0';
+      doc.setFont('helvetica','normal'); doc.setFontSize(10);
+      doc.setFillColor(248,250,252); doc.rect(14, y, 182, 9, 'F');
+      doc.setTextColor(60,60,60);  doc.text(row[0], 18, y+6.5);
+      doc.setTextColor(79,70,229); doc.text(fmt(row[1]), 120, y+6.5);
+      doc.setTextColor(100,100,100); doc.text(pct + '%', 170, y+6.5);
+      y += 10;
+    });
+    // Total
+    doc.setFillColor(79,70,229); doc.rect(14, y, 182, 10, 'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text('TOTAL DESPESAS', 18, y+7); doc.text(fmt(totais.total), 120, y+7);
+    y += 18;
+
+    // ── Gastos Variáveis do mês ──────────────────────────────────────────────
+    const varMes = gastosVariaveis.filter(function(g){ return g.mes===mesAtual && g.ano===anoAtual; });
+    if (varMes.length > 0) {
+      doc.setTextColor(30,30,30); doc.setFont('helvetica','bold'); doc.setFontSize(12);
+      doc.text('Gastos Variaveis (' + varMes.length + ' lancamentos)', 14, y); y += 8;
+      varMes.slice(0,25).forEach(function(g) {
+        doc.setFont('helvetica','normal'); doc.setFontSize(9);
+        doc.setFillColor(250,252,255); doc.rect(14, y, 182, 8, 'F');
+        doc.setTextColor(60,60,60);
+        doc.text((g.data||''), 18, y+5.5);
+        doc.text((g.categoria||'').slice(0,20), 45, y+5.5);
+        doc.text((g.descricao||'').slice(0,30), 85, y+5.5);
+        doc.setTextColor(239,68,68); doc.text(fmt(g.valor), 158, y+5.5);
+        y += 9;
+        if (y > 270) { doc.addPage(); y = 20; }
+      });
+      y += 6;
+    }
+
+    // ── Metas Financeiras ────────────────────────────────────────────────────
+    const metasAtivas = metasFinanceiras.filter(function(m){ return !m.concluida; });
+    if (metasAtivas.length > 0 && y < 240) {
+      doc.setTextColor(30,30,30); doc.setFont('helvetica','bold'); doc.setFontSize(12);
+      doc.text('Metas Financeiras', 14, y); y += 8;
+      metasAtivas.slice(0,5).forEach(function(m) {
+        const pct = m.valor > 0 ? Math.min(100, m.valorAtual/m.valor*100).toFixed(0) : 0;
+        doc.setFont('helvetica','normal'); doc.setFontSize(9);
+        doc.setFillColor(240,253,244); doc.rect(14, y, 182, 10, 'F');
+        doc.setTextColor(60,60,60);
+        doc.text((m.nome||'').slice(0,35), 18, y+7);
+        doc.text(fmt(m.valorAtual) + ' / ' + fmt(m.valor), 120, y+7);
+        doc.setTextColor(16,185,129); doc.text(pct+'%', 174, y+7);
+        y += 11;
+      });
+    }
+
+    // ── Rodapé ───────────────────────────────────────────────────────────────
+    doc.setFillColor(240,242,255); doc.rect(0, 282, W, 15, 'F');
+    doc.setTextColor(120,120,150); doc.setFontSize(8); doc.setFont('helvetica','italic');
+    doc.text('Controle Financeiro  |  ' + new Date().toLocaleString('pt-BR'), 14, 290);
+
+    doc.save('relatorio-' + mesAtual + '-' + anoAtual + '.pdf');
+    if(window.showToast) showToast('PDF gerado com sucesso!','success');
   };
+
   const exportarExcel = () => {
-    const dados = [['Relatório Financeiro', mesAtual], [], ['Categoria', 'Valor'], ['Cartões', totais.cartoes], ['Gastos Fixos', totais.fixos], ['Gastos Variáveis', totais.variaveis], ['TOTAL', totais.total]];
-    const ws = XLSX.utils.aoa_to_sheet(dados);
+    if (!window.XLSX) { if(window.showToast) showToast('Biblioteca Excel não carregada','error'); return; }
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
-    XLSX.writeFile(wb, `relatorio-${mesAtual}.xlsx`);
+    const saldoMes = calcularSaldo(mesAtual);
+    const fmt = v => parseFloat(v||0).toFixed(2);
+
+    // Sheet 1 — Resumo
+    const resumo = [
+      ['RELATÓRIO FINANCEIRO - ' + mesAtual.toUpperCase() + '/' + anoAtual],
+      ['Gerado em', new Date().toLocaleString('pt-BR')],
+      [],
+      ['RESUMO', 'VALOR (R$)'],
+      ['Receitas',       saldoMes.receitas],
+      ['Despesas',       saldoMes.despesas],
+      ['Saldo',          saldoMes.saldo],
+      ['Taxa de Economia', saldoMes.receitas>0 ? ((saldoMes.saldo/saldoMes.receitas)*100).toFixed(1)+'%' : '0%'],
+      [],
+      ['CATEGORIA',      'VALOR (R$)', '% do Total'],
+      ['Cartões',        totais.cartoes,  totais.total>0?(totais.cartoes/totais.total*100).toFixed(1)+'%':'0%'],
+      ['Gastos Fixos',   totais.fixos,    totais.total>0?(totais.fixos/totais.total*100).toFixed(1)+'%':'0%'],
+      ['Gastos Variáveis',totais.variaveis,totais.total>0?(totais.variaveis/totais.total*100).toFixed(1)+'%':'0%'],
+      ['Gastos Extras',  totais.extras,   totais.total>0?(totais.extras/totais.total*100).toFixed(1)+'%':'0%'],
+      ['TOTAL',          totais.total,    '100%']
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumo), 'Resumo');
+
+    // Sheet 2 — Gastos Fixos
+    const fixosData = [['Categoria','Descrição','Valor','Vencimento','Temporário']];
+    gastosFixos.forEach(function(g){ fixosData.push([g.categoria,g.descricao,g.valor,g.vencimento,g.temporario?'Sim':'Não']); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(fixosData), 'Gastos Fixos');
+
+    // Sheet 3 — Gastos Variáveis do mês
+    const varData = [['Data','Categoria','Descrição','Valor']];
+    gastosVariaveis.filter(function(g){ return g.mes===mesAtual&&g.ano===anoAtual; })
+      .forEach(function(g){ varData.push([g.data,g.categoria,g.descricao,g.valor]); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(varData), 'Gastos Variáveis');
+
+    // Sheet 4 — Cartões
+    const cartoesData = [['Cartão','Vencimento','Limite','Valor ' + mesAtual.toUpperCase()]];
+    cartoes.forEach(function(c){
+      const v = (c.valores?.[anoAtual]||{})[mesAtual]||0;
+      cartoesData.push([c.nome, c.vencimento, c.limite, v]);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cartoesData), 'Cartões');
+
+    // Sheet 5 — Receitas do mês
+    const receitasData = [['Data','Categoria','Descrição','Valor','Recorrente']];
+    receitas.filter(function(r){ return r.mes===mesAtual&&r.ano===anoAtual; })
+      .forEach(function(r){ receitasData.push([r.data,r.categoria,r.descricao,r.valor,r.recorrente?'Sim':'Não']); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(receitasData), 'Receitas');
+
+    // Sheet 6 — Anual (todos os 12 meses)
+    const anualData = [['Mês','Receitas','Despesas','Saldo','Cartões','Fixos','Variáveis','Extras']];
+    MESES.forEach(function(m){
+      const s = calcularSaldo(m); const t = calcularTotais(m);
+      anualData.push([m.toUpperCase(), s.receitas, s.despesas, s.saldo, t.cartoes, t.fixos, t.variaveis, t.extras]);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(anualData), 'Anual ' + anoAtual);
+
+    XLSX.writeFile(wb, 'relatorio-' + mesAtual + '-' + anoAtual + '.xlsx');
+    if(window.showToast) showToast('Excel gerado com sucesso! (6 abas)','success');
   };
   const moverDadosEntreAnos = (anoOrigem, anoDestino) => {
     if (!confirm(`⚠️ Confirma MOVER todos os dados de ${anoOrigem} para ${anoDestino}?\n\nIsso vai:\n✅ Copiar cartões, receitas e gastos\n✅ Mover status de pagamentos\n⚠️ APAGAR dados de ${anoOrigem}`)) {
@@ -3685,6 +3955,7 @@ function App({
     const [categoria, setCategoria] = useState('SALÁRIO');
     const [descricao, setDescricao] = useState('');
     const [valor, setValor] = useState('');
+    const [recorrente, setRecorrente] = useState(false);
     const handleSubmit = e => {
       e.preventDefault();
       console.log('Submit receita:', {
@@ -3696,7 +3967,8 @@ function App({
         adicionarReceita({
           categoria,
           descricao,
-          valor
+          valor,
+          recorrente
         });
       } else {
         alert('Preencha o valor!');
@@ -4904,7 +5176,8 @@ function App({
               /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
                 /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'8px', marginBottom:'3px'}},
                   /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.85rem', fontWeight:'700', color:'#111827'}}, receita.categoria),
-                  receita.descricao && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.73rem', color:'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'180px'}}, "\xB7 " + receita.descricao)
+                  receita.recorrente && /*#__PURE__*/React.createElement("span", {title:"Recorrente", style:{fontSize:'0.62rem', background:'#dcfce7', color:'#16a34a', padding:'1px 7px', borderRadius:'10px', fontWeight:'800', flexShrink:0}}, "\uD83D\uDD04 Recorrente"),
+                  receita.descricao && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.73rem', color:'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'160px'}}, "\xB7 " + receita.descricao)
                 ),
                 /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:'#d1d5db'}}, receita.data || '')
               ),
@@ -4986,9 +5259,106 @@ function App({
     );
   };
 
+  // ── GRÁFICOS HISTÓRICOS ──────────────────────────────────────────────────
+  const TelaHistorico = React.memo(function TelaHistorico() {
+    var ref1 = React.useRef(null);
+    var ref2 = React.useRef(null);
+    var ref3 = React.useRef(null);
+    var inst1 = React.useRef(null);
+    var inst2 = React.useRef(null);
+    var inst3 = React.useRef(null);
+
+    React.useEffect(function() {
+      var Chart = window.Chart;
+      if (!Chart) return;
+      // Destruir instâncias anteriores
+      [inst1, inst2, inst3].forEach(function(r) { if (r.current) { r.current.destroy(); r.current = null; } });
+
+      var labels = MESES.map(function(m) { return m.toUpperCase(); });
+      var dadosAnuais = MESES.map(function(m) { return calcularSaldo(m); });
+      var tAtual = calcularTotais(mesAtual);
+
+      // Gráfico 1 — Barras: Receitas vs Despesas
+      if (ref1.current) {
+        inst1.current = new Chart(ref1.current, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              { label: 'Receitas', data: dadosAnuais.map(function(d){ return d.receitas; }), backgroundColor: 'rgba(16,185,129,0.85)', borderRadius: 6 },
+              { label: 'Despesas', data: dadosAnuais.map(function(d){ return d.despesas; }), backgroundColor: 'rgba(239,68,68,0.85)', borderRadius: 6 }
+            ]
+          },
+          options: { responsive: true, interaction: { mode: 'index' }, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v){ return 'R$'+v.toLocaleString('pt-BR'); } } } } }
+        });
+      }
+
+      // Gráfico 2 — Linha: Evolução do Saldo
+      if (ref2.current) {
+        var saldos = dadosAnuais.map(function(d){ return d.saldo; });
+        inst2.current = new Chart(ref2.current, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Saldo (R$)',
+              data: saldos,
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99,102,241,0.1)',
+              fill: true, tension: 0.4,
+              pointBackgroundColor: saldos.map(function(v){ return v >= 0 ? '#10b981' : '#ef4444'; }),
+              pointRadius: 5
+            }]
+          },
+          options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { ticks: { callback: function(v){ return 'R$'+v.toLocaleString('pt-BR'); } } } } }
+        });
+      }
+
+      // Gráfico 3 — Rosca: Composição do mês atual
+      if (ref3.current) {
+        inst3.current = new Chart(ref3.current, {
+          type: 'doughnut',
+          data: {
+            labels: ['Cartões', 'Fixos', 'Variáveis', 'Extras'],
+            datasets: [{ data: [tAtual.cartoes, tAtual.fixos, tAtual.variaveis, tAtual.extras], backgroundColor: ['#6366f1','#f59e0b','#10b981','#ef4444'], borderWidth: 2, hoverOffset: 6 }]
+          },
+          options: { responsive: true, plugins: { legend: { position: 'right' }, tooltip: { callbacks: { label: function(ctx){ return ctx.label + ': R$ ' + ctx.parsed.toLocaleString('pt-BR',{minimumFractionDigits:2}); } } } } }
+        });
+      }
+
+      return function() {
+        [inst1, inst2, inst3].forEach(function(r) { if (r.current) { r.current.destroy(); r.current = null; } });
+      };
+    }, [mesAtual, anoAtual]);
+
+    return React.createElement('div', { className: 'space-y-4' },
+      React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' } },
+        React.createElement('h3', { style: { fontSize: '1rem', fontWeight: '800', color: '#1e1b4b', margin: 0 } }, '📈 Histórico ' + anoAtual),
+        React.createElement('span', { style: { fontSize: '0.72rem', background: '#eef2ff', color: '#6366f1', padding: '3px 10px', borderRadius: '20px', fontWeight: '700' } }, mesAtual.toUpperCase())
+      ),
+      // Card 1: Barras
+      React.createElement('div', { style: { background: '#fff', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' } },
+        React.createElement('div', { style: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px', color: '#6366f1', marginBottom: '14px', textTransform: 'uppercase' } }, '📊 Receitas vs Despesas — ' + anoAtual),
+        React.createElement('canvas', { ref: ref1, style: { maxHeight: '220px' } })
+      ),
+      // Cards 2 e 3 lado a lado
+      React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '16px' } },
+        React.createElement('div', { style: { background: '#fff', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' } },
+          React.createElement('div', { style: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px', color: '#6366f1', marginBottom: '14px', textTransform: 'uppercase' } }, '📈 Evolução do Saldo'),
+          React.createElement('canvas', { ref: ref2, style: { maxHeight: '200px' } })
+        ),
+        React.createElement('div', { style: { background: '#fff', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' } },
+          React.createElement('div', { style: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px', color: '#6366f1', marginBottom: '14px', textTransform: 'uppercase' } }, '🍩 Composição ' + mesAtual.toUpperCase()),
+          React.createElement('canvas', { ref: ref3, style: { maxHeight: '200px' } })
+        )
+      )
+    );
+  });
+  // ────────────────────────────────────────────────────────────────────────────
+
   const TelaPlanejamento = () => {
     // Controlar aba via telaAtiva do menu
-    const abaAtiva = telaAtiva === 'planejamento-orcamento' || telaAtiva === 'planejamento-premes' ? 'orcamento' : telaAtiva === 'planejamento-metas' || telaAtiva === 'planejamento-dividas' ? 'metas' : telaAtiva === 'planejamento-compra' || telaAtiva === 'planejamento-simulador' || telaAtiva === 'planejamento-aposentadoria' || telaAtiva === 'planejamento-quitacao' ? 'simulacoes' : 'diagnostico';
+    const abaAtiva = telaAtiva === 'planejamento-orcamento' || telaAtiva === 'planejamento-premes' ? 'orcamento' : telaAtiva === 'planejamento-metas' || telaAtiva === 'planejamento-dividas' ? 'metas' : telaAtiva === 'planejamento-compra' || telaAtiva === 'planejamento-simulador' || telaAtiva === 'planejamento-aposentadoria' || telaAtiva === 'planejamento-quitacao' ? 'simulacoes' : telaAtiva === 'planejamento-historico' ? 'historico' : 'diagnostico';
     const subAba = telaAtiva === 'planejamento-premes' ? 'premes' : telaAtiva === 'planejamento-dividas' ? 'dividas' : telaAtiva === 'planejamento-compra' ? 'compra' : telaAtiva === 'planejamento-simulador' ? 'simulador' : telaAtiva === 'planejamento-aposentadoria' ? 'aposentadoria' : telaAtiva === 'planejamento-quitacao' ? 'quitacao' : telaAtiva === 'planejamento-timeline' ? 'timeline' : null;
 
     // Estados do Simulador
@@ -6610,9 +6980,98 @@ function App({
       )
     )
   ),
+  (abaAtiva === 'historico') && React.createElement(TelaHistorico, null)
 )
 
   };
+  // ── TELA DE RELATÓRIOS ───────────────────────────────────────────────────
+  const TelaRelatorios = () => {
+    const saldoMes = calcularSaldo(mesAtual);
+    const fmt = v => 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+    const pctEcon = saldoMes.receitas > 0 ? (saldoMes.saldo/saldoMes.receitas*100).toFixed(1) : '0.0';
+    const dadosAnuais = MESES.map(function(m){ var s=calcularSaldo(m); return {mes:m.toUpperCase(), receitas:s.receitas, despesas:s.despesas, saldo:s.saldo}; });
+
+    return React.createElement('div', {className:'space-y-4'},
+      // Header
+      React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+        React.createElement('div', null,
+          React.createElement('h2', {style:{fontSize:'1.1rem',fontWeight:'800',color:'#1e1b4b',margin:0}}, '📊 Relatórios Financeiros'),
+          React.createElement('p', {style:{fontSize:'0.75rem',color:'#9ca3af',margin:'4px 0 0'}}, 'Exporte seus dados em PDF ou Excel')
+        ),
+        React.createElement('div', {style:{display:'flex',gap:'10px'}},
+          React.createElement('button', {
+            onClick: exportarPDF,
+            style:{display:'flex',alignItems:'center',gap:'7px',padding:'10px 18px',border:'none',borderRadius:'12px',background:'linear-gradient(135deg,#dc2626,#ef4444)',color:'#fff',fontSize:'0.82rem',fontWeight:'700',cursor:'pointer',boxShadow:'0 4px 14px rgba(239,68,68,0.35)'}
+          }, '📄 Exportar PDF'),
+          React.createElement('button', {
+            onClick: exportarExcel,
+            style:{display:'flex',alignItems:'center',gap:'7px',padding:'10px 18px',border:'none',borderRadius:'12px',background:'linear-gradient(135deg,#059669,#10b981)',color:'#fff',fontSize:'0.82rem',fontWeight:'700',cursor:'pointer',boxShadow:'0 4px 14px rgba(16,185,129,0.35)'}
+          }, '📊 Exportar Excel')
+        )
+      ),
+
+      // Cards de resumo do mês
+      React.createElement('div', {style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px'}},
+        [
+          {label:'Receitas '+mesAtual.toUpperCase(), valor:saldoMes.receitas, bg:'linear-gradient(135deg,#065f46,#10b981)', icon:'💰'},
+          {label:'Despesas '+mesAtual.toUpperCase(), valor:saldoMes.despesas, bg:'linear-gradient(135deg,#7f1d1d,#ef4444)', icon:'💸'},
+          {label:'Saldo '+mesAtual.toUpperCase(),    valor:saldoMes.saldo,    bg: saldoMes.positivo?'linear-gradient(135deg,#1e3a8a,#6366f1)':'linear-gradient(135deg,#7f1d1d,#ef4444)', icon:'📈'},
+          {label:'Taxa de Economia', valor:pctEcon+'%', bg:'linear-gradient(135deg,#4c1d95,#8b5cf6)', icon:'🎯', isStr:true}
+        ].map(function(c,i){
+          return React.createElement('div', {key:i, style:{background:c.bg,borderRadius:'16px',padding:'18px',color:'#fff',boxShadow:'0 4px 20px rgba(0,0,0,0.15)'}},
+            React.createElement('div', {style:{fontSize:'1.5rem',marginBottom:'8px'}}, c.icon),
+            React.createElement('div', {style:{fontSize:'0.62rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',opacity:0.7,marginBottom:'6px'}}, c.label),
+            React.createElement('div', {style:{fontSize:'1.2rem',fontWeight:'900'}}, c.isStr ? c.valor : fmt(c.valor))
+          );
+        })
+      ),
+
+      // Preview anual
+      React.createElement('div', {style:{background:'#fff',borderRadius:'16px',border:'1px solid #e2e8f0',overflow:'hidden',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+        React.createElement('div', {style:{padding:'16px 20px',borderBottom:'1px solid #f1f5f9',background:'#fafbff'}},
+          React.createElement('h3', {style:{margin:0,fontSize:'0.85rem',fontWeight:'800',color:'#1e1b4b'}}, '📅 Resumo Anual ' + anoAtual),
+          React.createElement('p', {style:{margin:'4px 0 0',fontSize:'0.7rem',color:'#9ca3af'}}, 'Clique em Exportar Excel para ver os detalhes completos em 6 abas')
+        ),
+        React.createElement('div', {style:{overflowX:'auto'}},
+          React.createElement('table', {style:{width:'100%',borderCollapse:'collapse',fontSize:'0.78rem'}},
+            React.createElement('thead', null,
+              React.createElement('tr', {style:{background:'#f8fafc'}},
+                ['Mês','Receitas','Despesas','Saldo'].map(function(h){
+                  return React.createElement('th', {key:h, style:{padding:'10px 16px',textAlign:'left',fontWeight:'700',color:'#6b7280',letterSpacing:'0.5px',fontSize:'0.7rem',textTransform:'uppercase'}}, h);
+                })
+              )
+            ),
+            React.createElement('tbody', null,
+              dadosAnuais.map(function(row, i){
+                return React.createElement('tr', {key:i, style:{borderTop:'1px solid #f1f5f9', background: row.mes === mesAtual.toUpperCase() ? '#eef2ff' : 'transparent'}},
+                  React.createElement('td', {style:{padding:'10px 16px',fontWeight:'700',color: row.mes===mesAtual.toUpperCase()?'#6366f1':'#374151'}}, row.mes),
+                  React.createElement('td', {style:{padding:'10px 16px',color:'#059669',fontWeight:'600'}}, fmt(row.receitas)),
+                  React.createElement('td', {style:{padding:'10px 16px',color:'#dc2626',fontWeight:'600'}}, fmt(row.despesas)),
+                  React.createElement('td', {style:{padding:'10px 16px',fontWeight:'700',color:row.saldo>=0?'#059669':'#dc2626'}}, fmt(row.saldo))
+                );
+              })
+            )
+          )
+        )
+      ),
+
+      // Botões grandes de export
+      React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}},
+        React.createElement('div', {style:{background:'linear-gradient(135deg,#fef2f2,#fee2e2)',borderRadius:'16px',padding:'24px',border:'1.5px solid #fecaca',cursor:'pointer'},onClick:exportarPDF},
+          React.createElement('div', {style:{fontSize:'2.5rem',marginBottom:'12px'}}, '📄'),
+          React.createElement('h3', {style:{margin:'0 0 6px',fontSize:'1rem',fontWeight:'800',color:'#dc2626'}}, 'Relatório PDF'),
+          React.createElement('p', {style:{margin:0,fontSize:'0.75rem',color:'#9f1239',lineHeight:'1.5'}}, 'Resumo completo do mês com gráficos, tabelas de despesas, lista de gastos variáveis e progresso das metas.')
+        ),
+        React.createElement('div', {style:{background:'linear-gradient(135deg,#f0fdf4,#dcfce7)',borderRadius:'16px',padding:'24px',border:'1.5px solid #bbf7d0',cursor:'pointer'},onClick:exportarExcel},
+          React.createElement('div', {style:{fontSize:'2.5rem',marginBottom:'12px'}}, '📊'),
+          React.createElement('h3', {style:{margin:'0 0 6px',fontSize:'1rem',fontWeight:'800',color:'#059669'}}, 'Planilha Excel'),
+          React.createElement('p', {style:{margin:0,fontSize:'0.75rem',color:'#065f46',lineHeight:'1.5'}}, '6 abas: Resumo, Gastos Fixos, Gastos Variáveis, Cartões, Receitas e Resumo Anual completo.')
+        )
+      )
+    );
+  };
+  // ────────────────────────────────────────────────────────────────────────────
+
   const TelaFarol = () => {
     const [filtroStatus, setFiltroStatus] = useState('todos');
     const [modalPagamento, setModalPagamento] = useState(null);
@@ -6958,7 +7417,7 @@ function App({
     isUserAdmin: isUserAdmin
   }), telaAtiva.startsWith('planejamento') && /*#__PURE__*/React.createElement(TelaPlanejamento, null), telaAtiva === 'receitas' && /*#__PURE__*/React.createElement(TelaReceitas, null), telaAtiva === 'cartoes' && /*#__PURE__*/React.createElement(TelaCartoes, {
     key: JSON.stringify(farol)
-  }), telaAtiva === 'fixos' && /*#__PURE__*/React.createElement(TelaGastosFixos, null), telaAtiva === 'variaveis' && /*#__PURE__*/React.createElement(TelaGastosVariaveis, null), telaAtiva === 'extras' && /*#__PURE__*/React.createElement(TelaGastosExtras, null), telaAtiva === 'farol' && /*#__PURE__*/React.createElement(TelaFarol, null)), modalAberto === 'editar' && itemEditando && /*#__PURE__*/React.createElement(Modal, {
+  }), telaAtiva === 'fixos' && /*#__PURE__*/React.createElement(TelaGastosFixos, null), telaAtiva === 'variaveis' && /*#__PURE__*/React.createElement(TelaGastosVariaveis, null), telaAtiva === 'extras' && /*#__PURE__*/React.createElement(TelaGastosExtras, null), telaAtiva === 'farol' && /*#__PURE__*/React.createElement(TelaFarol, null), telaAtiva === 'relatorios' && /*#__PURE__*/React.createElement(TelaRelatorios, null)), modalAberto === 'editar' && itemEditando && /*#__PURE__*/React.createElement(Modal, {
     titulo: `✏️ Editar ${tipoEditando === 'receita' ? 'Receita' : tipoEditando === 'cartao' ? 'Cartão' : tipoEditando === 'fixo' ? 'Gasto Fixo' : 'Gasto Variável'}`,
     onClose: () => {
       setModalAberto(null);
@@ -7354,6 +7813,7 @@ function App({
       onConfirm: (v) => { setInputDialog(null); inputDialog.callback(v); },
       onCancel: () => setInputDialog(null)
     })
+  , /*#__PURE__*/React.createElement(ToastContainer, null)
   );
 }
 const rootEl = document.getElementById('root');
