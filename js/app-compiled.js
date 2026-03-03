@@ -4604,6 +4604,7 @@ function App({
     const hoje = estamosNoMesAtual ? dataAtual.getDate() : -1;
 
     const [cartaoSelId, setCartaoSelId] = React.useState(cartoes[0]?.id || null);
+    const [valorFaturaEdit, setValorFaturaEdit] = React.useState('');
 
     React.useEffect(() => {
       if (cartoes.length > 0 && (!cartaoSelId || !cartoes.find(c => c.id === cartaoSelId))) {
@@ -4664,6 +4665,11 @@ function App({
       disponivel = limite > 0 ? Math.max(0, limite - usado) : 0;
       pctLimite = limite > 0 ? Math.min(100, usado/limite*100) : 0;
     }
+
+    // Sincroniza o input local quando trocar de cartão ou de mês
+    React.useEffect(() => {
+      setValorFaturaEdit(valorBase > 0 ? String(valorBase) : '');
+    }, [cartaoSelId, mesAtual]);
 
     return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'280px 1fr', gap:'16px', alignItems:'start'}},
 
@@ -4767,8 +4773,10 @@ function App({
                 /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, '\uD83D\uDCB5 Fatura '+mesAtual.toUpperCase()),
                 /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}},
                   /*#__PURE__*/React.createElement("input", {
-                    type:'number', step:'0.01', value:valorBase,
-                    onChange: e => editarValorCartao(cartao.id, mesAtual, e.target.value),
+                    type:'number', step:'0.01', value:valorFaturaEdit,
+                    onChange: e => setValorFaturaEdit(e.target.value),
+                    onBlur: e => cartao && editarValorCartao(cartao.id, mesAtual, e.target.value),
+                    onKeyDown: e => { if (e.key === 'Enter' && cartao) { editarValorCartao(cartao.id, mesAtual, valorFaturaEdit); e.target.blur(); } },
                     placeholder:'Outras cobran\xE7as',
                     style:{width:'130px', padding:'7px 10px', border:'2px solid '+C.border, borderRadius:'9px', fontSize:'0.85rem', textAlign:'right', outline:'none', color:C.text}
                   }),
