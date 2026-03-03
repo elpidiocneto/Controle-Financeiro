@@ -422,7 +422,7 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
             style: subItemStyle(telaAtiva === 'variaveis'),
             onMouseEnter: e => { if (telaAtiva !== 'variaveis') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (telaAtiva !== 'variaveis') e.currentTarget.style.background = 'transparent'; }
-          }, '📊 Compras e Gastos'),
+          }, '📊 Gastos Variáveis'),
           React.createElement('div', {
             onClick: () => navegar('extras', true),
             style: subItemStyle(telaAtiva === 'extras'),

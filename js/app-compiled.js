@@ -2744,7 +2744,7 @@ function App({
     const cats = [
       ['Cartoes',          totais.cartoes],
       ['Contas Fixas',     totais.fixos],
-      ['Compras e Gastos', totais.variaveis],
+      ['Gastos Variáveis', totais.variaveis],
       ['Gastos Extras',    totais.extras]
     ];
     cats.forEach(function(row) {
@@ -2766,7 +2766,7 @@ function App({
     const varMes = gastosVariaveis.filter(function(g){ return g.mes===mesAtual && g.ano===anoAtual; });
     if (varMes.length > 0) {
       doc.setTextColor(30,30,30); doc.setFont('helvetica','bold'); doc.setFontSize(12);
-      doc.text('Compras e Gastos (' + varMes.length + ' lancamentos)', 14, y); y += 8;
+      doc.text('Gastos Variáveis (' + varMes.length + ' lancamentos)', 14, y); y += 8;
       varMes.slice(0,25).forEach(function(g) {
         doc.setFont('helvetica','normal'); doc.setFontSize(9);
         doc.setFillColor(250,252,255); doc.rect(14, y, 182, 8, 'F');
@@ -2827,7 +2827,7 @@ function App({
       ['CATEGORIA',      'VALOR (R$)', '% do Total'],
       ['Cartões',        totais.cartoes,  totais.total>0?(totais.cartoes/totais.total*100).toFixed(1)+'%':'0%'],
       ['Contas Fixas',   totais.fixos,    totais.total>0?(totais.fixos/totais.total*100).toFixed(1)+'%':'0%'],
-      ['Compras e Gastos',totais.variaveis,totais.total>0?(totais.variaveis/totais.total*100).toFixed(1)+'%':'0%'],
+      ['Gastos Variáveis',totais.variaveis,totais.total>0?(totais.variaveis/totais.total*100).toFixed(1)+'%':'0%'],
       ['Gastos Extras',  totais.extras,   totais.total>0?(totais.extras/totais.total*100).toFixed(1)+'%':'0%'],
       ['TOTAL',          totais.total,    '100%']
     ];
@@ -2842,7 +2842,7 @@ function App({
     const varData = [['Data','Categoria','Descrição','Valor']];
     gastosVariaveis.filter(function(g){ return g.mes===mesAtual&&g.ano===anoAtual; })
       .forEach(function(g){ varData.push([g.data,g.categoria,g.descricao,g.valor]); });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(varData), 'Compras e Gastos');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(varData), 'Gastos Variáveis');
 
     // Sheet 4 — Cartões
     const cartoesData = [['Cartão','Vencimento','Limite','Valor ' + mesAtual.toUpperCase()]];
@@ -2859,7 +2859,7 @@ function App({
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(receitasData), 'Receitas');
 
     // Sheet 6 — Anual (todos os 12 meses)
-    const anualData = [['Mês','Receitas','Despesas','Saldo','Cartões de Crédito','Contas Fixas','Compras e Gastos','Extras']];
+    const anualData = [['Mês','Receitas','Despesas','Saldo','Cartões de Crédito','Contas Fixas','Gastos Variáveis','Extras']];
     MESES.forEach(function(m){
       const s = calcularSaldo(m); const t = calcularTotais(m);
       anualData.push([m.toUpperCase(), s.receitas, s.despesas, s.saldo, t.cartoes, t.fixos, t.variaveis, t.extras]);
@@ -3803,7 +3803,7 @@ function App({
       placeholder: "5500.00"
     })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       className: "block text-sm font-semibold text-gray-700 mb-2"
-    }, "\uD83D\uDCCA Or\xE7amento para Compras e Gastos"), /*#__PURE__*/React.createElement("input", {
+    }, "\uD83D\uDCCA Or\xE7amento para Gastos Variáveis"), /*#__PURE__*/React.createElement("input", {
       type: "number",
       step: "0.01",
       value: variaveis,
@@ -5146,7 +5146,7 @@ function App({
       /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
         /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid '+C.borderLight, display:'flex', justifyContent:'space-between', alignItems:'center'}},
           /*#__PURE__*/React.createElement("div", null,
-            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:C.text}}, categoriaFiltro==='TODAS'?"Todas as Compras e Gastos":"Gastos \xB7 "+categoriaFiltro),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:C.text}}, categoriaFiltro==='TODAS'?"Todas as Gastos Variáveis":"Gastos \xB7 "+categoriaFiltro),
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textFaint, marginTop:'2px'}}, gastosFiltrados.length+" gasto"+(gastosFiltrados.length!==1?"s":"")+" \xB7 mais recentes primeiro")
           ),
           gastosFiltrados.length>0 && /*#__PURE__*/React.createElement("div", {style:{fontWeight:'900', fontSize:'1.1rem', color:'#c2410c'}}, "R$ "+totalFiltrado.toFixed(2))
@@ -6114,7 +6114,7 @@ function App({
   /*#__PURE__*/React.createElement("div", null,
     /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}},
       /*#__PURE__*/React.createElement("div", null,
-        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:C.text}}, '📊 Compras e Gastos'),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:C.text}}, '📊 Gastos Variáveis'),
         /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textFaint, marginTop:'2px'}},
           'R$ ' + totais.variaveis.toFixed(2) + ' / R$ ' + orcamento.variaveis.toFixed(2)
         )
@@ -7319,7 +7319,7 @@ function App({
         React.createElement('div', {style:{background:'linear-gradient(135deg,#f0fdf4,#dcfce7)',borderRadius:'16px',padding:'24px',border:'1.5px solid #bbf7d0',cursor:'pointer'},onClick:exportarExcel},
           React.createElement('div', {style:{fontSize:'2.5rem',marginBottom:'12px'}}, '📊'),
           React.createElement('h3', {style:{margin:'0 0 6px',fontSize:'1rem',fontWeight:'800',color:'#059669'}}, 'Planilha Excel'),
-          React.createElement('p', {style:{margin:0,fontSize:'0.75rem',color:'#065f46',lineHeight:'1.5'}}, '6 abas: Resumo, Contas Fixas, Compras e Gastos, Cartões de Crédito, Receitas e Resumo Anual completo.')
+          React.createElement('p', {style:{margin:0,fontSize:'0.75rem',color:'#065f46',lineHeight:'1.5'}}, '6 abas: Resumo, Contas Fixas, Gastos Variáveis, Cartões de Crédito, Receitas e Resumo Anual completo.')
         )
       )
     );
