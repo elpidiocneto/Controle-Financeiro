@@ -4834,6 +4834,218 @@ function App({
     );
   };
 
+
+  const FormImportarCSV = () => {
+    const [etapa, setEtapa] = React.useState(1);
+    const [csvLinhas, setCsvLinhas] = React.useState([]);
+    const [csvColunas, setCsvColunas] = React.useState([]);
+    const [temHeader, setTemHeader] = React.useState(true);
+    const [colValor, setColValor] = React.useState(0);
+    const [colDesc, setColDesc] = React.useState(1);
+    const [colData, setColData] = React.useState(-1);
+    const [colCat, setColCat] = React.useState(-1);
+    const [catPadrao, setCatPadrao] = React.useState('MERCADO');
+    const [inverterValor, setInverterValor] = React.useState(false);
+    const [selecionados, setSelecionados] = React.useState(new Set());
+    const [erroArquivo, setErroArquivo] = React.useState('');
+
+    const categoriasVariaveisDefault = ['MERCADO', 'FARM\u00c1CIA', 'ALIMENTA\u00c7\u00c3O', 'TRANSPORTE', 'GASOLINA', 'LAZER'];
+    const todasCategorias = [...categoriasVariaveisDefault, ...categoriasPersonalizadas.gastosVariaveis];
+
+    function parseCSV(texto) {
+      const primeira = texto.split('\n')[0];
+      const sep = (primeira.split(';').length > primeira.split(',').length) ? ';' : ',';
+      const linhas = texto.split('\n')
+        .map(function(l) { return l.trim(); })
+        .filter(function(l) { return l.length > 0; })
+        .map(function(l) {
+          const cols = []; let cur = ''; let dentro = false;
+          for (let i = 0; i < l.length; i++) {
+            const ch = l[i];
+            if (ch === '"') { dentro = !dentro; }
+            else if (ch === sep && !dentro) { cols.push(cur.trim()); cur = ''; }
+            else { cur += ch; }
+          }
+          cols.push(cur.trim());
+          return cols;
+        });
+      return { linhas: linhas };
+    }
+
+    function handleArquivo(file) {
+      setErroArquivo('');
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const { linhas } = parseCSV(e.target.result);
+          if (linhas.length < 2) { setErroArquivo('Arquivo vazio ou inv\u00e1lido.'); return; }
+          setCsvLinhas(linhas);
+          setCsvColunas(linhas[0]);
+          let vIdx = 0, dIdx = 1, dtIdx = -1, cIdx = -1;
+          linhas[0].forEach(function(col, i) {
+            const c = col.toLowerCase().replace(/\s/g, '');
+            if (/valor|amount|quantia|montante/.test(c)) vIdx = i;
+            if (/desc|titulo|title|histor|lancamento|memo|estabele/.test(c)) dIdx = i;
+            if (/data|date/.test(c)) dtIdx = i;
+            if (/categ|tipo|type/.test(c)) cIdx = i;
+          });
+          setColValor(vIdx); setColDesc(dIdx); setColData(dtIdx); setColCat(cIdx);
+          const idxs = []; for (let i = 0; i < linhas.length - 1; i++) idxs.push(i);
+          setSelecionados(new Set(idxs));
+          setEtapa(2);
+        } catch(err) { setErroArquivo('Erro ao processar: ' + err.message); }
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    function parsearData(str) {
+      const fallback = { data: new Date().toLocaleDateString('pt-BR'), dataCompleta: new Date().toISOString().split('T')[0], mes: mesAtual, ano: anoAtual };
+      if (!str) return fallback;
+      const s = String(str).trim();
+      let d;
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) d = new Date(s.substring(0,10)+'T00:00:00');
+      else if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) { const p=s.split('/'); d=new Date(p[2]+'-'+p[1]+'-'+p[0]+'T00:00:00'); }
+      else if (/^\d{2}-\d{2}-\d{4}/.test(s)) { const p=s.split('-'); d=new Date(p[2]+'-'+p[1]+'-'+p[0]+'T00:00:00'); }
+      if (!d || isNaN(d.getTime())) return { data: s, dataCompleta: '', mes: mesAtual, ano: anoAtual };
+      return { data: d.toLocaleDateString('pt-BR'), dataCompleta: d.toISOString().split('T')[0], mes: MESES[d.getMonth()], ano: d.getFullYear() };
+    }
+
+    function getValor(row) {
+      const r = String(row[colValor] || '0').replace(/\./g, '').replace(',', '.').replace(/[^0-9.\-]/g, '');
+      let v = parseFloat(r); if (isNaN(v)) v = 0;
+      if (inverterValor) v = -v;
+      return v;
+    }
+
+    function importar() {
+      const rows = temHeader ? csvLinhas.slice(1) : csvLinhas;
+      const novos = [];
+      rows.forEach(function(row, i) {
+        if (!selecionados.has(i)) return;
+        const v = getValor(row); if (v <= 0) return;
+        const desc = colDesc >= 0 ? String(row[colDesc]||'').replace(/"/g,'') : '';
+        const cat = (colCat >= 0 && row[colCat]) ? String(row[colCat]).toUpperCase().replace(/"/g,'') : catPadrao;
+        const di = colData >= 0 ? parsearData(row[colData]) : { data: new Date().toLocaleDateString('pt-BR'), dataCompleta: new Date().toISOString().split('T')[0], mes: mesAtual, ano: anoAtual };
+        novos.push({ id: Date.now()+Math.random(), categoria: cat, descricao: desc, valor: v, mes: di.mes, ano: di.ano, data: di.data, dataCompleta: di.dataCompleta });
+      });
+      if (novos.length === 0) { setErroArquivo('Nenhum item v\u00e1lido. Verifique a coluna de valor e se os valores s\u00e3o positivos.'); return; }
+      setGastosVariaveis(function(prev) { return [...prev, ...novos]; });
+      setModalAberto(null);
+      if (window.showToast) showToast(novos.length + ' gasto(s) importado(s)!', 'success');
+    }
+
+    const rows = temHeader ? csvLinhas.slice(1) : csvLinhas;
+    const sel = { width:'100%', padding:'7px 10px', border:'1.5px solid #e5e7eb', borderRadius:'8px', fontSize:'0.8rem', background:'#f9fafb', color:'#111827' };
+    const lbl = { fontSize:'0.72rem', fontWeight:'700', color:'#6b7280', marginBottom:'3px', display:'block' };
+    const rw  = { display:'flex', flexDirection:'column', marginBottom:'12px' };
+    const opcs = csvColunas.map(function(c,i){ return React.createElement('option',{key:i,value:i},c||'Coluna '+(i+1)); });
+    const opcsN= [React.createElement('option',{key:-1,value:-1},'\u2014 n\u00e3o usar \u2014')].concat(csvColunas.map(function(c,i){ return React.createElement('option',{key:i,value:i},c||'Coluna '+(i+1)); }));
+    const totalSel = rows.filter(function(row,i){ return selecionados.has(i) && getValor(row)>0; }).length;
+    const prev5 = rows.slice(0,5).map(function(row){
+      const v=getValor(row), di=colData>=0?parsearData(row[colData]):{data:'-',mes:mesAtual,ano:anoAtual};
+      return { data:di.data, cat:(colCat>=0&&row[colCat])?String(row[colCat]).toUpperCase().replace(/"/g,''):catPadrao, desc:colDesc>=0?String(row[colDesc]||'').replace(/"/g,''):'', valor:v };
+    });
+
+    if (etapa === 1) return React.createElement('div', {style:{padding:'8px 0'}},
+      React.createElement('div', {style:{fontSize:'0.8rem',color:'#6b7280',marginBottom:'20px',textAlign:'center'}}, 'Suportados: Nubank \u00b7 Ita\u00fa \u00b7 Bradesco \u00b7 Santander \u00b7 C6 \u00b7 Inter'),
+      React.createElement('div', {
+        onClick: function(){ document.getElementById('csvFileInput').click(); },
+        onDragOver: function(e){ e.preventDefault(); },
+        onDrop: function(e){ e.preventDefault(); const f=e.dataTransfer.files[0]; if(f) handleArquivo(f); },
+        style:{border:'2.5px dashed #c7d2fe',borderRadius:'16px',padding:'40px 20px',textAlign:'center',cursor:'pointer',background:'#eef2ff',marginBottom:'16px'}
+      },
+        React.createElement('div',{style:{fontSize:'2.5rem',marginBottom:'10px'}},'\uD83D\uDCC4'),
+        React.createElement('div',{style:{fontSize:'0.95rem',fontWeight:'800',color:'#4f46e5',marginBottom:'6px'}},'Clique ou arraste seu arquivo .csv'),
+        React.createElement('div',{style:{fontSize:'0.75rem',color:'#818cf8'}},'Formatos .csv e .txt suportados')
+      ),
+      React.createElement('input',{id:'csvFileInput',type:'file',accept:'.csv,.txt',style:{display:'none'},onChange:function(e){const f=e.target.files[0];if(f)handleArquivo(f);}}),
+      erroArquivo ? React.createElement('div',{style:{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:'10px',padding:'10px 14px',color:'#dc2626',fontSize:'0.8rem',fontWeight:'600'}},erroArquivo) : null
+    );
+
+    return React.createElement('div', {style:{padding:'0'}},
+      React.createElement('div',{style:{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:'10px',padding:'8px 14px',marginBottom:'14px',fontSize:'0.78rem',fontWeight:'700',color:'#15803d'}},
+        '\u2705 '+(csvLinhas.length-(temHeader?1:0))+' linhas \u00b7 '+csvColunas.length+' colunas detectadas'
+      ),
+      React.createElement('div',{style:{background:'#f9fafb',border:'1px solid #e5e7eb',borderRadius:'12px',padding:'14px',marginBottom:'14px'}},
+        React.createElement('div',{style:{fontSize:'0.82rem',fontWeight:'800',color:'#111827',marginBottom:'12px'}},'\uD83D\uDDFA\uFE0F Mapeamento de Colunas'),
+        React.createElement('div',{style:rw},
+          React.createElement('label',{style:lbl},'Coluna do Valor *'),
+          React.createElement('select',{style:sel,value:colValor,onChange:function(e){setColValor(parseInt(e.target.value));}}, ...opcs)
+        ),
+        React.createElement('div',{style:rw},
+          React.createElement('label',{style:lbl},'Coluna da Descri\u00e7\u00e3o'),
+          React.createElement('select',{style:sel,value:colDesc,onChange:function(e){setColDesc(parseInt(e.target.value));}}, ...opcsN)
+        ),
+        React.createElement('div',{style:rw},
+          React.createElement('label',{style:lbl},'Coluna da Data'),
+          React.createElement('select',{style:sel,value:colData,onChange:function(e){setColData(parseInt(e.target.value));}}, ...opcsN)
+        ),
+        React.createElement('div',{style:rw},
+          React.createElement('label',{style:lbl},'Categoria Padr\u00e3o'),
+          React.createElement('select',{style:sel,value:catPadrao,onChange:function(e){setCatPadrao(e.target.value);}},
+            ...todasCategorias.map(function(c){return React.createElement('option',{key:c,value:c},c);})
+          )
+        ),
+        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'8px',marginTop:'4px'}},
+          React.createElement('input',{type:'checkbox',id:'csvInverter',checked:inverterValor,onChange:function(e){setInverterValor(e.target.checked);},style:{width:'16px',height:'16px',cursor:'pointer'}}),
+          React.createElement('label',{htmlFor:'csvInverter',style:{fontSize:'0.78rem',fontWeight:'600',color:'#374151',cursor:'pointer'}},'Valores est\u00e3o negativos (d\u00e9bitos do extrato)')
+        )
+      ),
+      prev5.length > 0 ? React.createElement('div',{style:{marginBottom:'14px'}},
+        React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'800',color:'#6b7280',marginBottom:'8px'}},'\uD83D\uDC41\uFE0F Preview (5 primeiros itens)'),
+        React.createElement('div',{style:{overflowX:'auto',borderRadius:'10px',border:'1px solid #e5e7eb'}},
+          React.createElement('table',{style:{width:'100%',borderCollapse:'collapse',fontSize:'0.72rem'}},
+            React.createElement('thead',null,
+              React.createElement('tr',{style:{background:'#f3f4f6'}},
+                React.createElement('th',{style:{padding:'6px 10px',textAlign:'left',color:'#6b7280',fontWeight:'700'}},'Data'),
+                React.createElement('th',{style:{padding:'6px 10px',textAlign:'left',color:'#6b7280',fontWeight:'700'}},'Categoria'),
+                React.createElement('th',{style:{padding:'6px 10px',textAlign:'left',color:'#6b7280',fontWeight:'700'}},'Descri\u00e7\u00e3o'),
+                React.createElement('th',{style:{padding:'6px 10px',textAlign:'right',color:'#6b7280',fontWeight:'700'}},'Valor')
+              )
+            ),
+            React.createElement('tbody',null,
+              ...prev5.map(function(item,i){
+                return React.createElement('tr',{key:i,style:{borderTop:'1px solid #f3f4f6',background:item.valor>0?'#fff':'#fef2f2'}},
+                  React.createElement('td',{style:{padding:'5px 10px',color:'#374151'}},item.data),
+                  React.createElement('td',{style:{padding:'5px 10px',color:'#374151'}},item.cat),
+                  React.createElement('td',{style:{padding:'5px 10px',color:'#374151',maxWidth:'120px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},item.desc),
+                  React.createElement('td',{style:{padding:'5px 10px',textAlign:'right',fontWeight:'700',color:item.valor>0?'#dc2626':'#9ca3af'}},'R$ '+item.valor.toFixed(2))
+                );
+              })
+            )
+          )
+        )
+      ) : null,
+      React.createElement('div',{style:{marginBottom:'14px'}},
+        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}},
+          React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'800',color:'#6b7280'}},'\u2705 Selecionar Itens'),
+          React.createElement('label',{style:{display:'flex',alignItems:'center',gap:'6px',fontSize:'0.75rem',fontWeight:'700',color:'#4f46e5',cursor:'pointer'}},
+            React.createElement('input',{type:'checkbox',checked:selecionados.size===rows.length,onChange:function(e){if(e.target.checked){const a=[];for(let i=0;i<rows.length;i++)a.push(i);setSelecionados(new Set(a));}else{setSelecionados(new Set());}}}),
+            'Selecionar todos ('+selecionados.size+'/'+rows.length+')'
+          )
+        ),
+        React.createElement('div',{style:{maxHeight:'200px',overflowY:'auto',border:'1px solid #e5e7eb',borderRadius:'10px',background:'#fff'}},
+          ...rows.map(function(row,i){
+            const v=getValor(row), valido=v>0;
+            const desc=colDesc>=0?String(row[colDesc]||'').replace(/"/g,''):String(row[0]||'');
+            return React.createElement('label',{key:i,style:{display:'flex',alignItems:'center',gap:'10px',padding:'7px 12px',borderBottom:'1px solid #f3f4f6',cursor:'pointer',background:selecionados.has(i)?'#fefce8':'#fff',opacity:valido?1:0.45}},
+              React.createElement('input',{type:'checkbox',checked:selecionados.has(i),onChange:function(e){setSelecionados(function(prev){const next=new Set(prev);if(e.target.checked)next.add(i);else next.delete(i);return next;});}}),
+              React.createElement('span',{style:{flex:1,fontSize:'0.75rem',color:'#374151',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},desc||'Linha '+(i+1)),
+              React.createElement('span',{style:{fontSize:'0.75rem',fontWeight:'700',color:valido?'#dc2626':'#9ca3af',whiteSpace:'nowrap'}},valido?'R$ '+v.toFixed(2):'\u2014')
+            );
+          })
+        )
+      ),
+      erroArquivo ? React.createElement('div',{style:{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:'10px',padding:'10px 14px',color:'#dc2626',fontSize:'0.8rem',fontWeight:'600',marginBottom:'12px'}},erroArquivo) : null,
+      React.createElement('div',{style:{display:'flex',gap:'10px'}},
+        React.createElement('button',{onClick:function(){setEtapa(1);setErroArquivo('');},style:{padding:'10px 16px',border:'2px solid #e5e7eb',borderRadius:'10px',background:'#fff',color:'#6b7280',fontSize:'0.8rem',fontWeight:'700',cursor:'pointer'}},'\u2190 Voltar'),
+        React.createElement('button',{onClick:importar,disabled:totalSel===0,style:{flex:1,padding:'11px',border:'none',borderRadius:'10px',background:totalSel>0?'linear-gradient(135deg,#6366f1,#4f46e5)':'#e5e7eb',color:totalSel>0?'#fff':'#9ca3af',fontSize:'0.85rem',fontWeight:'800',cursor:totalSel>0?'pointer':'not-allowed'}},
+          '\uD83D\uDCE5 Importar '+totalSel+' item'+(totalSel!==1?'ens':'')+' selecionado'+(totalSel!==1?'s':'')
+        )
+      )
+    );
+  };
+
   const TelaGastosVariaveis = () => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
     
@@ -4897,7 +5109,8 @@ function App({
         ),
 
         /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(234,88,12,0.35)'}}, "\u2795 Novo Gasto Vari\xE1vel"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid #e5e7eb', borderRadius:'12px', background:'#fff', color:'#6b7280', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('importarCSV'), style:{width:'100%', padding:'10px', border:'2px solid #6366f1', borderRadius:'12px', background:'#eef2ff', color:'#4f46e5', fontSize:'0.78rem', fontWeight:'700', cursor:'pointer', marginTop:'6px'}}, "\uD83D\uDCE5 Importar CSV")
       ),
 
       /*#__PURE__*/React.createElement("div", {style:{background:'#fff', borderRadius:'16px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
@@ -7787,7 +8000,10 @@ function App({
   }, /*#__PURE__*/React.createElement(FormNovoGastoFixo, null)), modalAberto === 'novoGastoVariavel' && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Gasto Vari\xE1vel",
     onClose: () => setModalAberto(null)
-  }, /*#__PURE__*/React.createElement(FormNovoGastoVariavel, null)), modalAberto === 'novoGastoExtra' && /*#__PURE__*/React.createElement(Modal, {
+  }, /*#__PURE__*/React.createElement(FormNovoGastoVariavel, null)), modalAberto === 'importarCSV' && /*#__PURE__*/React.createElement(Modal, {
+    titulo: '\uD83D\uDCE5 Importar Extrato CSV',
+    onClose: () => setModalAberto(null)
+  }, /*#__PURE__*/React.createElement(FormImportarCSV, null)), modalAberto === 'novoGastoExtra' && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Gasto Extra",
     onClose: () => setModalAberto(null)
   }, /*#__PURE__*/React.createElement(FormNovoGastoExtra, null)), modalAberto === 'metas' && /*#__PURE__*/React.createElement(Modal, {
