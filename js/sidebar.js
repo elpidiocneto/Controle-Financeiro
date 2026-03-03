@@ -1,5 +1,5 @@
 // Sidebar v2 - Menu lateral retrátil com calendário
-window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtual, anoAtual, setAnoAtual, isUserAdmin, onExpandChange }) {
+window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtual, anoAtual, setAnoAtual, isUserAdmin, userEmail, onExpandChange }) {
   const [expandido, setExpandido] = React.useState(true);
   const [subMenu, setSubMenu] = React.useState(null);
   const [mostrarCalendario, setMostrarCalendario] = React.useState(false);
@@ -455,15 +455,36 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
       )
     ),
 
-    // Footer
+    // Footer — clica para abrir Configurações
     React.createElement('div', {
+      onClick: () => setTelaAtiva('configuracoes'),
       style: {
-        padding: '16px',
+        padding: '12px 16px',
         borderTop: '1px solid rgba(255,255,255,0.1)',
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: '0.7rem',
-        textAlign: 'center'
-      }
-    }, expandido ? 'Estratégia Finanças v2.0' : 'v2.0')
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        background: telaAtiva === 'configuracoes' ? 'rgba(255,255,255,0.1)' : 'transparent',
+        transition: 'background 0.2s'
+      },
+      onMouseEnter: e => { if (telaAtiva !== 'configuracoes') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
+      onMouseLeave: e => { if (telaAtiva !== 'configuracoes') e.currentTarget.style.background = 'transparent'; }
+    },
+      React.createElement('div', {
+        style: {
+          width: '32px', height: '32px', borderRadius: '50%',
+          background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#fff', fontWeight: '800', fontSize: '0.78rem', flexShrink: 0
+        }
+      }, (userEmail || 'U')[0].toUpperCase()),
+      expandido && React.createElement('div', { style: { flex: 1, minWidth: 0 } },
+        React.createElement('div', {
+          style: { fontSize: '0.68rem', color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
+        }, userEmail || 'usuário'),
+        React.createElement('div', { style: { fontSize: '0.62rem', color: 'rgba(255,255,255,0.4)', marginTop: '1px' } }, '\u2699\uFE0F Configurações')
+      )
+    )
   );
 };
