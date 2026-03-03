@@ -8425,6 +8425,21 @@ function App({
       onConfirm: (v) => { setInputDialog(null); inputDialog.callback(v); },
       onCancel: () => setInputDialog(null)
     })
+  , /*#__PURE__*/React.createElement('button', {
+      onClick: () => { setCartaoParaNovaCompra(null); setModalAberto('compraParcelada'); },
+      title: 'Nova Compra no Cart\u00e3o',
+      onMouseEnter: e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(102,126,234,0.7)'; },
+      onMouseLeave: e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(102,126,234,0.5)'; },
+      style: {
+        position: 'fixed', bottom: '28px', right: '28px', zIndex: 2000,
+        width: '56px', height: '56px', borderRadius: '50%', border: 'none',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: '#fff', fontSize: '28px', fontWeight: '300', lineHeight: 1,
+        cursor: 'pointer', boxShadow: '0 4px 20px rgba(102,126,234,0.5)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+      }
+    }, '+')
   , /*#__PURE__*/React.createElement(ToastContainer, null)
   );
 }
