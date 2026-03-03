@@ -321,7 +321,7 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
         onMouseLeave: e => { if (telaAtiva !== 'dashboard') e.currentTarget.style.background = 'transparent'; }
       },
         React.createElement('span', { style: { fontSize: '1.3rem' } }, '📊'),
-        expandido && React.createElement('span', null, 'Dashboard')
+        expandido && React.createElement('span', null, 'Visão Geral')
       ),
 
       // Admin
@@ -410,19 +410,19 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
             style: subItemStyle(telaAtiva === 'cartoes'),
             onMouseEnter: e => { if (telaAtiva !== 'cartoes') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (telaAtiva !== 'cartoes') e.currentTarget.style.background = 'transparent'; }
-          }, '💳 Cartões'),
+          }, '💳 Cartões de Crédito'),
           React.createElement('div', {
             onClick: () => navegar('fixos', true),
             style: subItemStyle(telaAtiva === 'fixos'),
             onMouseEnter: e => { if (telaAtiva !== 'fixos') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (telaAtiva !== 'fixos') e.currentTarget.style.background = 'transparent'; }
-          }, '🏠 Gastos Fixos'),
+          }, '🏠 Contas Fixas'),
           React.createElement('div', {
             onClick: () => navegar('variaveis', true),
             style: subItemStyle(telaAtiva === 'variaveis'),
             onMouseEnter: e => { if (telaAtiva !== 'variaveis') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
             onMouseLeave: e => { if (telaAtiva !== 'variaveis') e.currentTarget.style.background = 'transparent'; }
-          }, '📊 Gastos Variáveis'),
+          }, '📊 Compras e Gastos'),
           React.createElement('div', {
             onClick: () => navegar('extras', true),
             style: subItemStyle(telaAtiva === 'extras'),
@@ -440,7 +440,7 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
         onMouseLeave: e => { if (telaAtiva !== 'farol') e.currentTarget.style.background = 'transparent'; }
       },
         React.createElement('span', { style: { fontSize: '1.3rem' } }, '🚦'),
-        expandido && React.createElement('span', null, 'Farol')
+        expandido && React.createElement('span', null, 'Contas a Pagar')
       ),
 
       // Relatórios

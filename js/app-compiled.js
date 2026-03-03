@@ -2743,8 +2743,8 @@ function App({
     doc.text('Composicao das Despesas', 14, y); y += 8;
     const cats = [
       ['Cartoes',          totais.cartoes],
-      ['Gastos Fixos',     totais.fixos],
-      ['Gastos Variaveis', totais.variaveis],
+      ['Contas Fixas',     totais.fixos],
+      ['Compras e Gastos', totais.variaveis],
       ['Gastos Extras',    totais.extras]
     ];
     cats.forEach(function(row) {
@@ -2766,7 +2766,7 @@ function App({
     const varMes = gastosVariaveis.filter(function(g){ return g.mes===mesAtual && g.ano===anoAtual; });
     if (varMes.length > 0) {
       doc.setTextColor(30,30,30); doc.setFont('helvetica','bold'); doc.setFontSize(12);
-      doc.text('Gastos Variaveis (' + varMes.length + ' lancamentos)', 14, y); y += 8;
+      doc.text('Compras e Gastos (' + varMes.length + ' lancamentos)', 14, y); y += 8;
       varMes.slice(0,25).forEach(function(g) {
         doc.setFont('helvetica','normal'); doc.setFontSize(9);
         doc.setFillColor(250,252,255); doc.rect(14, y, 182, 8, 'F');
@@ -2826,8 +2826,8 @@ function App({
       [],
       ['CATEGORIA',      'VALOR (R$)', '% do Total'],
       ['Cartões',        totais.cartoes,  totais.total>0?(totais.cartoes/totais.total*100).toFixed(1)+'%':'0%'],
-      ['Gastos Fixos',   totais.fixos,    totais.total>0?(totais.fixos/totais.total*100).toFixed(1)+'%':'0%'],
-      ['Gastos Variáveis',totais.variaveis,totais.total>0?(totais.variaveis/totais.total*100).toFixed(1)+'%':'0%'],
+      ['Contas Fixas',   totais.fixos,    totais.total>0?(totais.fixos/totais.total*100).toFixed(1)+'%':'0%'],
+      ['Compras e Gastos',totais.variaveis,totais.total>0?(totais.variaveis/totais.total*100).toFixed(1)+'%':'0%'],
       ['Gastos Extras',  totais.extras,   totais.total>0?(totais.extras/totais.total*100).toFixed(1)+'%':'0%'],
       ['TOTAL',          totais.total,    '100%']
     ];
@@ -2836,13 +2836,13 @@ function App({
     // Sheet 2 — Gastos Fixos
     const fixosData = [['Categoria','Descrição','Valor','Vencimento','Temporário']];
     gastosFixos.forEach(function(g){ fixosData.push([g.categoria,g.descricao,g.valor,g.vencimento,g.temporario?'Sim':'Não']); });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(fixosData), 'Gastos Fixos');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(fixosData), 'Contas Fixas');
 
     // Sheet 3 — Gastos Variáveis do mês
     const varData = [['Data','Categoria','Descrição','Valor']];
     gastosVariaveis.filter(function(g){ return g.mes===mesAtual&&g.ano===anoAtual; })
       .forEach(function(g){ varData.push([g.data,g.categoria,g.descricao,g.valor]); });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(varData), 'Gastos Variáveis');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(varData), 'Compras e Gastos');
 
     // Sheet 4 — Cartões
     const cartoesData = [['Cartão','Vencimento','Limite','Valor ' + mesAtual.toUpperCase()]];
@@ -2850,7 +2850,7 @@ function App({
       const v = (c.valores?.[anoAtual]||{})[mesAtual]||0;
       cartoesData.push([c.nome, c.vencimento, c.limite, v]);
     });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cartoesData), 'Cartões');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cartoesData), 'Cartões de Crédito');
 
     // Sheet 5 — Receitas do mês
     const receitasData = [['Data','Categoria','Descrição','Valor','Recorrente']];
@@ -2859,7 +2859,7 @@ function App({
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(receitasData), 'Receitas');
 
     // Sheet 6 — Anual (todos os 12 meses)
-    const anualData = [['Mês','Receitas','Despesas','Saldo','Cartões','Fixos','Variáveis','Extras']];
+    const anualData = [['Mês','Receitas','Despesas','Saldo','Cartões de Crédito','Contas Fixas','Compras e Gastos','Extras']];
     MESES.forEach(function(m){
       const s = calcularSaldo(m); const t = calcularTotais(m);
       anualData.push([m.toUpperCase(), s.receitas, s.despesas, s.saldo, t.cartoes, t.fixos, t.variaveis, t.extras]);
@@ -3567,7 +3567,7 @@ function App({
       className: "w-5 h-5 text-orange-600 border-2 border-gray-300 rounded focus:ring-orange-500"
     }), /*#__PURE__*/React.createElement("span", {
       className: "text-sm font-semibold text-gray-700"
-    }, "\uD83D\uDEA6 Mostrar no Farol de Pagamentos")), /*#__PURE__*/React.createElement("p", {
+    }, "\uD83D\uDCB3 Mostrar nas Contas a Pagar")), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-gray-500 mt-1 ml-7"
     }, "Para gastos recorrentes como IPTU, seguro anual, etc.")), /*#__PURE__*/React.createElement("button", {
       type: "submit",
@@ -3690,7 +3690,7 @@ function App({
       className: "w-5 h-5 text-amber-600 border-2 border-gray-300 rounded focus:ring-amber-500"
     }), /*#__PURE__*/React.createElement("span", {
       className: "text-sm font-semibold text-gray-700"
-    }, "\uD83D\uDEA6 Mostrar no Farol de Pagamentos")), /*#__PURE__*/React.createElement("p", {
+    }, "\uD83D\uDCB3 Mostrar nas Contas a Pagar")), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-gray-500 mt-1 ml-7"
     }, "Para gastos recorrentes como seguro, licenciamento, etc.")), /*#__PURE__*/React.createElement("button", {
       type: "submit",
@@ -3794,7 +3794,7 @@ function App({
       placeholder: "8000.00"
     })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       className: "block text-sm font-semibold text-gray-700 mb-2"
-    }, "\uD83C\uDFE0 Or\xE7amento para Gastos Fixos"), /*#__PURE__*/React.createElement("input", {
+    }, "\uD83C\uDFE0 Or\xE7amento para Contas Fixas"), /*#__PURE__*/React.createElement("input", {
       type: "number",
       step: "0.01",
       value: fixos,
@@ -3803,7 +3803,7 @@ function App({
       placeholder: "5500.00"
     })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       className: "block text-sm font-semibold text-gray-700 mb-2"
-    }, "\uD83D\uDCCA Or\xE7amento para Gastos Vari\xE1veis"), /*#__PURE__*/React.createElement("input", {
+    }, "\uD83D\uDCCA Or\xE7amento para Compras e Gastos"), /*#__PURE__*/React.createElement("input", {
       type: "number",
       step: "0.01",
       value: variaveis,
@@ -4766,7 +4766,7 @@ function App({
         ),
 
         // Botões de ação
-        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Novo Gasto Fixo"),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(124,58,237,0.35)'}}, "\u2795 Nova Conta Fixa"),
         /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid '+C.border, borderRadius:'12px', background:C.bg, color:C.textMuted, fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias")
       ),
 
@@ -4775,7 +4775,7 @@ function App({
 
         /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid '+C.borderLight, display:'flex', justifyContent:'space-between', alignItems:'center'}},
           /*#__PURE__*/React.createElement("div", null,
-            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:C.text}}, categoriaFiltro==='TODAS'?"Todos os Gastos Fixos":"Gastos Fixos \xB7 "+categoriaFiltro),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:C.text}}, categoriaFiltro==='TODAS'?"Todas as Contas Fixas":"Contas Fixas \xB7 "+categoriaFiltro),
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textFaint, marginTop:'2px'}}, gastosFiltrados.length+" item"+(gastosFiltrados.length!==1?"s":"")+" \xB7 ordenados por vencimento")
           ),
           /*#__PURE__*/React.createElement("div", {style:{fontWeight:'900', fontSize:'1.1rem', color:'#6d28d9'}}, "R$ "+totalFiltrado.toFixed(2))
@@ -4784,7 +4784,7 @@ function App({
         gastosFiltrados.length===0
           ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83C\uDFE0"),
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:C.textFaint, marginBottom:'6px'}}, "Nenhum gasto fixo"),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:C.textFaint, marginBottom:'6px'}}, "Nenhuma conta fixa"),
               /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'580px', overflowY:'auto'}},
@@ -5146,7 +5146,7 @@ function App({
       /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
         /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid '+C.borderLight, display:'flex', justifyContent:'space-between', alignItems:'center'}},
           /*#__PURE__*/React.createElement("div", null,
-            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:C.text}}, categoriaFiltro==='TODAS'?"Todos os Gastos Vari\xE1veis":"Gastos \xB7 "+categoriaFiltro),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:C.text}}, categoriaFiltro==='TODAS'?"Todas as Compras e Gastos":"Gastos \xB7 "+categoriaFiltro),
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textFaint, marginTop:'2px'}}, gastosFiltrados.length+" gasto"+(gastosFiltrados.length!==1?"s":"")+" \xB7 mais recentes primeiro")
           ),
           gastosFiltrados.length>0 && /*#__PURE__*/React.createElement("div", {style:{fontWeight:'900', fontSize:'1.1rem', color:'#c2410c'}}, "R$ "+totalFiltrado.toFixed(2))
@@ -5155,7 +5155,7 @@ function App({
         gastosFiltrados.length===0
           ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83D\uDCCA"),
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:C.textFaint, marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhum gasto vari\xE1vel em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:C.textFaint, marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhuma compra ou gasto em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
               /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
@@ -6052,7 +6052,7 @@ function App({
   /*#__PURE__*/React.createElement("div", {style:{marginBottom:'20px'}},
     /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}},
       /*#__PURE__*/React.createElement("div", null,
-        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:C.text}}, '💳 Cartões'),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:C.text}}, '💳 Cartões de Crédito'),
         /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textFaint, marginTop:'2px'}},
           'R$ ' + totais.cartoes.toFixed(2) + ' / R$ ' + orcamento.cartoes.toFixed(2)
         )
@@ -6083,7 +6083,7 @@ function App({
   /*#__PURE__*/React.createElement("div", {style:{marginBottom:'20px'}},
     /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}},
       /*#__PURE__*/React.createElement("div", null,
-        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:C.text}}, '🏠 Gastos Fixos'),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:C.text}}, '🏠 Contas Fixas'),
         /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textFaint, marginTop:'2px'}},
           'R$ ' + totais.fixos.toFixed(2) + ' / R$ ' + orcamento.fixos.toFixed(2)
         )
@@ -6114,7 +6114,7 @@ function App({
   /*#__PURE__*/React.createElement("div", null,
     /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}},
       /*#__PURE__*/React.createElement("div", null,
-        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:C.text}}, '📊 Gastos Variáveis'),
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.8rem', fontWeight:'700', color:C.text}}, '📊 Compras e Gastos'),
         /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textFaint, marginTop:'2px'}},
           'R$ ' + totais.variaveis.toFixed(2) + ' / R$ ' + orcamento.variaveis.toFixed(2)
         )
@@ -7319,7 +7319,7 @@ function App({
         React.createElement('div', {style:{background:'linear-gradient(135deg,#f0fdf4,#dcfce7)',borderRadius:'16px',padding:'24px',border:'1.5px solid #bbf7d0',cursor:'pointer'},onClick:exportarExcel},
           React.createElement('div', {style:{fontSize:'2.5rem',marginBottom:'12px'}}, '📊'),
           React.createElement('h3', {style:{margin:'0 0 6px',fontSize:'1rem',fontWeight:'800',color:'#059669'}}, 'Planilha Excel'),
-          React.createElement('p', {style:{margin:0,fontSize:'0.75rem',color:'#065f46',lineHeight:'1.5'}}, '6 abas: Resumo, Gastos Fixos, Gastos Variáveis, Cartões, Receitas e Resumo Anual completo.')
+          React.createElement('p', {style:{margin:0,fontSize:'0.75rem',color:'#065f46',lineHeight:'1.5'}}, '6 abas: Resumo, Contas Fixas, Compras e Gastos, Cartões de Crédito, Receitas e Resumo Anual completo.')
         )
       )
     );
@@ -7565,7 +7565,7 @@ function App({
 
         /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
           /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(150deg,#4c1d95,#5b21b6,#6d28d9)', borderRadius:'16px', padding:'20px', color:'#fff', boxShadow:'0 6px 24px rgba(91,33,182,0.45)', border:'1px solid rgba(167,139,250,0.2)'}},
-            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'8px'}}, "\uD83D\uDEA6 FAROL \xB7 " + mesAtual.toUpperCase()),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'8px'}}, "\uD83D\uDCB3 CONTAS A PAGAR \xB7 " + mesAtual.toUpperCase()),
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.8rem', fontWeight:'900', lineHeight:1, marginBottom:'4px'}}, "R$ " + pagamentos.total.toLocaleString('pt-BR',{minimumFractionDigits:2})),
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.72rem', opacity:0.65, marginBottom:'14px'}}, "total a pagar no m\xEAs"),
             /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', borderTop:'1px solid rgba(255,255,255,0.12)', paddingTop:'12px'}},
@@ -7614,7 +7614,7 @@ function App({
         /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
           /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid '+C.borderLight, display:'flex', justifyContent:'space-between', alignItems:'center'}},
             /*#__PURE__*/React.createElement("div", null,
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:C.text}}, "Farol de Pagamentos \u2014 " + mesAtual.charAt(0).toUpperCase() + mesAtual.slice(1)),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.88rem', fontWeight:'800', color:C.text}}, "Contas a Pagar \u2014 " + mesAtual.charAt(0).toUpperCase() + mesAtual.slice(1)),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textFaint, marginTop:'2px'}}, 
                 estamosNoMesAtual ? "Hoje: " + hoje + " de " + mesAtual : "Visualizando: " + mesAtual + "/" + anoAtual
               )
@@ -7857,7 +7857,7 @@ function App({
   }), telaAtiva.startsWith('planejamento') && /*#__PURE__*/React.createElement(TelaPlanejamento, null), telaAtiva === 'receitas' && /*#__PURE__*/React.createElement(TelaReceitas, null), telaAtiva === 'cartoes' && /*#__PURE__*/React.createElement(TelaCartoes, {
     key: JSON.stringify(farol)
   }), telaAtiva === 'fixos' && /*#__PURE__*/React.createElement(TelaGastosFixos, null), telaAtiva === 'variaveis' && /*#__PURE__*/React.createElement(TelaGastosVariaveis, null), telaAtiva === 'extras' && /*#__PURE__*/React.createElement(TelaGastosExtras, null), telaAtiva === 'configuracoes' && /*#__PURE__*/React.createElement(TelaConfiguracoes, null), telaAtiva === 'farol' && /*#__PURE__*/React.createElement(TelaFarol, null), telaAtiva === 'relatorios' && /*#__PURE__*/React.createElement(TelaRelatorios, null)), modalAberto === 'editar' && itemEditando && /*#__PURE__*/React.createElement(Modal, {
-    titulo: `✏️ Editar ${tipoEditando === 'receita' ? 'Receita' : tipoEditando === 'cartao' ? 'Cartão' : tipoEditando === 'fixo' ? 'Gasto Fixo' : 'Gasto Variável'}`,
+    titulo: `✏️ Editar ${tipoEditando === 'receita' ? 'Receita' : tipoEditando === 'cartao' ? 'Cartão de Crédito' : tipoEditando === 'fixo' ? 'Conta Fixa' : 'Gasto Variável'}`,
     onClose: () => {
       setModalAberto(null);
       setItemEditando(null);
@@ -8221,7 +8221,7 @@ function App({
     titulo: "\u2795 Novo Cart\xE3o",
     onClose: () => setModalAberto(null)
   }, /*#__PURE__*/React.createElement(FormNovoCartao, null)), modalAberto === 'novoGastoFixo' && /*#__PURE__*/React.createElement(Modal, {
-    titulo: "\u2795 Novo Gasto Fixo",
+    titulo: "\u2795 Nova Conta Fixa",
     onClose: () => setModalAberto(null)
   }, /*#__PURE__*/React.createElement(FormNovoGastoFixo, null)), modalAberto === 'novoGastoVariavel' && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\u2795 Novo Gasto Vari\xE1vel",
