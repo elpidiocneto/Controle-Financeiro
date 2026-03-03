@@ -4805,119 +4805,97 @@ function App({
               style:{padding:'11px 28px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.85rem', fontWeight:'700', cursor:'pointer'}
             }, '+ Adicionar Primeiro Cart\xE3o')
           )
-        : /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
+        : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'16px'}},
 
-            /*#__PURE__*/React.createElement("div", {style:{padding:'18px 22px', borderBottom:'1px solid '+C.borderLight, background:'linear-gradient(135deg,#f0f9ff,#fff)'}},
-              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:'10px'}},
+            /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', padding:'22px 24px'}},
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px'}},
+                /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
+                  /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.35rem', fontWeight:'900', color:C.text}}, cartao.nome),
+                  /*#__PURE__*/React.createElement("span", {style:{padding:'3px 10px', borderRadius:'12px', fontSize:'0.65rem', fontWeight:'700', background:corStatus.bg, color:corStatus.txt}}, statusFat)
+                ),
+                /*#__PURE__*/React.createElement("button", {
+                  onClick: () => toggleFarol(cartao.nome, mesAtual),
+                  style:{padding:'7px 18px', border:'none', borderRadius:'9px', cursor:'pointer', fontSize:'0.8rem', fontWeight:'700',
+                    background: isPago ? '#dcfce7' : '#fef9c3', color: isPago ? '#15803d' : '#92400e',
+                    boxShadow: isPago ? '0 1px 4px rgba(5,150,105,0.2)' : '0 1px 4px rgba(146,64,14,0.15)'}
+                }, isPago ? '\u2713 Pago' : '\u25CB Marcar Pago')
+              ),
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'16px', fontSize:'0.72rem', color:C.textFaint, marginBottom:'18px'}},
+                /*#__PURE__*/React.createElement("span", null, 'Fecha dia '+fech),
+                /*#__PURE__*/React.createElement("span", null, '\u00B7'),
+                /*#__PURE__*/React.createElement("span", null, 'Vence dia '+cartao.vencimento)
+              ),
+              /*#__PURE__*/React.createElement("div", {style:{borderTop:'1px solid '+C.borderLight, marginBottom:'18px'}}),
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:'16px'}},
                 /*#__PURE__*/React.createElement("div", null,
-                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px', marginBottom:'5px'}},
-                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.3rem', fontWeight:'900', color:C.text}}, cartao.nome),
-                    /*#__PURE__*/React.createElement("span", {style:{padding:'3px 10px', borderRadius:'12px', fontSize:'0.65rem', fontWeight:'700', background:corStatus.bg, color:corStatus.txt}}, statusFat)
-                  ),
-                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'14px', fontSize:'0.7rem', color:C.textFaint}},
-                    /*#__PURE__*/React.createElement("span", null, 'Fecha dia '+fech),
-                    /*#__PURE__*/React.createElement("span", null, '\u00B7'),
-                    /*#__PURE__*/React.createElement("span", null, 'Vence dia '+cartao.vencimento)
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.62rem', fontWeight:'700', letterSpacing:'0.8px', textTransform:'uppercase', color:C.textFaint, marginBottom:'7px'}}, 'Outras cobran\xE7as (R$)'),
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
+                    /*#__PURE__*/React.createElement("input", {
+                      type:'number', step:'0.01', value:valorFaturaEdit,
+                      onChange: e => setValorFaturaEdit(e.target.value),
+                      onBlur: e => cartao && editarValorCartao(cartao.id, mesAtual, e.target.value),
+                      onKeyDown: e => { if (e.key === 'Enter' && cartao) { editarValorCartao(cartao.id, mesAtual, valorFaturaEdit); e.target.blur(); } },
+                      placeholder:'0,00',
+                      style:{width:'150px', padding:'9px 13px', border:'2px solid '+C.border, borderRadius:'10px', fontSize:'0.95rem', textAlign:'right', outline:'none', color:C.text, background:C.bgAlt||C.bg, fontWeight:'600'}
+                    }),
+                    valorParc > 0 && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:C.textFaint}}, '+ R$ '+valorParc.toFixed(0)+' em parcelas')
                   )
                 ),
-                /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px', flexWrap:'wrap', alignItems:'center'}},
-                  /*#__PURE__*/React.createElement("button", {
-                    onClick: () => toggleFarol(cartao.nome, mesAtual),
-                    style:{padding:'6px 14px', border:'none', borderRadius:'8px', cursor:'pointer', fontSize:'0.75rem', fontWeight:'700',
-                      background: isPago ? '#dcfce7' : '#fef9c3', color: isPago ? '#15803d' : '#92400e'}
-                  }, isPago ? '\u2713 Pago' : '\u25CB Marcar Pago')
+                /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.62rem', fontWeight:'700', letterSpacing:'0.8px', textTransform:'uppercase', color:C.textFaint, marginBottom:'5px'}}, 'Total da Fatura'),
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'2.4rem', fontWeight:'900', color:'#0284c7', lineHeight:1}}, 'R$ '+valorTotalFat.toFixed(2)),
+                  parcelas.length > 0 && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:'#64748b', marginTop:'4px'}}, parcelas.length+' compra'+(parcelas.length!==1?'s':'')+' rastreada'+(parcelas.length!==1?'s':''))
                 )
               )
             ),
 
-            /*#__PURE__*/React.createElement("div", {style:{padding:'18px 22px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px', borderBottom:'1px solid '+C.borderLight}},
-              /*#__PURE__*/React.createElement("div", null,
-                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, '\uD83D\uDCB5 Fatura '+mesAtual.toUpperCase()),
-                /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}},
-                  /*#__PURE__*/React.createElement("input", {
-                    type:'number', step:'0.01', value:valorFaturaEdit,
-                    onChange: e => setValorFaturaEdit(e.target.value),
-                    onBlur: e => cartao && editarValorCartao(cartao.id, mesAtual, e.target.value),
-                    onKeyDown: e => { if (e.key === 'Enter' && cartao) { editarValorCartao(cartao.id, mesAtual, valorFaturaEdit); e.target.blur(); } },
-                    placeholder:'Outras cobran\xE7as',
-                    style:{width:'130px', padding:'7px 10px', border:'2px solid '+C.border, borderRadius:'9px', fontSize:'0.85rem', textAlign:'right', outline:'none', color:C.text}
-                  }),
-                  valorParc > 0 && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:C.textFaint}}, '+ R$ '+valorParc.toFixed(0))
-                ),
-                /*#__PURE__*/React.createElement("div", {style:{fontSize:'2rem', fontWeight:'900', color:'#0284c7', lineHeight:1, marginBottom:'4px'}}, 'R$ '+valorTotalFat.toFixed(2)),
-                parcelas.length > 0 && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:'#64748b'}}, parcelas.length+' compra'+(parcelas.length!==1?'s':'')+' rastreada'+(parcelas.length!==1?'s':''))
-              ),
-              /*#__PURE__*/React.createElement("div", null,
-                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, '\uD83C\uDFAF Limite'),
-                limite > 0
-                  ? /*#__PURE__*/React.createElement("div", null,
-                      /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', fontSize:'0.78rem', marginBottom:'8px'}},
-                        /*#__PURE__*/React.createElement("span", {style:{color:'#64748b'}}, 'Usado'),
-                        /*#__PURE__*/React.createElement("span", {style:{fontWeight:'800', color: pctLimite>80?'#ef4444':pctLimite>60?'#f59e0b':'#374151'}}, 'R$ '+usado.toFixed(0))
-                      ),
-                      /*#__PURE__*/React.createElement("div", {style:{height:'8px', background:'#f1f5f9', borderRadius:'4px', overflow:'hidden', marginBottom:'10px'}},
-                        /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:pctLimite+'%', background: pctLimite>80?'#ef4444':pctLimite>60?'#f59e0b':'#0284c7', borderRadius:'4px', transition:'width .6s ease'}})
-                      ),
-                      /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', fontSize:'0.78rem'}},
-                        /*#__PURE__*/React.createElement("span", {style:{color:'#64748b'}}, 'Dispon\xEDvel'),
-                        /*#__PURE__*/React.createElement("span", {style:{fontWeight:'800', color:'#059669'}}, 'R$ '+disponivel.toFixed(0))
-                      )
-                    )
-                  : /*#__PURE__*/React.createElement("div", null,
-                      /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:C.textFaint, marginBottom:'12px'}}, 'Limite n\xE3o definido'),
-                      /*#__PURE__*/React.createElement("button", {
-                        onClick: () => setInputDialog({titulo:'Definir Limite do Cart\xE3o',label:'Limite do cart\xE3o (R$):',valorPadrao:'10000',callback:(v)=>{if(v&&!isNaN(v)){const n=cartoes.map(c=>c.id===cartao.id?{...c,limite:parseFloat(v)}:c);setCartoes(n);localStorage.setItem('cartoes',JSON.stringify(n));}}}),
-                        style:{fontSize:'0.75rem', padding:'6px 14px', border:'none', borderRadius:'8px', background:'#0284c7', color:'#fff', cursor:'pointer', fontWeight:'600'}
-                      }, '+ Definir')
-                    )
-              )
-            ),
-
-            /*#__PURE__*/React.createElement("div", {style:{padding:'18px 22px'}},
-              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px'}},
-                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint}}, '\uD83D\uDECD\uFE0F Compras do M\xEAs'),
+            /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
+              /*#__PURE__*/React.createElement("div", {style:{padding:'14px 20px', borderBottom:'1px solid '+C.borderLight, display:'flex', justifyContent:'space-between', alignItems:'center', background:'linear-gradient(135deg,#f0fdf4,#fff)'}},
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint}}, '\uD83D\uDECD\uFE0F Extrato \u2014 '+mesAtual.toUpperCase()),
                 /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px'}},
                   /*#__PURE__*/React.createElement("button", {
                     onClick: () => { setCartaoParaNovaCompra(cartao.nome); setModalAberto('compraParcelada'); },
-                    style:{padding:'5px 12px', border:'none', borderRadius:'8px', background:'#0284c7', color:'#fff', cursor:'pointer', fontSize:'0.75rem', fontWeight:'700'}
+                    style:{padding:'6px 13px', border:'none', borderRadius:'8px', background:'#0284c7', color:'#fff', cursor:'pointer', fontSize:'0.75rem', fontWeight:'700', boxShadow:'0 1px 4px rgba(2,132,199,0.3)'}
                   }, '+ Compra'),
                   /*#__PURE__*/React.createElement("button", {
                     onClick: () => { setCartaoImport(cartao); setModalAberto('importarFatura'); },
-                    style:{padding:'5px 12px', border:'1px solid #bbf7d0', borderRadius:'8px', background:'#f0fdf4', color:'#15803d', cursor:'pointer', fontSize:'0.75rem', fontWeight:'700'}
+                    style:{padding:'6px 13px', border:'1px solid #bbf7d0', borderRadius:'8px', background:'#f0fdf4', color:'#15803d', cursor:'pointer', fontSize:'0.75rem', fontWeight:'700'}
                   }, '\u2B06 Importar')
                 )
               ),
-              parcelas.length === 0
-                ? /*#__PURE__*/React.createElement("div", {style:{padding:'24px 16px', textAlign:'center', background:'#f9fafb', borderRadius:'12px', border:'1px dashed '+C.border}},
-                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.8rem', marginBottom:'8px'}}, '\uD83D\uDECD\uFE0F'),
-                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', color:C.textFaint, marginBottom:'12px'}}, 'Nenhuma compra registrada neste m\xEAs'),
-                    /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'8px', justifyContent:'center'}},
-                      /*#__PURE__*/React.createElement("button", {
-                        onClick: () => { setCartaoParaNovaCompra(cartao.nome); setModalAberto('compraParcelada'); },
-                        style:{padding:'8px 16px', border:'none', borderRadius:'8px', background:'#0284c7', color:'#fff', cursor:'pointer', fontSize:'0.8rem', fontWeight:'700'}
-                      }, '+ Adicionar Compra'),
-                      /*#__PURE__*/React.createElement("button", {
-                        onClick: () => { setCartaoImport(cartao); setModalAberto('importarFatura'); },
-                        style:{padding:'8px 16px', border:'1px solid #bbf7d0', borderRadius:'8px', background:'#f0fdf4', color:'#15803d', cursor:'pointer', fontSize:'0.8rem', fontWeight:'700'}
-                      }, '\u2B06 Importar Fatura')
-                    )
-                  )
-                : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'6px'}},
-                    ...parcelas.map((p, i) => {
-                      const badge = p.totalParcelas <= 1 ? '\xC0 vista' : 'Parcela '+p.parcelaAtual+' de '+p.totalParcelas;
-                      return /*#__PURE__*/React.createElement("div", {key:i, style:{display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', background:'#f8fafc', borderRadius:'10px', border:'1px solid '+C.border}},
-                        /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
-                          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'700', color:C.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}, p.descricao),
-                          /*#__PURE__*/React.createElement("span", {style:{display:'inline-block', padding:'2px 8px', borderRadius:'10px', fontSize:'0.62rem', fontWeight:'700', background: p.totalParcelas<=1?'#f0fdf4':'#eff6ff', color: p.totalParcelas<=1?'#15803d':'#1d4ed8', marginTop:'3px'}}, badge)
-                        ),
-                        /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.92rem', fontWeight:'800', color:'#0284c7', flexShrink:0}}, 'R$ '+p.valorParcela.toFixed(2)),
+              /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px'}},
+                parcelas.length === 0
+                  ? /*#__PURE__*/React.createElement("div", {style:{padding:'32px 16px', textAlign:'center'}},
+                      /*#__PURE__*/React.createElement("div", {style:{fontSize:'2rem', marginBottom:'10px'}}, '\uD83D\uDECD\uFE0F'),
+                      /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', color:C.textFaint, marginBottom:'16px'}}, 'Nenhuma compra registrada em '+mesAtual),
+                      /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'8px', justifyContent:'center'}},
                         /*#__PURE__*/React.createElement("button", {
-                          onClick: () => excluirCompraParcelada(p.id),
-                          style:{width:'26px', height:'26px', border:'none', borderRadius:'6px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.75rem', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'700'}
-                        }, '\u2715')
-                      );
-                    })
-                  )
+                          onClick: () => { setCartaoParaNovaCompra(cartao.nome); setModalAberto('compraParcelada'); },
+                          style:{padding:'8px 18px', border:'none', borderRadius:'9px', background:'#0284c7', color:'#fff', cursor:'pointer', fontSize:'0.8rem', fontWeight:'700'}
+                        }, '+ Adicionar Compra'),
+                        /*#__PURE__*/React.createElement("button", {
+                          onClick: () => { setCartaoImport(cartao); setModalAberto('importarFatura'); },
+                          style:{padding:'8px 18px', border:'1px solid #bbf7d0', borderRadius:'9px', background:'#f0fdf4', color:'#15803d', cursor:'pointer', fontSize:'0.8rem', fontWeight:'700'}
+                        }, '\u2B06 Importar Fatura')
+                      )
+                    )
+                  : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'6px'}},
+                      ...parcelas.map((p, i) => {
+                        const badge = p.totalParcelas <= 1 ? '\xC0 vista' : 'Parcela '+p.parcelaAtual+' de '+p.totalParcelas;
+                        return /*#__PURE__*/React.createElement("div", {key:i, style:{display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', background:'#f8fafc', borderRadius:'10px', border:'1px solid '+C.border}},
+                          /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
+                            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'700', color:C.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}, p.descricao),
+                            /*#__PURE__*/React.createElement("span", {style:{display:'inline-block', padding:'2px 8px', borderRadius:'10px', fontSize:'0.62rem', fontWeight:'700', background: p.totalParcelas<=1?'#f0fdf4':'#eff6ff', color: p.totalParcelas<=1?'#15803d':'#1d4ed8', marginTop:'3px'}}, badge)
+                          ),
+                          /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.92rem', fontWeight:'800', color:'#0284c7', flexShrink:0}}, 'R$ '+p.valorParcela.toFixed(2)),
+                          /*#__PURE__*/React.createElement("button", {
+                            onClick: () => excluirCompraParcelada(p.id),
+                            style:{width:'26px', height:'26px', border:'none', borderRadius:'6px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.75rem', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'700'}
+                          }, '\u2715')
+                        );
+                      })
+                    )
+              )
             )
           )
     );
