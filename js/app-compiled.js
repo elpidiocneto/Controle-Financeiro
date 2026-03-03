@@ -7328,46 +7328,78 @@ function App({
 
   // Casal functions
   const criarCasal = async () => {
-    if (!user) return;
+    if (!user || !db) return;
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let id = '';
-    for (let i = 0; i < 6; i++) id += chars[Math.floor(Math.random() * chars.length)];
+    let code = '';
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
     try {
-      await firebase.firestore().collection('casais').doc(id).set({
-        info: { dono: user.uid, emailDono: user.email, criadoEm: new Date().toISOString(), parceiro: null, emailParceiro: null }
-      });
-      await firebase.firestore().collection('usuarios').doc(user.uid).set({ coupleId: id }, { merge: true });
-      localStorage.setItem('coupleId', id);
-      setCoupleId(id);
+      // Salva no pr\xF3prio documento do usu\xE1rio (permitido pelas regras do Firestore)
+      await db.collection('usuarios').doc(user.uid).set({
+        casalCodigo: code,
+        casalDono: true,
+        casalCriadoEm: new Date().toISOString(),
+        casalParceiroUid: null,
+        casalParceiroEmail: null,
+      }, { merge: true });
+      localStorage.setItem('coupleId', code);
+      localStorage.setItem('coupleOwnerUid', user.uid);
+      setCoupleId(code);
       setCoupleInfo({ emailDono: user.email, emailParceiro: null, dono: user.uid });
-    } catch(e) { console.error('Erro ao criar casal:', e); alert('Erro ao criar casal. Tente novamente.'); }
+    } catch(e) {
+      console.error('[criarCasal] Erro:', e);
+      alert('Erro ao criar casal: ' + (e.message || String(e)));
+    }
   };
 
-  const entrarNoCasal = async (id) => {
-    if (!user || !id) return;
-    const trimId = id.trim().toUpperCase();
+  const entrarNoCasal = async (code) => {
+    if (!user || !code || !db) return;
+    const trimCode = code.trim().toUpperCase();
     try {
-      const doc = await firebase.firestore().collection('casais').doc(trimId).get();
-      if (!doc.exists) { alert('C\xF3digo n\xE3o encontrado. Verifique e tente novamente.'); return; }
-      const info = doc.data().info || {};
-      if (info.dono === user.uid) { alert('Voc\xEA \xE9 o criador deste casal.'); return; }
-      await firebase.firestore().collection('casais').doc(trimId).update({ 'info.parceiro': user.uid, 'info.emailParceiro': user.email });
-      await firebase.firestore().collection('usuarios').doc(user.uid).set({ coupleId: trimId }, { merge: true });
-      localStorage.setItem('coupleId', trimId);
-      setCoupleId(trimId);
-      setCoupleInfo({ ...info, parceiro: user.uid, emailParceiro: user.email });
-    } catch(e) { console.error('Erro ao entrar no casal:', e); alert('Erro ao entrar no casal. Tente novamente.'); }
+      // Busca usu\xE1rio dono do c\xF3digo
+      const snap = await db.collection('usuarios').where('casalCodigo', '==', trimCode).limit(1).get();
+      if (snap.empty) { alert('C\xF3digo n\xE3o encontrado. Verifique e tente novamente.'); return; }
+      const ownerDoc = snap.docs[0];
+      if (ownerDoc.id === user.uid) { alert('Este \xE9 o seu pr\xF3prio c\xF3digo de casal.'); return; }
+      const ownerData = ownerDoc.data();
+      // Tenta vincular no documento do dono (pode falhar se regras s\xF3 permitem escrita no pr\xF3prio doc)
+      try {
+        await db.collection('usuarios').doc(ownerDoc.id).update({
+          casalParceiroUid: user.uid,
+          casalParceiroEmail: user.email,
+        });
+      } catch (ruleErr) {
+        console.warn('[entrarNoCasal] N\xE3o foi poss\xEDvel atualizar doc do dono (regras):', ruleErr.message);
+      }
+      // Salva no pr\xF3prio documento (garantido pelas regras)
+      await db.collection('usuarios').doc(user.uid).set({
+        casalCodigo: trimCode,
+        casalDono: false,
+        casalOwnerUid: ownerDoc.id,
+        casalOwnerEmail: ownerData.email || '',
+      }, { merge: true });
+      localStorage.setItem('coupleId', trimCode);
+      localStorage.setItem('coupleOwnerUid', ownerDoc.id);
+      setCoupleId(trimCode);
+      setCoupleInfo({ emailDono: ownerData.email || 'Parceiro(a)', emailParceiro: user.email, parceiro: user.uid, dono: ownerDoc.id });
+    } catch(e) {
+      console.error('[entrarNoCasal] Erro:', e);
+      alert('Erro ao entrar no casal: ' + (e.message || String(e)));
+    }
   };
 
   const sairDoCasal = async () => {
     if (!user || !coupleId) return;
     if (!window.confirm('Sair do modo casal? Seus dados voltam a ser individuais.')) return;
     try {
-      await firebase.firestore().collection('usuarios').doc(user.uid).update({ coupleId: null });
-      localStorage.removeItem('coupleId');
-      setCoupleId(null);
-      setCoupleInfo(null);
-    } catch(e) { console.error('Erro ao sair do casal:', e); }
+      await db.collection('usuarios').doc(user.uid).update({
+        casalCodigo: null, casalDono: null, casalOwnerUid: null,
+        casalOwnerEmail: null, casalParceiroUid: null, casalParceiroEmail: null,
+      });
+    } catch(e) { console.error('[sairDoCasal] Erro Firestore:', e); }
+    localStorage.removeItem('coupleId');
+    localStorage.removeItem('coupleOwnerUid');
+    setCoupleId(null);
+    setCoupleInfo(null);
   };
 
   const TelaConfiguracoes = () => {
