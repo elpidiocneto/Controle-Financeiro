@@ -1111,6 +1111,8 @@ function App({
     const saved = localStorage.getItem('receitas');
     return saved ? JSON.parse(saved) : [];
   });
+  const [cartaoParaNovaCompra, setCartaoParaNovaCompra] = useState(null);
+  const [cartaoImport, setCartaoImport] = useState(null);
   const [farol, setFarol] = useState(() => {
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return {};
@@ -3876,7 +3878,7 @@ function App({
   };
   const FormCompraParcelada = () => {
     const [descricao, setDescricao] = useState('');
-    const [cartao, setCartao] = useState(cartoes[0]?.nome || '');
+    const [cartao, setCartao] = useState(cartaoParaNovaCompra || cartoes[0]?.nome || '');
     const [valorTotal, setValorTotal] = useState('');
     const [parcelas, setParcelas] = useState('1');
     const [mesInicio, setMesInicio] = useState(mesAtual);
@@ -4449,377 +4451,405 @@ function App({
       className: "px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
     }, "\uD83D\uDD04 Atualizar Lista")));
   };
+  const FormImportarFatura = () => {
+    const [etapa, setEtapa] = React.useState(1);
+    const [linhas, setLinhas] = React.useState([]);
+    const [selecionados, setSelecionados] = React.useState({});
+    const [ignorarCreditos, setIgnorarCreditos] = React.useState(true);
+    const [parcImport, setParcImport] = React.useState({});
+    const [dragging, setDragging] = React.useState(false);
+    const cartaoNome = cartaoImport?.nome || '';
+
+    const parseCSV = (texto) => {
+      const ls = texto.split('\n').filter(l => l.trim());
+      if (ls.length < 2) return [];
+      const sep = ls[0].includes(';') ? ';' : ',';
+      const headers = ls[0].split(sep).map(h => h.replace(/"/g,'').trim().toLowerCase());
+      const iDesc = headers.findIndex(h => /desc|titulo|title|histor|lancamento|memo|estabele|name|nome/.test(h));
+      const iValor = headers.findIndex(h => /valor|amount|quantia|montante/.test(h));
+      const iData = headers.findIndex(h => /data|date/.test(h));
+      const isNubank = headers.includes('title') && headers.includes('amount');
+      const result = [];
+      for (let i = 1; i < ls.length; i++) {
+        const cols = ls[i].split(sep).map(c => c.replace(/"/g,'').trim());
+        if (cols.length < 2) continue;
+        let desc = '', valorStr = '', data = '';
+        if (isNubank) {
+          desc = cols[headers.indexOf('title')] || '';
+          valorStr = cols[headers.indexOf('amount')] || '0';
+          data = cols[headers.indexOf('date')] || '';
+        } else if (iDesc >= 0 && iValor >= 0) {
+          desc = cols[iDesc] || '';
+          valorStr = cols[iValor] || '0';
+          data = iData >= 0 ? (cols[iData] || '') : '';
+        } else {
+          const textIdx = cols.findIndex(c => c.length > 5 && isNaN(parseFloat(c.replace(',','.'))));
+          const numIdx = cols.findIndex((c,j) => j !== textIdx && !isNaN(parseFloat(c.replace(',','.'))));
+          desc = textIdx >= 0 ? cols[textIdx] : cols[0];
+          valorStr = numIdx >= 0 ? cols[numIdx] : '0';
+        }
+        const valor = parseFloat(valorStr.replace(',','.'));
+        if (!desc || isNaN(valor)) continue;
+        result.push({ id: i.toString(), descricao: desc.toUpperCase(), valor: Math.abs(valor), valorOriginal: valor, data });
+      }
+      return result;
+    };
+
+    const parseOFX = (texto) => {
+      const result = [];
+      const blocos = texto.split('<STMTTRN>').slice(1);
+      blocos.forEach((bloco, i) => {
+        const getTag = (tag) => { const m = bloco.match(new RegExp('<'+tag+'>([^<\\n]+)','i')); return m ? m[1].trim() : ''; };
+        const nome = getTag('NAME') || getTag('MEMO');
+        const valorStr = getTag('TRNAMT');
+        const data = getTag('DTPOSTED');
+        const valor = parseFloat(valorStr);
+        if (!nome || isNaN(valor)) return;
+        result.push({ id: i.toString(), descricao: nome.toUpperCase(), valor: Math.abs(valor), valorOriginal: valor, data: data.slice(0,8) });
+      });
+      return result;
+    };
+
+    const processarArquivo = (file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const texto = e.target.result;
+        const ext = file.name.toLowerCase().split('.').pop();
+        let rows = [];
+        if (['ofx','qfx'].includes(ext) || texto.toUpperCase().includes('<OFX>')) {
+          rows = parseOFX(texto);
+        } else {
+          rows = parseCSV(texto);
+        }
+        if (rows.length === 0) { alert('Nenhum lan\xE7amento encontrado. Verifique o formato.'); return; }
+        setLinhas(rows);
+        const sel = {}; const parc = {};
+        rows.forEach(r => { sel[r.id] = r.valorOriginal > 0; parc[r.id] = 1; });
+        setSelecionados(sel); setParcImport(parc); setEtapa(2);
+      };
+      reader.readAsText(file, 'UTF-8');
+    };
+
+    const confirmarImport = () => {
+      linhas.filter(r => selecionados[r.id]).forEach(r => {
+        adicionarCompraParcelada({ descricao: r.descricao, cartao: cartaoNome, valorTotal: r.valor, parcelas: parseInt(parcImport[r.id] || 1), mesInicio: mesAtual });
+      });
+      setModalAberto(null);
+    };
+
+    const qtdSel = Object.values(selecionados).filter(Boolean).length;
+    const linhasFiltradas = ignorarCreditos ? linhas.filter(r => r.valorOriginal > 0) : linhas;
+
+    if (etapa === 1) return /*#__PURE__*/React.createElement("div", null,
+      /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.82rem',color:'#64748b',marginBottom:'16px'}}, 'Cart\xE3o: '+cartaoNome),
+      /*#__PURE__*/React.createElement("div", {
+        onDragOver: e=>{e.preventDefault();setDragging(true);}, onDragLeave:()=>setDragging(false),
+        onDrop: e=>{e.preventDefault();setDragging(false);processarArquivo(e.dataTransfer.files[0]);},
+        onClick: ()=>document.getElementById('ifatura-input').click(),
+        style:{border:'2px dashed '+(dragging?'#0284c7':'#cbd5e1'),borderRadius:'12px',padding:'48px 20px',textAlign:'center',cursor:'pointer',background:dragging?'#eff6ff':'#f8fafc',transition:'all 0.2s'}
+      },
+        /*#__PURE__*/React.createElement("div",{style:{fontSize:'2.5rem',marginBottom:'10px'}},'\uD83D\uDCC1'),
+        /*#__PURE__*/React.createElement("div",{style:{fontSize:'0.95rem',fontWeight:'700',color:'#374151',marginBottom:'6px'}},'Arraste o arquivo ou clique para selecionar'),
+        /*#__PURE__*/React.createElement("div",{style:{fontSize:'0.75rem',color:'#9ca3af'}},'Aceita CSV, OFX, QFX \u2014 Nubank, Ita\xFA, Bradesco, C6, Inter e mais')
+      ),
+      /*#__PURE__*/React.createElement("input",{id:'ifatura-input',type:'file',accept:'.csv,.txt,.ofx,.qfx',style:{display:'none'},onChange:e=>processarArquivo(e.target.files[0])})
+    );
+
+    return /*#__PURE__*/React.createElement("div", {style:{minWidth:'500px'}},
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}},
+        /*#__PURE__*/React.createElement("div", null,
+          /*#__PURE__*/React.createElement("span",{style:{fontWeight:'700',color:'#374151'}}, linhasFiltradas.length+' lan\xE7amentos encontrados'),
+          /*#__PURE__*/React.createElement("span",{style:{fontSize:'0.75rem',color:'#64748b',marginLeft:'8px'}},'('+qtdSel+' selecionados)')
+        ),
+        /*#__PURE__*/React.createElement("label",{style:{display:'flex',alignItems:'center',gap:'6px',fontSize:'0.78rem',color:'#64748b',cursor:'pointer'}},
+          /*#__PURE__*/React.createElement("input",{type:'checkbox',checked:ignorarCreditos,onChange:e=>setIgnorarCreditos(e.target.checked)}),
+          'Ocultar cr\xE9ditos/estornos'
+        )
+      ),
+      /*#__PURE__*/React.createElement("div", {style:{maxHeight:'300px',overflowY:'auto',border:'1px solid #e2e8f0',borderRadius:'10px',marginBottom:'14px'}},
+        linhasFiltradas.length === 0
+          ? /*#__PURE__*/React.createElement("div",{style:{padding:'20px',textAlign:'center',color:'#9ca3af'}},'Nenhum lan\xE7amento a exibir')
+          : linhasFiltradas.map(r => /*#__PURE__*/React.createElement("div", {key:r.id,style:{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderBottom:'1px solid #f1f5f9',background:selecionados[r.id]?'#f0f9ff':'#fff'}},
+              /*#__PURE__*/React.createElement("input",{type:'checkbox',checked:!!selecionados[r.id],onChange:e=>setSelecionados(prev=>({...prev,[r.id]:e.target.checked})),style:{flexShrink:0}}),
+              /*#__PURE__*/React.createElement("div",{style:{flex:1,minWidth:0}},
+                /*#__PURE__*/React.createElement("div",{style:{fontSize:'0.8rem',fontWeight:'600',color:'#374151',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},r.descricao),
+                r.data && /*#__PURE__*/React.createElement("div",{style:{fontSize:'0.65rem',color:'#9ca3af'}},r.data)
+              ),
+              /*#__PURE__*/React.createElement("span",{style:{fontSize:'0.82rem',fontWeight:'700',color:'#0284c7',flexShrink:0}},'R$ '+r.valor.toFixed(2)),
+              /*#__PURE__*/React.createElement("select",{
+                value:parcImport[r.id]||1,
+                onChange:e=>setParcImport(prev=>({...prev,[r.id]:parseInt(e.target.value)})),
+                disabled:!selecionados[r.id],
+                style:{padding:'3px 6px',border:'1px solid #e2e8f0',borderRadius:'6px',fontSize:'0.75rem',background:'#fff',cursor:'pointer'}
+              }, [1,2,3,4,5,6,7,8,9,10,11,12,18,24,36,48].map(n=>/*#__PURE__*/React.createElement("option",{key:n,value:n},n===1?'1x (\xE0 vista)':n+'x')))
+            ))
+      ),
+      /*#__PURE__*/React.createElement("div",{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+        /*#__PURE__*/React.createElement("button",{onClick:()=>setEtapa(1),style:{padding:'8px 16px',border:'1px solid #e2e8f0',borderRadius:'8px',background:'#fff',color:'#64748b',cursor:'pointer',fontSize:'0.82rem'}},'\u2190 Voltar'),
+        /*#__PURE__*/React.createElement("button",{
+          onClick:confirmarImport,disabled:qtdSel===0,
+          style:{padding:'8px 20px',border:'none',borderRadius:'8px',background:qtdSel===0?'#cbd5e1':'linear-gradient(135deg,#0284c7,#0369a1)',color:'#fff',cursor:qtdSel===0?'not-allowed':'pointer',fontSize:'0.82rem',fontWeight:'700'}
+        },'\u2705 Importar '+qtdSel+(qtdSel===1?' item':' itens'))
+      )
+    );
+  };
+
   const TelaCartoes = () => {
     const mesesOrdem = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
     const mesesNome  = {jan:'Jan',fev:'Fev',mar:'Mar',abr:'Abr',mai:'Mai',jun:'Jun',jul:'Jul',ago:'Ago',set:'Set',out:'Out',nov:'Nov',dez:'Dez'};
-
-    // CORREÇÃO: Verificar se estamos no mês atual para calcular "vencido"
     const dataAtual = new Date();
     const mesAtualSistema = mesesOrdem[dataAtual.getMonth()];
     const anoAtualSistema = dataAtual.getFullYear();
     const estamosNoMesAtual = mesAtual === mesAtualSistema && anoAtual === anoAtualSistema;
     const hoje = estamosNoMesAtual ? dataAtual.getDate() : -1;
 
-    // Estados inline para formulário de nova compra por cartão
-    const [formsAbertos, setFormsAbertos] = React.useState({});
-    const [novaDesc, setNovaDesc]         = React.useState({});
-    const [novaValor, setNovaValor]       = React.useState({});
-    const [novaParcelas, setNovaParcelas] = React.useState({});
-    const [novaMesInicio, setNovaMesInicio] = React.useState({});
+    const [cartaoSelId, setCartaoSelId] = React.useState(cartoes[0]?.id || null);
 
-    const toggleForm = (cartaoId) =>
-      setFormsAbertos(prev => ({ ...prev, [cartaoId]: !prev[cartaoId] }));
+    React.useEffect(() => {
+      if (cartoes.length > 0 && (!cartaoSelId || !cartoes.find(c => c.id === cartaoSelId))) {
+        setCartaoSelId(cartoes[0].id);
+      } else if (cartoes.length === 0) {
+        setCartaoSelId(null);
+      }
+    }, [cartoes.length]);
 
-    const submitCompra = (cartao) => {
-      const desc = (novaDesc[cartao.id] || '').trim();
-      const val  = parseFloat(novaValor[cartao.id] || 0);
-      const parc = parseInt(novaParcelas[cartao.id] || 1);
-      const mes  = novaMesInicio[cartao.id] || mesAtual;
-      if (!desc || !val || val <= 0) return;
-      adicionarCompraParcelada({ descricao: desc, cartao: cartao.nome, valorTotal: val, parcelas: parc, mesInicio: mes });
-      setNovaDesc(prev    => ({ ...prev, [cartao.id]: '' }));
-      setNovaValor(prev   => ({ ...prev, [cartao.id]: '' }));
-      setNovaParcelas(prev => ({ ...prev, [cartao.id]: '' }));
-      setFormsAbertos(prev => ({ ...prev, [cartao.id]: false }));
-    };
-
-    // Totais do mês
     const totaisPorCartao = {};
     let totalGeralMes = 0;
-    cartoes.forEach(c => {
-      const valoresAno = c.valores?.[anoAtual] || {};
-      const valorBase  = valoresAno[mesAtual] || 0;
-      const parcelas   = calcularParcelasCartao(c.nome, mesAtual);
-      const valorParc  = parcelas.reduce((s,p) => s + p.valorParcela, 0);
-      const total      = valorBase + valorParc;
-      totaisPorCartao[c.nome] = { total, valorBase, valorParc, parcelas };
-      totalGeralMes += total;
-    });
-
-    // Dívida acumulada total
     let totalDivida = 0;
     cartoes.forEach(c => {
       const valoresAno = c.valores?.[anoAtual] || {};
+      const valorBase = valoresAno[mesAtual] || 0;
+      const parc = calcularParcelasCartao(c.nome, mesAtual);
+      const valorParc = parc.reduce((s,p) => s + p.valorParcela, 0);
+      const total = valorBase + valorParc;
+      totaisPorCartao[c.nome] = { total, valorBase, valorParc, parcelas: parc };
+      totalGeralMes += total;
       mesesOrdem.forEach(mes => {
-        const vb  = valoresAno[mes] || 0;
-        const vp  = calcularParcelasCartao(c.nome, mes).reduce((s,p) => s + p.valorParcela, 0);
+        const vb = valoresAno[mes] || 0;
+        const vp = calcularParcelasCartao(c.nome, mes).reduce((s,p) => s + p.valorParcela, 0);
         const tot = vb + vp;
-        const st  = getStatusFarol(c.nome, mes);
+        const st = getStatusFarol(c.nome, mes);
         if (st !== 'PAGO' && typeof st !== 'number') totalDivida += tot;
         else if (typeof st === 'number') totalDivida += Math.max(0, tot - st);
       });
     });
 
-    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'240px 1fr 220px', gap:'16px', alignItems:'start'}},
+    const cartao = cartoes.find(c => c.id === cartaoSelId) || null;
+    let valorBase = 0, parcelas = [], valorParc = 0, valorTotalFat = 0;
+    let limite = 0, usado = 0, disponivel = 0, pctLimite = 0;
+    let fech = 0, statusFat = 'ABERTA', corStatus = {bg:'#dbeafe',txt:'#1e40af'};
+    const stFarol = cartao ? getStatusFarol(cartao.nome, mesAtual) : 'PENDENTE';
+    const isPago = stFarol === 'PAGO';
 
-      // ══════════════════════════════════════════════════════════════════
-      // COLUNA ESQUERDA
-      // ══════════════════════════════════════════════════════════════════
-      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
+    if (cartao) {
+      const valoresAno = cartao.valores?.[anoAtual] || {};
+      valorBase = valoresAno[mesAtual] || 0;
+      parcelas = calcularParcelasCartao(cartao.nome, mesAtual);
+      valorParc = parcelas.reduce((s,p) => s + p.valorParcela, 0);
+      valorTotalFat = valorBase + valorParc;
+      limite = cartao.limite || 0;
+      fech = cartao.diaFechamento || cartao.vencimento - 7;
+      statusFat = hoje <= fech ? 'ABERTA' : hoje <= cartao.vencimento ? 'FECHADA' : 'VENCIDA';
+      corStatus = statusFat==='ABERTA'?{bg:'#dbeafe',txt:'#1e40af'}:statusFat==='FECHADA'?{bg:'#d1fae5',txt:'#065f46'}:{bg:'#fecdd3',txt:'#be123c'};
+      let totalUsado = 0, totalPago = 0;
+      mesesOrdem.forEach(mes => {
+        const vb = valoresAno[mes] || 0;
+        const vp = calcularParcelasCartao(cartao.nome, mes).reduce((s,p) => s + p.valorParcela, 0);
+        totalUsado += vb + vp;
+        const st = getStatusFarol(cartao.nome, mes);
+        if (st === 'PAGO') totalPago += vb + vp;
+        else if (typeof st === 'number') totalPago += st;
+      });
+      usado = Math.max(0, totalUsado - totalPago);
+      disponivel = limite > 0 ? Math.max(0, limite - usado) : 0;
+      pctLimite = limite > 0 ? Math.min(100, usado/limite*100) : 0;
+    }
 
-        // Hero
-        /*#__PURE__*/React.createElement("div", {
-          style:{background:'linear-gradient(150deg,#0c4a6e,#0369a1,#0284c7)', borderRadius:'16px', padding:'20px', color:'#fff', boxShadow:'0 6px 24px rgba(3,105,161,0.45)', border:'1px solid rgba(125,211,252,0.2)'}
-        },
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'8px'}}, "\uD83D\uDCB3 CART\xD5ES \xB7 " + mesAtual.toUpperCase()),
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.8rem', fontWeight:'900', lineHeight:1, marginBottom:'12px'}}, "R$ " + totalGeralMes.toLocaleString('pt-BR',{minimumFractionDigits:2})),
-          /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', borderTop:'1px solid rgba(255,255,255,0.12)', paddingTop:'12px'}},
-            /*#__PURE__*/React.createElement("div", null,
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', opacity:0.5, marginBottom:'2px'}}, "Cart\xF5es"),
-              /*#__PURE__*/React.createElement("div", {style:{fontWeight:'800'}}, cartoes.length)
-            ),
-            /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', opacity:0.5, marginBottom:'2px'}}, "D\xEDvida acum."),
-              /*#__PURE__*/React.createElement("div", {style:{fontWeight:'800', color: totalDivida > 0 ? '#fca5a5' : '#86efac'}}, "R$ " + totalDivida.toFixed(0))
-            )
+    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'280px 1fr', gap:'16px', alignItems:'start'}},
+
+      /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden', display:'flex', flexDirection:'column'}},
+        /*#__PURE__*/React.createElement("div", {style:{padding:'16px 18px', background:'linear-gradient(150deg,#0c4a6e,#0369a1,#0284c7)', color:'#fff'}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', opacity:0.6, marginBottom:'6px'}}, 'CART\xD5ES \xB7 '+mesAtual.toUpperCase()),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.7rem', fontWeight:'900', lineHeight:1, marginBottom:'8px'}}, 'R$ '+totalGeralMes.toLocaleString('pt-BR',{minimumFractionDigits:2})),
+          /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', fontSize:'0.7rem', opacity:0.8}},
+            /*#__PURE__*/React.createElement("span", null, cartoes.length+' cart\xE3o'+(cartoes.length!==1?'es':'')),
+            totalDivida > 0 && /*#__PURE__*/React.createElement("span", {style:{color:'#fca5a5'}}, 'D\xEDvida: R$ '+totalDivida.toFixed(0))
           )
         ),
-
-        // Lista de navegação rápida
-        cartoes.length > 0 && /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'14px', padding:'14px', border:'1px solid '+C.border, boxShadow:'0 2px 8px rgba(0,0,0,0.04)'}},
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:C.textFaint, marginBottom:'12px'}}, "\uD83C\uDFAF Navega\xE7\xE3o R\xE1pida"),
-          /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'6px'}},
-            ...cartoes.map(c => {
-              const info = totaisPorCartao[c.nome] || {total:0};
-              const st   = getStatusFarol(c.nome, mesAtual);
-              const pago = st === 'PAGO';
-              return /*#__PURE__*/React.createElement("button", {
-                key:c.id,
-                onClick: () => { const el = document.getElementById('cartao-'+c.nome); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); },
-                style:{width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 10px', border:'none', borderRadius:'8px', cursor:'pointer', textAlign:'left', background: pago?'#f0fdf4':'#f8fafc', borderLeft: pago?'3px solid #059669':'3px solid #0284c7'}
-              },
-                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'700', color: pago?'#059669':'#0284c7'}}, c.nome),
-                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', fontWeight:'800', color: pago?'#059669':'#374151'}}, "R$ " + info.total.toFixed(0))
-              );
-            })
-          )
+        /*#__PURE__*/React.createElement("div", {style:{flex:1, overflowY:'auto', padding:'8px'}},
+          cartoes.length === 0
+            ? /*#__PURE__*/React.createElement("div", {style:{padding:'24px 12px', textAlign:'center', color:C.textFaint, fontSize:'0.8rem'}}, 'Nenhum cart\xE3o ainda')
+            : cartoes.map(c => {
+                const info = totaisPorCartao[c.nome] || {total:0};
+                const st = getStatusFarol(c.nome, mesAtual);
+                const pg = st === 'PAGO';
+                const sel = c.id === cartaoSelId;
+                const fch = c.diaFechamento || c.vencimento - 7;
+                const hj = estamosNoMesAtual ? dataAtual.getDate() : -1;
+                const sfat = hj <= fch ? 'ABERTA' : hj <= c.vencimento ? 'FECHADA' : 'VENCIDA';
+                const cor = pg ? '#059669' : sfat==='VENCIDA' ? '#e11d48' : '#0284c7';
+                return /*#__PURE__*/React.createElement("div", {
+                  key: c.id,
+                  onClick: () => setCartaoSelId(c.id),
+                  style:{padding:'10px 12px', borderRadius:'10px', cursor:'pointer', marginBottom:'4px', transition:'all 0.15s',
+                    background: sel ? 'rgba(2,132,199,0.08)' : 'transparent',
+                    border: sel ? '1px solid rgba(2,132,199,0.2)' : '1px solid transparent',
+                    borderLeft: '3px solid '+(sel ? cor : 'transparent')}
+                },
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'3px'}},
+                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.85rem', fontWeight:'700', color: sel ? cor : C.text}}, c.nome),
+                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.78rem', fontWeight:'800', color: cor}}, 'R$ '+info.total.toFixed(0))
+                  ),
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center'}},
+                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.65rem', color:C.textFaint}}, 'Vence dia '+c.vencimento),
+                    /*#__PURE__*/React.createElement("span", {style:{padding:'1px 7px', borderRadius:'8px', fontSize:'0.6rem', fontWeight:'700', background: pg?'#dcfce7':sfat==='VENCIDA'?'#fecdd3':'#dbeafe', color: pg?'#15803d':sfat==='VENCIDA'?'#be123c':'#1e40af'}}, pg?'PAGO':sfat)
+                  )
+                );
+              })
         ),
-
-        /*#__PURE__*/React.createElement("button", {
-          onClick:()=>setModalAberto('novoCartao'),
-          style:{width:'100%', padding:'12px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(2,132,199,0.35)'}
-        }, "\u2795 Novo Cart\xE3o")
+        /*#__PURE__*/React.createElement("div", {style:{padding:'8px', borderTop:'1px solid '+C.borderLight}},
+          /*#__PURE__*/React.createElement("button", {
+            onClick: () => setModalAberto('novoCartao'),
+            style:{width:'100%', padding:'10px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'700', cursor:'pointer', boxShadow:'0 2px 8px rgba(2,132,199,0.3)'}
+          }, '+ Novo Cart\xE3o')
+        )
       ),
 
-      // ══════════════════════════════════════════════════════════════════
-      // COLUNA CENTRAL - Cards dos cartões
-      // ══════════════════════════════════════════════════════════════════
-      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'16px'}},
+      !cartao
+        ? /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, padding:'80px 20px', textAlign:'center', boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, '\uD83D\uDCB3'),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'1rem', fontWeight:'700', color:C.textFaint, marginBottom:'8px'}}, 'Nenhum cart\xE3o cadastrado'),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.82rem', color:C.textFaint, marginBottom:'20px'}}, 'Crie seu primeiro cart\xE3o de cr\xE9dito para come\xE7ar'),
+            /*#__PURE__*/React.createElement("button", {
+              onClick: () => setModalAberto('novoCartao'),
+              style:{padding:'11px 28px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.85rem', fontWeight:'700', cursor:'pointer'}
+            }, '+ Adicionar Primeiro Cart\xE3o')
+          )
+        : /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
 
-        cartoes.length === 0 && /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', padding:'60px 20px', textAlign:'center', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83D\uDCB3"),
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'700', color:C.textFaint, marginBottom:'20px'}}, "Nenhum cart\xE3o cadastrado"),
-          /*#__PURE__*/React.createElement("button", {
-            onClick:()=>setModalAberto('novoCartao'),
-            style:{padding:'11px 28px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'700', cursor:'pointer'}
-          }, "\u2795 Adicionar Primeiro Cart\xE3o")
-        ),
-
-        ...cartoes.map(cartao => {
-          const valoresAno = cartao.valores?.[anoAtual] || {};
-          const valorBase  = valoresAno[mesAtual] || 0;
-          const parcelas   = calcularParcelasCartao(cartao.nome, mesAtual);
-          const valorParc  = parcelas.reduce((s,p) => s + p.valorParcela, 0);
-          const valorTotal = valorBase + valorParc;
-          const limite     = cartao.limite || 0;
-
-          // Status da fatura
-          const hoje = new Date().getDate();
-          const fech = cartao.diaFechamento || cartao.vencimento - 7;
-          const statusFat = hoje <= fech ? 'ABERTA' : hoje <= cartao.vencimento ? 'FECHADA' : 'VENCIDA';
-          const corStatus = statusFat==='ABERTA' ? {bg:'#dbeafe',txt:'#1e40af'} : statusFat==='FECHADA' ? {bg:'#d1fae5',txt:'#065f46'} : {bg:'#fecdd3',txt:'#be123c'};
-
-          // Limite usado (simplificado)
-          let totalUsado = 0, totalPago = 0;
-          mesesOrdem.forEach(mes => {
-            const vb = valoresAno[mes] || 0;
-            const vp = calcularParcelasCartao(cartao.nome, mes).reduce((s,p) => s + p.valorParcela, 0);
-            totalUsado += vb + vp;
-            const st = getStatusFarol(cartao.nome, mes);
-            if (st === 'PAGO') totalPago += vb + vp;
-            else if (typeof st === 'number') totalPago += st;
-          });
-          const usado      = Math.max(0, totalUsado - totalPago);
-          const disponivel = limite > 0 ? Math.max(0, limite - usado) : 0;
-          const pctLimite  = limite > 0 ? Math.min(100, usado/limite*100) : 0;
-
-          return /*#__PURE__*/React.createElement("div", {
-            key:cartao.id, id:'cartao-'+cartao.nome,
-            style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}
-          },
-
-            // Header
-            /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', borderBottom:'2px solid '+C.borderLight, display:'flex', justifyContent:'space-between', alignItems:'center'}},
-              /*#__PURE__*/React.createElement("div", null,
-                /*#__PURE__*/React.createElement("div", {style:{fontSize:'1rem', fontWeight:'800', color:C.text, marginBottom:'4px'}}, cartao.nome),
-                /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'12px', fontSize:'0.7rem', color:C.textFaint}},
-                  /*#__PURE__*/React.createElement("span", null, "Fecha dia " + (fech)),
-                  /*#__PURE__*/React.createElement("span", null, "\u2022"),
-                  /*#__PURE__*/React.createElement("span", null, "Vence dia " + cartao.vencimento),
-                  /*#__PURE__*/React.createElement("span", {style:{padding:'2px 8px', borderRadius:'12px', fontSize:'0.65rem', fontWeight:'700', background:corStatus.bg, color:corStatus.txt}}, statusFat)
-                )
-              ),
-              /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px', alignItems:'center', flexWrap:'wrap'}},
-                (() => {
-                  const stCart = getStatusFarol(cartao.nome, mesAtual);
-                  const isPago = stCart === 'PAGO';
-                  return /*#__PURE__*/React.createElement("button", {
+            /*#__PURE__*/React.createElement("div", {style:{padding:'18px 22px', borderBottom:'1px solid '+C.borderLight, background:'linear-gradient(135deg,#f0f9ff,#fff)'}},
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:'10px'}},
+                /*#__PURE__*/React.createElement("div", null,
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px', marginBottom:'5px'}},
+                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.3rem', fontWeight:'900', color:C.text}}, cartao.nome),
+                    /*#__PURE__*/React.createElement("span", {style:{padding:'3px 10px', borderRadius:'12px', fontSize:'0.65rem', fontWeight:'700', background:corStatus.bg, color:corStatus.txt}}, statusFat)
+                  ),
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'14px', fontSize:'0.7rem', color:C.textFaint}},
+                    /*#__PURE__*/React.createElement("span", null, 'Fecha dia '+fech),
+                    /*#__PURE__*/React.createElement("span", null, '\u00B7'),
+                    /*#__PURE__*/React.createElement("span", null, 'Vence dia '+cartao.vencimento)
+                  )
+                ),
+                /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px', flexWrap:'wrap', alignItems:'center'}},
+                  /*#__PURE__*/React.createElement("button", {
                     onClick: () => toggleFarol(cartao.nome, mesAtual),
-                    style:{padding:'5px 10px', border:'none', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:'700', display:'flex', alignItems:'center', gap:'4px',
+                    style:{padding:'6px 12px', border:'none', borderRadius:'8px', cursor:'pointer', fontSize:'0.75rem', fontWeight:'700',
                       background: isPago ? '#dcfce7' : '#fef9c3', color: isPago ? '#15803d' : '#92400e'}
-                  }, isPago ? '\u2713 Pago' : '\u25CB Marcar Pago');
-                })(),
-                /*#__PURE__*/React.createElement("button", {
-                  onClick: () => toggleForm(cartao.id),
-                  style:{padding:'5px 10px', border:'none', borderRadius:'8px', background: formsAbertos[cartao.id] ? '#e0e7ff' : '#dbeafe', color: formsAbertos[cartao.id] ? '#4338ca' : '#1d4ed8', cursor:'pointer', fontSize:'0.72rem', fontWeight:'700', display:'flex', alignItems:'center', gap:'4px'}
-                }, formsAbertos[cartao.id] ? '\u2715 Cancelar' : '+ Compra'),
-                /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(cartao);setTipoEditando('cartao');setModalAberto('editar');}, style:{width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#eff6ff',color:'#3b82f6',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\u270F\uFE0F"),
-                /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarCartao(cartao), style:{width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#faf5ff',color:'#8b5cf6',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\uD83D\uDCCB"),
-                /*#__PURE__*/React.createElement("button", {onClick:()=>deletarCartao(cartao.id), style:{width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#fff1f2',color:'#f43f5e',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                  }, isPago ? '\u2713 Pago' : '\u25CB Marcar Pago'),
+                  /*#__PURE__*/React.createElement("button", {
+                    onClick: () => {setItemEditando(cartao);setTipoEditando('cartao');setModalAberto('editar');},
+                    style:{width:'32px',height:'32px',border:'none',borderRadius:'8px',background:'#eff6ff',color:'#3b82f6',cursor:'pointer',fontSize:'0.82rem',display:'flex',alignItems:'center',justifyContent:'center'}
+                  }, '\u270F\uFE0F'),
+                  /*#__PURE__*/React.createElement("button", {
+                    onClick: () => duplicarCartao(cartao),
+                    style:{width:'32px',height:'32px',border:'none',borderRadius:'8px',background:'#faf5ff',color:'#8b5cf6',cursor:'pointer',fontSize:'0.82rem',display:'flex',alignItems:'center',justifyContent:'center'}
+                  }, '\uD83D\uDCCB'),
+                  /*#__PURE__*/React.createElement("button", {
+                    onClick: () => deletarCartao(cartao.id),
+                    style:{width:'32px',height:'32px',border:'none',borderRadius:'8px',background:'#fff1f2',color:'#f43f5e',cursor:'pointer',fontSize:'0.82rem',display:'flex',alignItems:'center',justifyContent:'center'}
+                  }, '\uD83D\uDDD1\uFE0F')
+                )
               )
             ),
 
-            // Grid 2 colunas: Fatura + Limite
-            /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px'}},
-
-              // Fatura do mês
+            /*#__PURE__*/React.createElement("div", {style:{padding:'18px 22px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px', borderBottom:'1px solid '+C.borderLight}},
               /*#__PURE__*/React.createElement("div", null,
-                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, "\uD83D\uDCB5 Fatura " + mesAtual.toUpperCase()),
-                /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'baseline', gap:'8px', marginBottom:'8px'}},
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, '\uD83D\uDCB5 Fatura '+mesAtual.toUpperCase()),
+                /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}},
                   /*#__PURE__*/React.createElement("input", {
-                    type:"number", step:"0.01", value:valorBase,
-                    onChange:e=>editarValorCartao(cartao.id, mesAtual, e.target.value),
-                    placeholder:"Outras cobranças",
-                    style:{width:'100px', padding:'6px 8px', border:'2px solid '+C.border, borderRadius:'8px', fontSize:'0.82rem', textAlign:'right', outline:'none'}
+                    type:'number', step:'0.01', value:valorBase,
+                    onChange: e => editarValorCartao(cartao.id, mesAtual, e.target.value),
+                    placeholder:'Outras cobran\xE7as',
+                    style:{width:'130px', padding:'7px 10px', border:'2px solid '+C.border, borderRadius:'9px', fontSize:'0.85rem', textAlign:'right', outline:'none', color:C.text}
                   }),
-                  valorParc > 0 && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', color:C.textFaint}}, "+ R$ " + valorParc.toFixed(0))
+                  valorParc > 0 && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:C.textFaint}}, '+ R$ '+valorParc.toFixed(0))
                 ),
-                /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.6rem', fontWeight:'900', color:'#0284c7'}}, "R$ " + valorTotal.toFixed(2)),
-                parcelas.length > 0 && /*#__PURE__*/React.createElement("div", {style:{marginTop:'10px', fontSize:'0.68rem', color:'#64748b'}},
-                  parcelas.length + " parcela" + (parcelas.length>1?"s":"") + " ativa" + (parcelas.length>1?"s":"")
-                )
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'2rem', fontWeight:'900', color:'#0284c7', lineHeight:1, marginBottom:'4px'}}, 'R$ '+valorTotalFat.toFixed(2)),
+                parcelas.length > 0 && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:'#64748b'}}, parcelas.length+' compra'+(parcelas.length!==1?'s':'')+' rastreada'+(parcelas.length!==1?'s':''))
               ),
-
-              // Limite
               /*#__PURE__*/React.createElement("div", null,
-                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, "\uD83C\uDFAF Limite"),
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, '\uD83C\uDFAF Limite'),
                 limite > 0
                   ? /*#__PURE__*/React.createElement("div", null,
                       /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', fontSize:'0.78rem', marginBottom:'8px'}},
-                        /*#__PURE__*/React.createElement("span", {style:{color:'#64748b'}}, "Usado"),
-                        /*#__PURE__*/React.createElement("span", {style:{fontWeight:'800', color: pctLimite>80?'#ef4444':pctLimite>60?'#f59e0b':'#374151'}}, "R$ " + usado.toFixed(0))
+                        /*#__PURE__*/React.createElement("span", {style:{color:'#64748b'}}, 'Usado'),
+                        /*#__PURE__*/React.createElement("span", {style:{fontWeight:'800', color: pctLimite>80?'#ef4444':pctLimite>60?'#f59e0b':'#374151'}}, 'R$ '+usado.toFixed(0))
                       ),
                       /*#__PURE__*/React.createElement("div", {style:{height:'8px', background:'#f1f5f9', borderRadius:'4px', overflow:'hidden', marginBottom:'10px'}},
                         /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:pctLimite+'%', background: pctLimite>80?'#ef4444':pctLimite>60?'#f59e0b':'#0284c7', borderRadius:'4px', transition:'width .6s ease'}})
                       ),
                       /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', fontSize:'0.78rem'}},
-                        /*#__PURE__*/React.createElement("span", {style:{color:'#64748b'}}, "Dispon\xEDvel"),
-                        /*#__PURE__*/React.createElement("span", {style:{fontWeight:'800', color:'#059669'}}, "R$ " + disponivel.toFixed(0))
+                        /*#__PURE__*/React.createElement("span", {style:{color:'#64748b'}}, 'Dispon\xEDvel'),
+                        /*#__PURE__*/React.createElement("span", {style:{fontWeight:'800', color:'#059669'}}, 'R$ '+disponivel.toFixed(0))
                       )
                     )
                   : /*#__PURE__*/React.createElement("div", null,
-                      /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:C.textFaint, marginBottom:'12px'}}, "Limite n\xE3o definido"),
+                      /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:C.textFaint, marginBottom:'12px'}}, 'Limite n\xE3o definido'),
                       /*#__PURE__*/React.createElement("button", {
-                        onClick:()=>{ setInputDialog({titulo:'Definir Limite do Cartão',label:'Limite do cartão (R$):',valorPadrao:'10000',callback:(v)=>{if(v&&!isNaN(v)){const n=cartoes.map(c=>c.id===cartao.id?{...c,limite:parseFloat(v)}:c);setCartoes(n);localStorage.setItem('cartoes',JSON.stringify(n));}}}); },
+                        onClick: () => setInputDialog({titulo:'Definir Limite do Cart\xE3o',label:'Limite do cart\xE3o (R$):',valorPadrao:'10000',callback:(v)=>{if(v&&!isNaN(v)){const n=cartoes.map(c=>c.id===cartao.id?{...c,limite:parseFloat(v)}:c);setCartoes(n);localStorage.setItem('cartoes',JSON.stringify(n));}}}),
                         style:{fontSize:'0.75rem', padding:'6px 14px', border:'none', borderRadius:'8px', background:'#0284c7', color:'#fff', cursor:'pointer', fontWeight:'600'}
-                      }, "\u2795 Definir")
+                      }, '+ Definir')
                     )
               )
             ),
 
-            // Compras do M\u00EAs + formul\u00E1rio inline
-            /*#__PURE__*/React.createElement("div", {style:{padding:'0 20px 16px', borderTop:'1px solid #f1f5f9', paddingTop:'14px'}},
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, "\uD83D\uDECD\uFE0F Compras do M\xEAs"),
+            /*#__PURE__*/React.createElement("div", {style:{padding:'18px 22px'}},
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px'}},
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint}}, '\uD83D\uDECD\uFE0F Compras do M\xEAs'),
+                /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px'}},
+                  /*#__PURE__*/React.createElement("button", {
+                    onClick: () => { setCartaoParaNovaCompra(cartao.nome); setModalAberto('compraParcelada'); },
+                    style:{padding:'5px 12px', border:'none', borderRadius:'8px', background:'#0284c7', color:'#fff', cursor:'pointer', fontSize:'0.75rem', fontWeight:'700'}
+                  }, '+ Compra'),
+                  /*#__PURE__*/React.createElement("button", {
+                    onClick: () => { setCartaoImport(cartao); setModalAberto('importarFatura'); },
+                    style:{padding:'5px 12px', border:'1px solid #bbf7d0', borderRadius:'8px', background:'#f0fdf4', color:'#15803d', cursor:'pointer', fontSize:'0.75rem', fontWeight:'700'}
+                  }, '\u2B06 Importar')
+                )
+              ),
               parcelas.length === 0
-                ? /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:C.textFaint, padding:'6px 0', textAlign:'center', fontStyle:'italic'}}, "Nenhuma compra neste m\xEAs")
-                : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'6px'}},
-                    ...parcelas.map((p, i) => {
-                      const badge = p.totalParcelas <= 1 ? '\xC0 vista' : ('Parcela ' + p.parcelaAtual + ' de ' + p.totalParcelas);
-                      return /*#__PURE__*/React.createElement("div", {key:i, style:{display:'flex', alignItems:'center', gap:'8px', padding:'8px 10px', background:'#f8fafc', borderRadius:'8px', border:'1px solid '+C.border}},
-                        /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
-                          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', fontWeight:'700', color:'#374151', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}, p.descricao),
-                          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', color:C.textFaint, marginTop:'2px'}}, badge)
-                        ),
-                        /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.82rem', fontWeight:'800', color:'#0284c7', flexShrink:0}}, "R$ " + p.valorParcela.toFixed(2)),
-                        /*#__PURE__*/React.createElement("button", {
-                          onClick: () => excluirCompraParcelada(p.id),
-                          style:{width:'24px', height:'24px', border:'none', borderRadius:'6px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.7rem', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center'}
-                        }, "\u2715")
-                      );
-                    })
-                  ),
-              formsAbertos[cartao.id] && (() => {
-                const descVal = novaDesc[cartao.id] || '';
-                const valVal  = novaValor[cartao.id] || '';
-                const parcVal = novaParcelas[cartao.id] || '1';
-                const mesVal  = novaMesInicio[cartao.id] || mesAtual;
-                const preview = valVal && parcVal && parseInt(parcVal) > 0
-                  ? (parseFloat(valVal) / parseInt(parcVal)).toFixed(2) : null;
-                return /*#__PURE__*/React.createElement("div", {style:{marginTop:'12px', padding:'14px', background:'#f0f9ff', borderRadius:'10px', border:'1px solid #bae6fd'}},
-                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.62rem', fontWeight:'800', letterSpacing:'1px', textTransform:'uppercase', color:'#0369a1', marginBottom:'10px'}}, "\u2795 Nova Compra"),
-                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'8px'}},
-                    /*#__PURE__*/React.createElement("input", {
-                      type:'text', placeholder:'Descri\xE7\xE3o (ex: Nike Air, Notebook\u2026)',
-                      value: descVal,
-                      onChange: e => setNovaDesc(prev => ({...prev, [cartao.id]: e.target.value})),
-                      style:{padding:'8px 10px', border:'1px solid #bae6fd', borderRadius:'8px', fontSize:'0.82rem', outline:'none', background:'#fff'}
-                    }),
-                    /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}},
-                      /*#__PURE__*/React.createElement("div", null,
-                        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', color:'#0369a1', marginBottom:'4px', fontWeight:'700'}}, "Valor Total (R$)"),
-                        /*#__PURE__*/React.createElement("input", {
-                          type:'number', step:'0.01', placeholder:'0.00',
-                          value: valVal,
-                          onChange: e => setNovaValor(prev => ({...prev, [cartao.id]: e.target.value})),
-                          style:{width:'100%', padding:'7px 8px', border:'1px solid #bae6fd', borderRadius:'8px', fontSize:'0.82rem', outline:'none', background:'#fff'}
-                        })
-                      ),
-                      /*#__PURE__*/React.createElement("div", null,
-                        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', color:'#0369a1', marginBottom:'4px', fontWeight:'700'}}, "Parcelas"),
-                        /*#__PURE__*/React.createElement("input", {
-                          type:'number', min:'1', max:'48', placeholder:'1',
-                          value: parcVal,
-                          onChange: e => setNovaParcelas(prev => ({...prev, [cartao.id]: e.target.value})),
-                          style:{width:'100%', padding:'7px 8px', border:'1px solid #bae6fd', borderRadius:'8px', fontSize:'0.82rem', outline:'none', background:'#fff'}
-                        })
-                      ),
-                      /*#__PURE__*/React.createElement("div", null,
-                        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', color:'#0369a1', marginBottom:'4px', fontWeight:'700'}}, "M\xEAs In\xEDcio"),
-                        /*#__PURE__*/React.createElement("select", {
-                          value: mesVal,
-                          onChange: e => setNovaMesInicio(prev => ({...prev, [cartao.id]: e.target.value})),
-                          style:{width:'100%', padding:'7px 8px', border:'1px solid #bae6fd', borderRadius:'8px', fontSize:'0.82rem', outline:'none', background:'#fff'}
-                        }, ...MESES.map(m => /*#__PURE__*/React.createElement("option", {key:m, value:m}, mesesNome[m])))
-                      )
-                    ),
-                    preview && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#0369a1', fontWeight:'700', padding:'6px 10px', background:'#e0f2fe', borderRadius:'6px'}},
-                      "\uD83D\uDCCC " + parcVal + "x de R$ " + preview + " / m\xEAs"
-                    ),
-                    /*#__PURE__*/React.createElement("button", {
-                      onClick: () => submitCompra(cartao),
-                      disabled: !descVal.trim() || !valVal,
-                      style:{padding:'9px', border:'none', borderRadius:'8px', background: (!descVal.trim() || !valVal) ? '#cbd5e1' : 'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontWeight:'800', fontSize:'0.82rem', cursor: (!descVal.trim() || !valVal) ? 'not-allowed' : 'pointer'}
-                    }, "\u2705 Adicionar Compra")
-                  )
-                );
-              })()
-            )
-          );
-        })
-      ),
-
-      // ══════════════════════════════════════════════════════════════════
-      // COLUNA DIREITA - Resumos e contexto
-      // ══════════════════════════════════════════════════════════════════
-      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
-
-        // Próximos vencimentos
-        cartoes.filter(c=>{
-          const st = getStatusFarol(c.nome, mesAtual);
-          return st !== 'PAGO' && totaisPorCartao[c.nome]?.total > 0;
-        }).length > 0 && /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'14px', padding:'14px', border:'1px solid '+C.border, boxShadow:'0 2px 8px rgba(0,0,0,0.04)'}},
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:C.textFaint, marginBottom:'12px'}}, "\u23F0 Pr\xF3ximos Vencimentos"),
-          /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'8px'}},
-            ...cartoes
-              .filter(c=>{const st=getStatusFarol(c.nome,mesAtual); return st!=='PAGO' && totaisPorCartao[c.nome]?.total>0;})
-              .sort((a,b)=>a.vencimento-b.vencimento)
-              .map(c => {
-                const diasRestantes = estamosNoMesAtual ? c.vencimento - hoje : 999; // 999 = não mostrar alerta se não for mês atual
-                const info = totaisPorCartao[c.nome];
-                return /*#__PURE__*/React.createElement("div", {key:c.id, style:{padding:'8px 10px', borderRadius:'8px', background: diasRestantes<=3?'#fff1f2':diasRestantes<=7?'#fffbeb':'#f9fafb', border:'1px solid '+(diasRestantes<=3?'#fecdd3':diasRestantes<=7?'#fde68a':'#f3f4f6')}},
-                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', marginBottom:'3px'}},
-                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'700', color:C.text}}, c.nome),
-                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.78rem', fontWeight:'800', color:'#0284c7'}}, "R$ " + info.total.toFixed(0))
-                  ),
-                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', color: diasRestantes===0?'#ef4444':diasRestantes<=3?'#f59e0b':'#9ca3af'}},
-                    estamosNoMesAtual ? (
-                      diasRestantes === 0 ? "Vence HOJE!" : diasRestantes < 0 ? "Vencido h\xE1 " + Math.abs(diasRestantes) + " dias" : "Vence em " + diasRestantes + " dia" + (diasRestantes>1?"s":"")
-                    ) : (
-                      "Vence dia " + c.vencimento
+                ? /*#__PURE__*/React.createElement("div", {style:{padding:'24px 16px', textAlign:'center', background:'#f9fafb', borderRadius:'12px', border:'1px dashed '+C.border}},
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.8rem', marginBottom:'8px'}}, '\uD83D\uDECD\uFE0F'),
+                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', color:C.textFaint, marginBottom:'12px'}}, 'Nenhuma compra registrada neste m\xEAs'),
+                    /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'8px', justifyContent:'center'}},
+                      /*#__PURE__*/React.createElement("button", {
+                        onClick: () => { setCartaoParaNovaCompra(cartao.nome); setModalAberto('compraParcelada'); },
+                        style:{padding:'8px 16px', border:'none', borderRadius:'8px', background:'#0284c7', color:'#fff', cursor:'pointer', fontSize:'0.8rem', fontWeight:'700'}
+                      }, '+ Adicionar Compra'),
+                      /*#__PURE__*/React.createElement("button", {
+                        onClick: () => { setCartaoImport(cartao); setModalAberto('importarFatura'); },
+                        style:{padding:'8px 16px', border:'1px solid #bbf7d0', borderRadius:'8px', background:'#f0fdf4', color:'#15803d', cursor:'pointer', fontSize:'0.8rem', fontWeight:'700'}
+                      }, '\u2B06 Importar Fatura')
                     )
                   )
-                );
-              })
+                : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'6px'}},
+                    ...parcelas.map((p, i) => {
+                      const badge = p.totalParcelas <= 1 ? '\xC0 vista' : 'Parcela '+p.parcelaAtual+' de '+p.totalParcelas;
+                      return /*#__PURE__*/React.createElement("div", {key:i, style:{display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', background:'#f8fafc', borderRadius:'10px', border:'1px solid '+C.border}},
+                        /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
+                          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'700', color:C.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}, p.descricao),
+                          /*#__PURE__*/React.createElement("span", {style:{display:'inline-block', padding:'2px 8px', borderRadius:'10px', fontSize:'0.62rem', fontWeight:'700', background: p.totalParcelas<=1?'#f0fdf4':'#eff6ff', color: p.totalParcelas<=1?'#15803d':'#1d4ed8', marginTop:'3px'}}, badge)
+                        ),
+                        /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.92rem', fontWeight:'800', color:'#0284c7', flexShrink:0}}, 'R$ '+p.valorParcela.toFixed(2)),
+                        /*#__PURE__*/React.createElement("button", {
+                          onClick: () => excluirCompraParcelada(p.id),
+                          style:{width:'26px', height:'26px', border:'none', borderRadius:'6px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.75rem', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'700'}
+                        }, '\u2715')
+                      );
+                    })
+                  )
+            )
           )
-        ),
-
-        // % do total despesas
-        totais.total > 0 && /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(135deg,#dbeafe,#bfdbfe)', borderRadius:'14px', padding:'14px', border:'1px solid #93c5fd'}},
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#1e40af', marginBottom:'10px'}}, "\uD83D\uDCCA % do Total de Despesas"),
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.4rem', fontWeight:'900', color:'#0c4a6e', marginBottom:'6px'}}, (totalGeralMes/totais.total*100).toFixed(0)+"%"),
-          /*#__PURE__*/React.createElement("div", {style:{height:'6px', background:'rgba(255,255,255,0.6)', borderRadius:'3px', overflow:'hidden'}},
-            /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:(totalGeralMes/totais.total*100)+'%', background:'linear-gradient(90deg,#3b82f6,#2563eb)', borderRadius:'3px', transition:'width .6s ease'}})
-          ),
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#1e40af', marginTop:'6px'}}, "de R$ " + totais.total.toLocaleString('pt-BR',{minimumFractionDigits:2}) + " total")
-        ),
-
-        // Dívida total alert
-        totalDivida > 0 && /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(135deg,#fff1f2,#ffe4e6)', borderRadius:'14px', padding:'14px', border:'1px solid #fecdd3'}},
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'#be123c', marginBottom:'10px'}}, "\uD83D\uDD34 D\xEDvida Acumulada"),
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.4rem', fontWeight:'900', color:'#9f1239', marginBottom:'6px'}}, "R$ " + totalDivida.toLocaleString('pt-BR',{minimumFractionDigits:2})),
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#be123c'}}, "Valor n\xE3o pago no ano")
-        )
-      )
     );
   };
 
@@ -8384,7 +8414,10 @@ function App({
   }, /*#__PURE__*/React.createElement(FormNovaReceita, null)), modalAberto === 'compraParcelada' && /*#__PURE__*/React.createElement(Modal, {
     titulo: "\uD83D\uDED2 Nova Compra Parcelada",
     onClose: () => setModalAberto(null)
-  }, /*#__PURE__*/React.createElement(FormCompraParcelada, null)))
+  }, /*#__PURE__*/React.createElement(FormCompraParcelada, null)), modalAberto === 'importarFatura' && /*#__PURE__*/React.createElement(Modal, {
+    titulo: '\u2B06 Importar Fatura' + (cartaoImport ? ' \u2014 ' + cartaoImport.nome : ''),
+    onClose: () => setModalAberto(null)
+  }, /*#__PURE__*/React.createElement(FormImportarFatura, null)))
   , inputDialog && /*#__PURE__*/React.createElement(InputDialog, {
       titulo: inputDialog.titulo,
       label: inputDialog.label,
