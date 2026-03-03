@@ -4047,7 +4047,47 @@ function App({
       mesAtual, anoAtual, metaMensal, pagamentos,
       getStatusFarol,
     };
-    return window.DashboardComponent ? window.DashboardComponent() : /*#__PURE__*/React.createElement('div', null, 'Carregando...');
+    const primeiroNome = user
+      ? (user.displayName || user.email?.split('@')[0] || 'Usu\u00E1rio').split(' ')[0]
+      : 'Usu\u00E1rio';
+    const hora = new Date().getHours();
+    const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+    const MESES_NOME = {jan:'Janeiro',fev:'Fevereiro',mar:'\u00E7o',abr:'Abril',mai:'Maio',jun:'Junho',jul:'Julho',ago:'Agosto',set:'Setembro',out:'Outubro',nov:'Novembro',dez:'Dezembro'};
+    const dataFormatada = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const mesNomeDash = {jan:'Janeiro',fev:'Fevereiro',mar:'Mar\u00E7o',abr:'Abril',mai:'Maio',jun:'Junho',jul:'Julho',ago:'Agosto',set:'Setembro',out:'Outubro',nov:'Novembro',dez:'Dezembro'}[mesAtual] || mesAtual;
+    return React.createElement(React.Fragment, null,
+      React.createElement('div', {
+        style: {
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '18px 24px',
+          background: C.bg,
+          borderRadius: '16px',
+          border: '1px solid ' + C.border,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+        }
+      },
+        React.createElement('div', null,
+          React.createElement('div', {
+            style: { fontSize: '1.35rem', fontWeight: '800', color: C.text, lineHeight: '1.2' }
+          }, saudacao + ', ' + primeiroNome + '! \uD83D\uDC4B'),
+          React.createElement('div', {
+            style: { fontSize: '0.8rem', color: C.textMuted, marginTop: '4px' }
+          }, 'Aqui est\u00E1 seu resumo financeiro.')
+        ),
+        React.createElement('div', { style: { textAlign: 'right' } },
+          React.createElement('div', {
+            style: { fontSize: '0.78rem', color: C.textMuted, textTransform: 'capitalize' }
+          }, dataFormatada),
+          React.createElement('div', {
+            style: { fontSize: '0.72rem', color: C.textFaint, marginTop: '2px' }
+          }, mesNomeDash + ' \u00B7 ' + anoAtual)
+        )
+      ),
+      window.DashboardComponent ? window.DashboardComponent() : React.createElement('div', null, 'Carregando...')
+    );
   };
 
   // 👑 PAINEL DE ADMINISTRAÇÃO
