@@ -3892,7 +3892,6 @@ function App({
           mesInicio
         });
         setModalAberto(null);
-        alert('✅ Compra parcelada adicionada com sucesso!');
       } else {
         alert('❌ Preencha todos os campos!');
       }
@@ -4461,6 +4460,29 @@ function App({
     const estamosNoMesAtual = mesAtual === mesAtualSistema && anoAtual === anoAtualSistema;
     const hoje = estamosNoMesAtual ? dataAtual.getDate() : -1;
 
+    // Estados inline para formulário de nova compra por cartão
+    const [formsAbertos, setFormsAbertos] = React.useState({});
+    const [novaDesc, setNovaDesc]         = React.useState({});
+    const [novaValor, setNovaValor]       = React.useState({});
+    const [novaParcelas, setNovaParcelas] = React.useState({});
+    const [novaMesInicio, setNovaMesInicio] = React.useState({});
+
+    const toggleForm = (cartaoId) =>
+      setFormsAbertos(prev => ({ ...prev, [cartaoId]: !prev[cartaoId] }));
+
+    const submitCompra = (cartao) => {
+      const desc = (novaDesc[cartao.id] || '').trim();
+      const val  = parseFloat(novaValor[cartao.id] || 0);
+      const parc = parseInt(novaParcelas[cartao.id] || 1);
+      const mes  = novaMesInicio[cartao.id] || mesAtual;
+      if (!desc || !val || val <= 0) return;
+      adicionarCompraParcelada({ descricao: desc, cartao: cartao.nome, valorTotal: val, parcelas: parc, mesInicio: mes });
+      setNovaDesc(prev    => ({ ...prev, [cartao.id]: '' }));
+      setNovaValor(prev   => ({ ...prev, [cartao.id]: '' }));
+      setNovaParcelas(prev => ({ ...prev, [cartao.id]: '' }));
+      setFormsAbertos(prev => ({ ...prev, [cartao.id]: false }));
+    };
+
     // Totais do mês
     const totaisPorCartao = {};
     let totalGeralMes = 0;
@@ -4597,7 +4619,20 @@ function App({
                   /*#__PURE__*/React.createElement("span", {style:{padding:'2px 8px', borderRadius:'12px', fontSize:'0.65rem', fontWeight:'700', background:corStatus.bg, color:corStatus.txt}}, statusFat)
                 )
               ),
-              /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px'}},
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px', alignItems:'center', flexWrap:'wrap'}},
+                (() => {
+                  const stCart = getStatusFarol(cartao.nome, mesAtual);
+                  const isPago = stCart === 'PAGO';
+                  return /*#__PURE__*/React.createElement("button", {
+                    onClick: () => toggleFarol(cartao.nome, mesAtual),
+                    style:{padding:'5px 10px', border:'none', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:'700', display:'flex', alignItems:'center', gap:'4px',
+                      background: isPago ? '#dcfce7' : '#fef9c3', color: isPago ? '#15803d' : '#92400e'}
+                  }, isPago ? '\u2713 Pago' : '\u25CB Marcar Pago');
+                })(),
+                /*#__PURE__*/React.createElement("button", {
+                  onClick: () => toggleForm(cartao.id),
+                  style:{padding:'5px 10px', border:'none', borderRadius:'8px', background: formsAbertos[cartao.id] ? '#e0e7ff' : '#dbeafe', color: formsAbertos[cartao.id] ? '#4338ca' : '#1d4ed8', cursor:'pointer', fontSize:'0.72rem', fontWeight:'700', display:'flex', alignItems:'center', gap:'4px'}
+                }, formsAbertos[cartao.id] ? '\u2715 Cancelar' : '+ Compra'),
                 /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(cartao);setTipoEditando('cartao');setModalAberto('editar');}, style:{width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#eff6ff',color:'#3b82f6',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\u270F\uFE0F"),
                 /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarCartao(cartao), style:{width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#faf5ff',color:'#8b5cf6',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\uD83D\uDCCB"),
                 /*#__PURE__*/React.createElement("button", {onClick:()=>deletarCartao(cartao.id), style:{width:'30px',height:'30px',border:'none',borderRadius:'8px',background:'#fff1f2',color:'#f43f5e',cursor:'pointer',fontSize:'0.78rem',display:'flex',alignItems:'center',justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
@@ -4614,7 +4649,7 @@ function App({
                   /*#__PURE__*/React.createElement("input", {
                     type:"number", step:"0.01", value:valorBase,
                     onChange:e=>editarValorCartao(cartao.id, mesAtual, e.target.value),
-                    placeholder:"Base",
+                    placeholder:"Outras cobranças",
                     style:{width:'100px', padding:'6px 8px', border:'2px solid '+C.border, borderRadius:'8px', fontSize:'0.82rem', textAlign:'right', outline:'none'}
                   }),
                   valorParc > 0 && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', color:C.textFaint}}, "+ R$ " + valorParc.toFixed(0))
@@ -4652,20 +4687,82 @@ function App({
               )
             ),
 
-            // Parcelas ativas expandidas
-            parcelas.length > 0 && /*#__PURE__*/React.createElement("div", {style:{padding:'0 20px 16px', borderTop:'1px solid #f9fafb', paddingTop:'14px'}},
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, "\uD83D\uDCE6 Parcelas Ativas"),
-              /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:'8px'}},
-                ...parcelas.map((p,i) =>
-                  /*#__PURE__*/React.createElement("div", {key:i, style:{padding:'8px 10px', background:'#f8fafc', borderRadius:'8px', border:'1px solid '+C.border}},
-                    /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', fontWeight:'700', color:'#374151', marginBottom:'3px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}, p.descricao),
-                    /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center'}},
-                      /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.68rem', color:C.textFaint}}, p.parcelaAtual + "/" + p.totalParcelas),
-                      /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.78rem', fontWeight:'800', color:'#0284c7'}}, "R$ " + p.valorParcela.toFixed(0))
-                    )
+            // Compras do M\u00EAs + formul\u00E1rio inline
+            /*#__PURE__*/React.createElement("div", {style:{padding:'0 20px 16px', borderTop:'1px solid #f1f5f9', paddingTop:'14px'}},
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, "\uD83D\uDECD\uFE0F Compras do M\xEAs"),
+              parcelas.length === 0
+                ? /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:C.textFaint, padding:'6px 0', textAlign:'center', fontStyle:'italic'}}, "Nenhuma compra neste m\xEAs")
+                : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'6px'}},
+                    ...parcelas.map((p, i) => {
+                      const badge = p.totalParcelas <= 1 ? '\xC0 vista' : ('Parcela ' + p.parcelaAtual + ' de ' + p.totalParcelas);
+                      return /*#__PURE__*/React.createElement("div", {key:i, style:{display:'flex', alignItems:'center', gap:'8px', padding:'8px 10px', background:'#f8fafc', borderRadius:'8px', border:'1px solid '+C.border}},
+                        /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
+                          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', fontWeight:'700', color:'#374151', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}, p.descricao),
+                          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', color:C.textFaint, marginTop:'2px'}}, badge)
+                        ),
+                        /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.82rem', fontWeight:'800', color:'#0284c7', flexShrink:0}}, "R$ " + p.valorParcela.toFixed(2)),
+                        /*#__PURE__*/React.createElement("button", {
+                          onClick: () => excluirCompraParcelada(p.id),
+                          style:{width:'24px', height:'24px', border:'none', borderRadius:'6px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.7rem', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center'}
+                        }, "\u2715")
+                      );
+                    })
+                  ),
+              formsAbertos[cartao.id] && (() => {
+                const descVal = novaDesc[cartao.id] || '';
+                const valVal  = novaValor[cartao.id] || '';
+                const parcVal = novaParcelas[cartao.id] || '1';
+                const mesVal  = novaMesInicio[cartao.id] || mesAtual;
+                const preview = valVal && parcVal && parseInt(parcVal) > 0
+                  ? (parseFloat(valVal) / parseInt(parcVal)).toFixed(2) : null;
+                return /*#__PURE__*/React.createElement("div", {style:{marginTop:'12px', padding:'14px', background:'#f0f9ff', borderRadius:'10px', border:'1px solid #bae6fd'}},
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.62rem', fontWeight:'800', letterSpacing:'1px', textTransform:'uppercase', color:'#0369a1', marginBottom:'10px'}}, "\u2795 Nova Compra"),
+                  /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'8px'}},
+                    /*#__PURE__*/React.createElement("input", {
+                      type:'text', placeholder:'Descri\xE7\xE3o (ex: Nike Air, Notebook\u2026)',
+                      value: descVal,
+                      onChange: e => setNovaDesc(prev => ({...prev, [cartao.id]: e.target.value})),
+                      style:{padding:'8px 10px', border:'1px solid #bae6fd', borderRadius:'8px', fontSize:'0.82rem', outline:'none', background:'#fff'}
+                    }),
+                    /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}},
+                      /*#__PURE__*/React.createElement("div", null,
+                        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', color:'#0369a1', marginBottom:'4px', fontWeight:'700'}}, "Valor Total (R$)"),
+                        /*#__PURE__*/React.createElement("input", {
+                          type:'number', step:'0.01', placeholder:'0.00',
+                          value: valVal,
+                          onChange: e => setNovaValor(prev => ({...prev, [cartao.id]: e.target.value})),
+                          style:{width:'100%', padding:'7px 8px', border:'1px solid #bae6fd', borderRadius:'8px', fontSize:'0.82rem', outline:'none', background:'#fff'}
+                        })
+                      ),
+                      /*#__PURE__*/React.createElement("div", null,
+                        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', color:'#0369a1', marginBottom:'4px', fontWeight:'700'}}, "Parcelas"),
+                        /*#__PURE__*/React.createElement("input", {
+                          type:'number', min:'1', max:'48', placeholder:'1',
+                          value: parcVal,
+                          onChange: e => setNovaParcelas(prev => ({...prev, [cartao.id]: e.target.value})),
+                          style:{width:'100%', padding:'7px 8px', border:'1px solid #bae6fd', borderRadius:'8px', fontSize:'0.82rem', outline:'none', background:'#fff'}
+                        })
+                      ),
+                      /*#__PURE__*/React.createElement("div", null,
+                        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', color:'#0369a1', marginBottom:'4px', fontWeight:'700'}}, "M\xEAs In\xEDcio"),
+                        /*#__PURE__*/React.createElement("select", {
+                          value: mesVal,
+                          onChange: e => setNovaMesInicio(prev => ({...prev, [cartao.id]: e.target.value})),
+                          style:{width:'100%', padding:'7px 8px', border:'1px solid #bae6fd', borderRadius:'8px', fontSize:'0.82rem', outline:'none', background:'#fff'}
+                        }, ...MESES.map(m => /*#__PURE__*/React.createElement("option", {key:m, value:m}, mesesNome[m])))
+                      )
+                    ),
+                    preview && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#0369a1', fontWeight:'700', padding:'6px 10px', background:'#e0f2fe', borderRadius:'6px'}},
+                      "\uD83D\uDCCC " + parcVal + "x de R$ " + preview + " / m\xEAs"
+                    ),
+                    /*#__PURE__*/React.createElement("button", {
+                      onClick: () => submitCompra(cartao),
+                      disabled: !descVal.trim() || !valVal,
+                      style:{padding:'9px', border:'none', borderRadius:'8px', background: (!descVal.trim() || !valVal) ? '#cbd5e1' : 'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontWeight:'800', fontSize:'0.82rem', cursor: (!descVal.trim() || !valVal) ? 'not-allowed' : 'pointer'}
+                    }, "\u2705 Adicionar Compra")
                   )
-                )
-              )
+                );
+              })()
             )
           );
         })

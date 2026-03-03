@@ -37,7 +37,7 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
   React.useEffect(() => {
     if (telaAtiva.startsWith('planejamento')) {
       setSubMenu('plan');
-    } else if (['cartoes','fixos','variaveis','extras'].includes(telaAtiva)) {
+    } else if (['fixos','variaveis','extras'].includes(telaAtiva)) {
       setSubMenu('desp');
     }
   }, [telaAtiva]);
@@ -75,7 +75,7 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
   });
 
   const planAtivo = telaAtiva.startsWith('planejamento');
-  const despAtivo = ['cartoes','fixos','variaveis','extras'].includes(telaAtiva);
+  const despAtivo = ['fixos','variaveis','extras'].includes(telaAtiva);
 
   return React.createElement('div', {
     style: {
@@ -392,10 +392,21 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
         expandido && React.createElement('span', null, 'Receitas')
       ),
 
+      // Cartões de Crédito (top-level)
+      React.createElement('div', {
+        onClick: () => navegar('cartoes'),
+        style: itemStyle(telaAtiva === 'cartoes'),
+        onMouseEnter: e => { if (telaAtiva !== 'cartoes') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
+        onMouseLeave: e => { if (telaAtiva !== 'cartoes') e.currentTarget.style.background = 'transparent'; }
+      },
+        React.createElement(window.Icon, { name: 'cartoes', size: 20 }),
+        expandido && React.createElement('span', null, 'Cartões de Crédito')
+      ),
+
       // Despesas
       React.createElement('div', null,
         React.createElement('div', {
-          onClick: () => expandido ? toggleSubMenu('desp') : navegar('cartoes'),
+          onClick: () => expandido ? toggleSubMenu('desp') : navegar('fixos'),
           style: itemStyle(despAtivo),
           onMouseEnter: e => { if (!despAtivo) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
           onMouseLeave: e => { if (!despAtivo) e.currentTarget.style.background = 'transparent'; }
@@ -405,12 +416,6 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
           expandido && React.createElement('span', { style: { fontSize: '0.8rem', transition: 'transform 0.2s', transform: subMenu === 'desp' ? 'rotate(90deg)' : 'rotate(0)' } }, '▶')
         ),
         expandido && subMenu === 'desp' && React.createElement('div', { style: { marginTop: '4px' } },
-          React.createElement('div', {
-            onClick: () => navegar('cartoes', true),
-            style: subItemStyle(telaAtiva === 'cartoes'),
-            onMouseEnter: e => { if (telaAtiva !== 'cartoes') e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; },
-            onMouseLeave: e => { if (telaAtiva !== 'cartoes') e.currentTarget.style.background = 'transparent'; }
-          }, React.createElement(window.Icon, { name: 'cartoes', size: 16 }), 'Cartões de Crédito'),
           React.createElement('div', {
             onClick: () => navegar('fixos', true),
             style: subItemStyle(telaAtiva === 'fixos'),
