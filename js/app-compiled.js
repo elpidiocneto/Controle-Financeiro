@@ -4606,6 +4606,74 @@ function App({
     );
   };
 
+  const FormGerenciarCartoes = () => {
+    return /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'10px', minWidth:'480px'}},
+      cartoes.length === 0
+        ? /*#__PURE__*/React.createElement("div", {style:{padding:'48px', textAlign:'center', color:'#9ca3af'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'2rem', marginBottom:'8px'}}, '\uD83D\uDCB3'),
+            'Nenhum cart\xE3o cadastrado'
+          )
+        : cartoes.map(c => {
+            const lim = c.limite || 0;
+            const valAno2 = c.valores?.[anoAtual] || {};
+            let usadoG = 0, pagoG = 0;
+            ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'].forEach(m => {
+              const vb = valAno2[m] || 0;
+              const vp = calcularParcelasCartao(c.nome, m).reduce((s,p)=>s+p.valorParcela,0);
+              usadoG += vb + vp;
+              const st = getStatusFarol(c.nome, m);
+              if (st==='PAGO') pagoG += vb + vp;
+              else if (typeof st==='number') pagoG += st;
+            });
+            const usadoLiq = Math.max(0, usadoG - pagoG);
+            const dispG = lim > 0 ? Math.max(0, lim - usadoLiq) : 0;
+            const pctG = lim > 0 ? Math.min(100, usadoLiq/lim*100) : 0;
+            return /*#__PURE__*/React.createElement("div", {
+              key: c.id,
+              style:{background:'#f8fafc', borderRadius:'12px', border:'1px solid #e2e8f0', padding:'14px 18px'}
+            },
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: lim > 0 ? '10px' : '0'}},
+                /*#__PURE__*/React.createElement("div", null,
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'800', color:'#111827'}}, c.nome),
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}}, 'Fecha dia '+(c.diaFechamento||c.vencimento-7)+' \xB7 Vence dia '+c.vencimento)
+                ),
+                /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px'}},
+                  /*#__PURE__*/React.createElement("button", {
+                    onClick: () => {setItemEditando(c);setTipoEditando('cartao');setModalAberto('editar');},
+                    style:{padding:'6px 11px', border:'none', borderRadius:'8px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700'}
+                  }, '\u270F\uFE0F Editar'),
+                  /*#__PURE__*/React.createElement("button", {
+                    onClick: () => duplicarCartao(c),
+                    style:{padding:'6px 11px', border:'none', borderRadius:'8px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700'}
+                  }, '\uD83D\uDCCB Duplicar'),
+                  /*#__PURE__*/React.createElement("button", {
+                    onClick: () => deletarCartao(c.id),
+                    style:{padding:'6px 11px', border:'none', borderRadius:'8px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700'}
+                  }, '\uD83D\uDDD1\uFE0F Excluir')
+                )
+              ),
+              lim > 0
+                ? /*#__PURE__*/React.createElement("div", null,
+                    /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', fontSize:'0.72rem', color:'#9ca3af', marginBottom:'4px'}},
+                      /*#__PURE__*/React.createElement("span", null, 'Limite: R$ '+lim.toLocaleString('pt-BR')),
+                      /*#__PURE__*/React.createElement("span", null, 'Dispon\xEDvel: R$ '+dispG.toLocaleString('pt-BR'))
+                    ),
+                    /*#__PURE__*/React.createElement("div", {style:{height:'5px', background:'#e2e8f0', borderRadius:'3px', overflow:'hidden'}},
+                      /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:pctG+'%', background:pctG>80?'#ef4444':pctG>60?'#f59e0b':'#0284c7', borderRadius:'3px', transition:'width .6s'}})
+                    )
+                  )
+                : /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'8px'}},
+                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:'#9ca3af'}}, 'Limite n\xE3o definido'),
+                    /*#__PURE__*/React.createElement("button", {
+                      onClick: () => setInputDialog({titulo:'Definir Limite \u2014 '+c.nome,label:'Limite (R$):',valorPadrao:'10000',callback:v=>{if(v&&!isNaN(v)){const n=cartoes.map(x=>x.id===c.id?{...x,limite:parseFloat(v)}:x);setCartoes(n);localStorage.setItem('cartoes',JSON.stringify(n));}}}),
+                      style:{fontSize:'0.72rem', padding:'4px 10px', border:'none', borderRadius:'7px', background:'#0284c7', color:'#fff', cursor:'pointer', fontWeight:'600'}
+                    }, '+ Definir Limite')
+                  )
+            );
+          })
+    );
+  };
+
   const TelaCartoes = () => {
     const mesesOrdem = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
     const mesesNome  = {jan:'Jan',fev:'Fev',mar:'Mar',abr:'Abr',mai:'Mai',jun:'Jun',jul:'Jul',ago:'Ago',set:'Set',out:'Out',nov:'Nov',dez:'Dez'};
@@ -4617,7 +4685,6 @@ function App({
 
     const [cartaoSelId, setCartaoSelId] = React.useState(cartoes[0]?.id || null);
     const [valorFaturaEdit, setValorFaturaEdit] = React.useState('');
-    const [abaAtiva, setAbaAtiva] = React.useState('faturas');
 
     React.useEffect(() => {
       if (cartoes.length > 0 && (!cartaoSelId || !cartoes.find(c => c.id === cartaoSelId))) {
@@ -4732,82 +4799,13 @@ function App({
             style:{width:'100%', padding:'10px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.82rem', fontWeight:'700', cursor:'pointer', boxShadow:'0 2px 8px rgba(2,132,199,0.3)'}
           }, '+ Novo Cart\xE3o'),
           /*#__PURE__*/React.createElement("button", {
-            onClick: () => setAbaAtiva(abaAtiva === 'gerenciar' ? 'faturas' : 'gerenciar'),
-            style:{width:'100%', padding:'9px', border:'1.5px solid '+(abaAtiva==='gerenciar'?'#6366f1':'#e2e8f0'), borderRadius:'10px', background: abaAtiva==='gerenciar'?'#eef2ff':'transparent', color: abaAtiva==='gerenciar'?'#4f46e5':C.textFaint, fontSize:'0.8rem', fontWeight:'700', cursor:'pointer', transition:'all 0.15s'}
+            onClick: () => setModalAberto('gerenciarCartoes'),
+            style:{width:'100%', padding:'9px', border:'1.5px solid #e2e8f0', borderRadius:'10px', background:'transparent', color:C.textFaint, fontSize:'0.8rem', fontWeight:'700', cursor:'pointer', transition:'all 0.15s'}
           }, '\u2699\uFE0F Gerenciar Cart\xF5es')
         )
       ),
 
-      abaAtiva === 'gerenciar'
-        ? /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
-            /*#__PURE__*/React.createElement("div", {style:{padding:'18px 22px', borderBottom:'1px solid '+C.borderLight, background:'linear-gradient(135deg,#f5f3ff,#fff)'}},
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.1rem', fontWeight:'900', color:C.text}}, '\u2699\uFE0F Gerenciar Cart\xF5es'),
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:C.textFaint, marginTop:'2px'}}, 'Edite, duplique ou remova seus cart\xF5es')
-            ),
-            cartoes.length === 0
-              ? /*#__PURE__*/React.createElement("div", {style:{padding:'48px', textAlign:'center', color:C.textFaint}}, 'Nenhum cart\xE3o cadastrado')
-              : /*#__PURE__*/React.createElement("div", {style:{padding:'12px 16px', display:'flex', flexDirection:'column', gap:'10px'}},
-                  ...cartoes.map(c => {
-                    const lim = c.limite || 0;
-                    const valAno2 = c.valores?.[anoAtual] || {};
-                    let usadoG = 0, pagoG = 0;
-                    ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'].forEach(m => {
-                      const vb = valAno2[m] || 0;
-                      const vp = calcularParcelasCartao(c.nome, m).reduce((s,p)=>s+p.valorParcela,0);
-                      usadoG += vb + vp;
-                      const st = getStatusFarol(c.nome, m);
-                      if (st==='PAGO') pagoG += vb + vp;
-                      else if (typeof st==='number') pagoG += st;
-                    });
-                    const usadoLiq = Math.max(0, usadoG - pagoG);
-                    const dispG = lim > 0 ? Math.max(0, lim - usadoLiq) : 0;
-                    const pctG = lim > 0 ? Math.min(100, usadoLiq/lim*100) : 0;
-                    return /*#__PURE__*/React.createElement("div", {
-                      key: c.id,
-                      style:{background:'#f8fafc', borderRadius:'12px', border:'1px solid '+C.border, padding:'14px 18px'}
-                    },
-                      /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: lim > 0 ? '10px' : '0'}},
-                        /*#__PURE__*/React.createElement("div", null,
-                          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'800', color:C.text}}, c.nome),
-                          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textFaint, marginTop:'2px'}}, 'Fecha dia '+(c.diaFechamento||c.vencimento-7)+' \xB7 Vence dia '+c.vencimento)
-                        ),
-                        /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px'}},
-                          /*#__PURE__*/React.createElement("button", {
-                            onClick: () => {setItemEditando(c);setTipoEditando('cartao');setModalAberto('editar');},
-                            style:{padding:'6px 11px', border:'none', borderRadius:'8px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700'}
-                          }, '\u270F\uFE0F Editar'),
-                          /*#__PURE__*/React.createElement("button", {
-                            onClick: () => duplicarCartao(c),
-                            style:{padding:'6px 11px', border:'none', borderRadius:'8px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700'}
-                          }, '\uD83D\uDCCB Duplicar'),
-                          /*#__PURE__*/React.createElement("button", {
-                            onClick: () => deletarCartao(c.id),
-                            style:{padding:'6px 11px', border:'none', borderRadius:'8px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700'}
-                          }, '\uD83D\uDDD1\uFE0F Excluir')
-                        )
-                      ),
-                      lim > 0
-                        ? /*#__PURE__*/React.createElement("div", null,
-                            /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', fontSize:'0.72rem', color:C.textFaint, marginBottom:'4px'}},
-                              /*#__PURE__*/React.createElement("span", null, 'Limite: R$ '+lim.toLocaleString('pt-BR')),
-                              /*#__PURE__*/React.createElement("span", null, 'Dispon\xEDvel: R$ '+dispG.toLocaleString('pt-BR'))
-                            ),
-                            /*#__PURE__*/React.createElement("div", {style:{height:'5px', background:'#e2e8f0', borderRadius:'3px', overflow:'hidden'}},
-                              /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:pctG+'%', background:pctG>80?'#ef4444':pctG>60?'#f59e0b':'#0284c7', borderRadius:'3px', transition:'width .6s'}})
-                            )
-                          )
-                        : /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'8px'}},
-                            /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:C.textFaint}}, 'Limite n\xE3o definido'),
-                            /*#__PURE__*/React.createElement("button", {
-                              onClick: () => setInputDialog({titulo:'Definir Limite \u2014 '+c.nome,label:'Limite (R$):',valorPadrao:'10000',callback:v=>{if(v&&!isNaN(v)){const n=cartoes.map(x=>x.id===c.id?{...x,limite:parseFloat(v)}:x);setCartoes(n);localStorage.setItem('cartoes',JSON.stringify(n));}}}),
-                              style:{fontSize:'0.72rem', padding:'4px 10px', border:'none', borderRadius:'7px', background:'#0284c7', color:'#fff', cursor:'pointer', fontWeight:'600'}
-                            }, '+ Definir Limite')
-                          )
-                    );
-                  })
-                )
-          )
-        : !cartao
+      !cartao
         ? /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, padding:'80px 20px', textAlign:'center', boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, '\uD83D\uDCB3'),
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'1rem', fontWeight:'700', color:C.textFaint, marginBottom:'8px'}}, 'Nenhum cart\xE3o cadastrado'),
@@ -8526,7 +8524,10 @@ function App({
   }, /*#__PURE__*/React.createElement(FormCompraParcelada, null)), modalAberto === 'importarFatura' && /*#__PURE__*/React.createElement(Modal, {
     titulo: '\u2B06 Importar Fatura' + (cartaoImport ? ' \u2014 ' + cartaoImport.nome : ''),
     onClose: () => setModalAberto(null)
-  }, /*#__PURE__*/React.createElement(FormImportarFatura, null)))
+  }, /*#__PURE__*/React.createElement(FormImportarFatura, null)), modalAberto === 'gerenciarCartoes' && /*#__PURE__*/React.createElement(Modal, {
+    titulo: '\u2699\uFE0F Gerenciar Cart\xF5es',
+    onClose: () => setModalAberto(null)
+  }, /*#__PURE__*/React.createElement(FormGerenciarCartoes, null)))
   , inputDialog && /*#__PURE__*/React.createElement(InputDialog, {
       titulo: inputDialog.titulo,
       label: inputDialog.label,
