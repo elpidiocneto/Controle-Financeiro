@@ -12,6 +12,7 @@ window.DashboardComponent = function Dashboard() {
   const metaMensal  = ctx.metaMensal  || 0;
   const pagamentos  = ctx.pagamentos  || { percentual:0, qtdPago:0, qtdTotal:0, pago:0, pendente:0, total:0 };
   const getStatusFarol = ctx.getStatusFarol || (() => 'PENDENTE');
+  const calcularParcelasCartao = ctx.calcularParcelasCartao || (() => []);
 
   const MESES = { jan:'Janeiro', fev:'Fevereiro', mar:'Março', abr:'Abril', mai:'Maio', jun:'Junho', jul:'Julho', ago:'Agosto', set:'Setembro', out:'Outubro', nov:'Novembro', dez:'Dezembro' };
   const mesNome = MESES[mesAtual] || mesAtual;
@@ -25,11 +26,17 @@ window.DashboardComponent = function Dashboard() {
   const progressoPct   = metaMensal > 0 ? Math.min(100, totais.total / metaMensal * 100) : 0;
   const progressoCor   = progressoPct < 70 ? '#10b981' : progressoPct < 90 ? '#f59e0b' : '#ef4444';
 
-  // Próximas a vencer
-  const hoje = new Date().getDate();
+  // Hoje (apenas se estivermos no mês atual do sistema)
+  const hoje = new Date();
+  const mesAtualSistema = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][hoje.getMonth()];
+  const anoAtualSistema = hoje.getFullYear();
+  const estamosNoMesAtual = mesAtual === mesAtualSistema && String(anoAtual) === String(anoAtualSistema);
+  const diaHoje = estamosNoMesAtual ? hoje.getDate() : -1;
+
+  // Próximas a vencer — só pendentes, ordenado por dia de vencimento
   const proximasVencer = [
-    ...cartoes.map(c   => ({ nome:c.nome,      venc:c.vencimento, tipo:'Cartão', icone:'💳', status:getStatusFarol(c.nome, mesAtual) })),
-    ...gastosFixos.map(g => ({ nome:g.descricao, venc:g.vencimento, tipo:'Fixo',   icone:'🏠', status:getStatusFarol(g.descricao, mesAtual) }))
+    ...cartoes.map(c => ({ nome:c.nome, venc:c.vencimento, tipo:'Cartão', icone:'💳', status:getStatusFarol(c.nome, mesAtual) })),
+    ...gastosFixos.map(g => ({ nome:g.descricao, venc:g.vencimento, tipo:'Fixo', icone:'🏠', status:getStatusFarol(g.descricao, mesAtual) }))
   ].filter(c => c.status === 'PENDENTE').sort((a,b) => (a.venc||31)-(b.venc||31)).slice(0,6);
 
   // Categorias para donut
@@ -176,17 +183,27 @@ window.DashboardComponent = function Dashboard() {
     proximasVencer.length > 0
       ? h('div', { style:{ display:'flex', flexDirection:'column', gap:'8px' } },
           ...proximasVencer.map((c,i) => {
-            const urg = c.venc && c.venc <= hoje+3;
-            return h('div', { key:i, style:{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 12px', background:urg?'#fff7ed':'#fafafa', borderRadius:'10px', border:`1px solid ${urg?'#fed7aa':'#f3f4f6'}` } },
+            const diasRestantes = c.venc ? c.venc - diaHoje : null;
+            const urgente = diaHoje > 0 && diasRestantes !== null && diasRestantes <= 3;
+            const vencido = diaHoje > 0 && diasRestantes !== null && diasRestantes < 0;
+            const corUrg = vencido ? '#ef4444' : urgente ? '#f59e0b' : '#6b7280';
+            const bgUrg  = vencido ? '#fef2f2' : urgente ? '#fff7ed' : '#fafafa';
+            const bdUrg  = vencido ? '#fecaca' : urgente ? '#fed7aa' : '#f3f4f6';
+            const labelDia = !c.venc ? 'Sem data'
+              : vencido ? `Venceu dia ${c.venc}`
+              : diasRestantes === 0 ? 'Hoje!'
+              : diasRestantes === 1 ? 'Amanhã'
+              : `Dia ${c.venc}`;
+            return h('div', { key:i, style:{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 12px', background:bgUrg, borderRadius:'10px', border:`1px solid ${bdUrg}` } },
               h('div', { style:{ display:'flex', alignItems:'center', gap:'10px' } },
-                h('span', { style:{ fontSize:'1rem' } }, c.icone),
+                h('span', { style:{ fontSize:'1rem' } }, vencido ? '🔴' : urgente ? '🟠' : c.icone),
                 h('div', null,
                   h('div', { style:{ fontSize:'0.78rem', fontWeight:'700', color:'#111827' } }, c.nome),
                   h('div', { style:{ fontSize:'0.67rem', color:'#9ca3af' } }, c.tipo)
                 )
               ),
-              h('div', { style:{ fontSize:'0.72rem', fontWeight:'800', color:urg?'#ef4444':'#f59e0b', background:urg?'#fef2f2':'#fffbeb', padding:'3px 9px', borderRadius:'8px' } },
-                c.venc ? `Dia ${c.venc}` : 'Sem data'
+              h('div', { style:{ fontSize:'0.72rem', fontWeight:'800', color:corUrg, background: vencido?'#fef2f2':urgente?'#fffbeb':'#f3f4f6', padding:'3px 9px', borderRadius:'8px' } },
+                labelDia
               )
             );
           })
@@ -202,30 +219,42 @@ window.DashboardComponent = function Dashboard() {
   );
 
   // ─── COLUNA DIREITA ──────────────────────────────────────
+  // Valor correto = base (outras cobranças) + parcelas do mês
   const cardCartoes = h('div', { style: card({ marginBottom:'14px' }) },
     secH('💳 Cartões de Crédito'),
     cartoes.length > 0
       ? h('div', { style:{ display:'flex', flexDirection:'column', gap:'10px' } },
           ...cartoes.slice(0,4).map((c,i) => {
             const valoresAno = c.valores?.[anoAtual] || {};
-            const val   = valoresAno[mesAtual] || 0;
+            const base = valoresAno[mesAtual] || 0;
+            const parcelas = calcularParcelasCartao(c.nome, mesAtual);
+            const totalParc = parcelas.reduce((s,p) => s+p.valorParcela, 0);
+            const val  = base + totalParc;
             const lim   = c.limite || 0;
             const usoPct= lim > 0 ? Math.min(100, val/lim*100) : 0;
             const pago  = getStatusFarol(c.nome, mesAtual) === 'PAGO';
-            return h('div', { key:i, style:{ padding:'10px 12px', background:pago?'#f0fdf4':'#fafafa', borderRadius:'12px', border:`1px solid ${pago?'#bbf7d0':'#e5e7eb'}` } },
-              h('div', { style:{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: lim>0?'8px':'0' } },
+            const diaVenc = c.vencimento;
+            const diasP = diaVenc && diaHoje > 0 ? diaVenc - diaHoje : null;
+            const venceEm = diasP === null ? null : diasP < 0 ? 'Vencido' : diasP === 0 ? 'Vence hoje' : diasP === 1 ? 'Vence amanhã' : `Vence em ${diasP}d`;
+            const corVenc = diasP !== null && diasP < 0 ? '#ef4444' : diasP !== null && diasP <= 3 ? '#f59e0b' : '#9ca3af';
+            return h('div', { key:i, style:{ padding:'11px 13px', background:pago?'#f0fdf4':'#fafafa', borderRadius:'12px', border:`1px solid ${pago?'#bbf7d0':'#e5e7eb'}` } },
+              h('div', { style:{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom: lim>0?'8px':'0' } },
                 h('div', { style:{ display:'flex', alignItems:'center', gap:'8px' } },
-                  h('div', { style:{ width:'28px', height:'28px', borderRadius:'8px', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.75rem', color:'#fff', fontWeight:'800' } },
+                  h('div', { style:{ width:'30px', height:'30px', borderRadius:'8px', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem', color:'#fff', fontWeight:'800', flexShrink:0 } },
                     c.nome.charAt(0).toUpperCase()
                   ),
                   h('div', null,
-                    h('div', { style:{ fontSize:'0.78rem', fontWeight:'700', color:'#111827' } }, c.nome),
-                    h('div', { style:{ fontSize:'0.65rem', color:'#9ca3af' } }, c.vencimento?`Vence dia ${c.vencimento}`:'')
+                    h('div', { style:{ fontSize:'0.8rem', fontWeight:'700', color:'#111827' } }, c.nome),
+                    h('div', { style:{ fontSize:'0.64rem', color: pago ? '#10b981' : corVenc, fontWeight:'600', marginTop:'1px' } },
+                      pago ? '✓ Pago' : (venceEm || (diaVenc ? `Vence dia ${diaVenc}` : ''))
+                    )
                   )
                 ),
                 h('div', { style:{ textAlign:'right' } },
-                  h('div', { style:{ fontSize:'0.86rem', fontWeight:'900', color:pago?'#10b981':'#111827' } }, fmt0(val)),
-                  pago && h('div', { style:{ fontSize:'0.6rem', color:'#10b981', fontWeight:'700' } }, '✓ PAGO')
+                  h('div', { style:{ fontSize:'0.9rem', fontWeight:'900', color:pago?'#10b981':'#111827' } }, fmt0(val)),
+                  totalParc > 0 && h('div', { style:{ fontSize:'0.62rem', color:'#9ca3af', marginTop:'1px' } },
+                    parcelas.length+' compra'+(parcelas.length!==1?'s':'')
+                  )
                 )
               ),
               lim > 0 && h('div', null,

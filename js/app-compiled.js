@@ -4043,10 +4043,11 @@ function App({
   // Screens
   const Dashboard = () => {
     // Setar contexto para o DashboardComponent externo
+    const gastosFixosMes = gastosFixos.filter(g => !g.mes || (g.mes === mesAtual && String(g.ano) === String(anoAtual)));
     window.__dashCtx = {
-      totais, saldo, cartoes, gastosFixos, receitas,
+      totais, saldo, cartoes, gastosFixos: gastosFixosMes, receitas,
       mesAtual, anoAtual, metaMensal, pagamentos,
-      getStatusFarol,
+      getStatusFarol, calcularParcelasCartao,
     };
     const primeiroNome = user
       ? (user.displayName || user.email?.split('@')[0] || 'Usu\u00E1rio').split(' ')[0]
@@ -4895,6 +4896,51 @@ function App({
                         );
                       })
                     )
+              )
+            ),
+
+            /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
+              /*#__PURE__*/React.createElement("div", {style:{padding:'14px 20px', borderBottom:'1px solid '+C.borderLight, background:'linear-gradient(135deg,#fafafa,#fff)', display:'flex', justifyContent:'space-between', alignItems:'center'}},
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint}}, '\uD83D\uDCC5 Proje\xE7\xE3o \u2014 Pr\xF3ximos 6 Meses'),
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:C.textFaint}}, 'base + parcelas')
+              ),
+              /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px'}},
+                /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'repeat(6, 1fr)', gap:'8px'}},
+                  ...(()=>{
+                    const ordemM = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+                    const nomesM = {jan:'Jan',fev:'Fev',mar:'Mar',abr:'Abr',mai:'Mai',jun:'Jun',jul:'Jul',ago:'Ago',set:'Set',out:'Out',nov:'Nov',dez:'Dez'};
+                    const idxAtual = ordemM.indexOf(mesAtual);
+                    const meses6 = Array.from({length:6}, (_,i) => ordemM[(idxAtual+i)%12]);
+                    const dados6 = meses6.map(m => {
+                      const base = cartao.valores?.[anoAtual]?.[m] || 0;
+                      const parcs = calcularParcelasCartao(cartao.nome, m);
+                      const totalParc = parcs.reduce((s,p)=>s+p.valorParcela, 0);
+                      return { mes:m, nome:nomesM[m], base, qtdParc:parcs.length, total:base+totalParc };
+                    });
+                    const maxTotal = Math.max(...dados6.map(t=>t.total), 1);
+                    return dados6.map((t,i) => {
+                      const isCurrent = i===0;
+                      const pct = Math.max(3, Math.round(t.total/maxTotal*100));
+                      const corBar = isCurrent ? '#3b82f6' : t.total===0 ? '#e2e8f0' : '#94a3b8';
+                      return /*#__PURE__*/React.createElement("div", {key:i,
+                        style:{textAlign:'center', padding:'10px 6px', borderRadius:'10px',
+                          background: isCurrent?'#eff6ff':'#f8fafc',
+                          border:'1px solid '+(isCurrent?'#bfdbfe':C.border)}
+                      },
+                        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'0.5px', textTransform:'uppercase', color: isCurrent?'#2563eb':C.textFaint, marginBottom:'8px'}}, t.nome),
+                        /*#__PURE__*/React.createElement("div", {style:{height:'48px', display:'flex', alignItems:'flex-end', justifyContent:'center', marginBottom:'6px'}},
+                          /*#__PURE__*/React.createElement("div", {style:{width:'80%', height:pct+'%', minHeight:'3px', background:corBar, borderRadius:'3px 3px 0 0', transition:'height .5s ease'}})
+                        ),
+                        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', fontWeight:'900', color: isCurrent?'#1d4ed8':C.text, lineHeight:1}},
+                          t.total > 0 ? 'R$\u00A0'+t.total.toLocaleString('pt-BR',{minimumFractionDigits:0}) : '\u2014'
+                        ),
+                        t.qtdParc > 0 && /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.56rem', color:C.textFaint, marginTop:'3px'}},
+                          t.qtdParc+' compra'+(t.qtdParc!==1?'s':'')
+                        )
+                      );
+                    });
+                  })()
+                )
               )
             )
           )
