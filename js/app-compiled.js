@@ -4504,9 +4504,13 @@ function App({
         const nome = getTag('NAME') || getTag('MEMO');
         const valorStr = getTag('TRNAMT');
         const data = getTag('DTPOSTED');
-        const valor = parseFloat(valorStr);
-        if (!nome || isNaN(valor)) return;
-        result.push({ id: i.toString(), descricao: nome.toUpperCase(), valor: Math.abs(valor), valorOriginal: valor, data: data.slice(0,8) });
+        const valorBruto = parseFloat(valorStr);
+        if (!nome || isNaN(valorBruto)) return;
+        // Em OFX, compras aparecem como negativos (saída do banco/cartão).
+        // Invertemos o sinal para que compras fiquem positivas,
+        // mantendo consistência com o formato CSV.
+        const valorOriginal = -valorBruto;
+        result.push({ id: i.toString(), descricao: nome.toUpperCase(), valor: Math.abs(valorBruto), valorOriginal, data: data.slice(0,8) });
       });
       return result;
     };
@@ -4514,7 +4518,14 @@ function App({
     const processarArquivo = (file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const texto = e.target.result;
+        // Tenta UTF-8 primeiro; se produzir caracteres inválidos (latin1/ISO-8859-1), recodifica
+        const bytes = new Uint8Array(e.target.result);
+        let texto;
+        try {
+          texto = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+        } catch (_) {
+          texto = new TextDecoder('iso-8859-1').decode(bytes);
+        }
         const ext = file.name.toLowerCase().split('.').pop();
         let rows = [];
         if (['ofx','qfx'].includes(ext) || texto.toUpperCase().includes('<OFX>')) {
@@ -4522,13 +4533,13 @@ function App({
         } else {
           rows = parseCSV(texto);
         }
-        if (rows.length === 0) { alert('Nenhum lan\xE7amento encontrado. Verifique o formato.'); return; }
+        if (rows.length === 0) { alert('Nenhum lan\xE7amento encontrado. Verifique o formato do arquivo.'); return; }
         setLinhas(rows);
         const sel = {}; const parc = {};
         rows.forEach(r => { sel[r.id] = r.valorOriginal > 0; parc[r.id] = 1; });
         setSelecionados(sel); setParcImport(parc); setEtapa(2);
       };
-      reader.readAsText(file, 'UTF-8');
+      reader.readAsArrayBuffer(file);
     };
 
     const confirmarImport = () => {
