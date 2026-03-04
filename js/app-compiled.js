@@ -4754,7 +4754,7 @@ function App({
     const _isMob = window.innerWidth <= 768;
     return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns: _isMob ? '1fr' : '280px 1fr', gap:'16px', alignItems:'start'}},
 
-      /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden', display:'flex', flexDirection:'column'}},
+      /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden', display:'flex', flexDirection:'column', minWidth:0}},
         /*#__PURE__*/React.createElement("div", {style:{padding:'16px 18px', background:'linear-gradient(150deg,#0c4a6e,#0369a1,#0284c7)', color:'#fff'}},
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', opacity:0.6, marginBottom:'6px'}}, 'CART\xD5ES \xB7 '+mesAtual.toUpperCase()),
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.7rem', fontWeight:'900', lineHeight:1, marginBottom:'8px'}}, 'R$ '+totalGeralMes.toLocaleString('pt-BR',{minimumFractionDigits:2})),
@@ -4807,7 +4807,7 @@ function App({
       ),
 
       !cartao
-        ? /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, padding:'80px 20px', textAlign:'center', boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
+        ? /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, padding:'80px 20px', textAlign:'center', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', minWidth:0}},
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, '\uD83D\uDCB3'),
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'1rem', fontWeight:'700', color:C.textFaint, marginBottom:'8px'}}, 'Nenhum cart\xE3o cadastrado'),
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.82rem', color:C.textFaint, marginBottom:'20px'}}, 'Crie seu primeiro cart\xE3o de cr\xE9dito para come\xE7ar'),
@@ -4816,10 +4816,10 @@ function App({
               style:{padding:'11px 28px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#0284c7,#0369a1)', color:'#fff', fontSize:'0.85rem', fontWeight:'700', cursor:'pointer'}
             }, '+ Adicionar Primeiro Cart\xE3o')
           )
-        : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'16px'}},
+        : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'16px', minWidth:0, overflow:'hidden'}},
 
             /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', padding:'22px 24px'}},
-              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px'}},
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px', flexWrap:'wrap', gap:'8px'}},
                 /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
                   /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.35rem', fontWeight:'900', color:C.text}}, cartao.nome),
                   /*#__PURE__*/React.createElement("span", {style:{padding:'3px 10px', borderRadius:'12px', fontSize:'0.65rem', fontWeight:'700', background:corStatus.bg, color:corStatus.txt}}, statusFat)
@@ -4837,7 +4837,7 @@ function App({
                 /*#__PURE__*/React.createElement("span", null, 'Vence dia '+cartao.vencimento)
               ),
               /*#__PURE__*/React.createElement("div", {style:{borderTop:'1px solid '+C.borderLight, marginBottom:'18px'}}),
-              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:'16px'}},
+              /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:'12px', width:'100%'}},
                 /*#__PURE__*/React.createElement("div", null,
                   /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.62rem', fontWeight:'700', letterSpacing:'0.8px', textTransform:'uppercase', color:C.textFaint, marginBottom:'7px'}}, 'Outras cobran\xE7as (R$)'),
                   /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
@@ -4847,7 +4847,7 @@ function App({
                       onBlur: e => cartao && editarValorCartao(cartao.id, mesAtual, e.target.value),
                       onKeyDown: e => { if (e.key === 'Enter' && cartao) { editarValorCartao(cartao.id, mesAtual, valorFaturaEdit); e.target.blur(); } },
                       placeholder:'0,00',
-                      style:{width:'150px', padding:'9px 13px', border:'2px solid '+C.border, borderRadius:'10px', fontSize:'0.95rem', textAlign:'right', outline:'none', color:C.text, background:C.bgAlt||C.bg, fontWeight:'600'}
+                      style:{width: window.innerWidth <= 768 ? '100%' : '150px', padding:'9px 13px', border:'2px solid '+C.border, borderRadius:'10px', fontSize:'0.95rem', textAlign:'right', outline:'none', color:C.text, background:C.bgAlt||C.bg, fontWeight:'600'}
                     }),
                     valorParc > 0 && /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:C.textFaint}}, '+ R$ '+valorParc.toFixed(0)+' em parcelas')
                   )
@@ -4861,7 +4861,7 @@ function App({
             ),
 
             /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
-              /*#__PURE__*/React.createElement("div", {style:{padding:'14px 20px', borderBottom:'1px solid '+C.borderLight, display:'flex', justifyContent:'space-between', alignItems:'center', background:'linear-gradient(135deg,#f0fdf4,#fff)'}},
+              /*#__PURE__*/React.createElement("div", {style:{padding:'12px 16px', borderBottom:'1px solid '+C.borderLight, display:'flex', justifyContent:'space-between', alignItems:'center', background:'linear-gradient(135deg,#f0fdf4,#fff)', flexWrap:'wrap', gap:'8px'}},
                 /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint}}, '\uD83D\uDECD\uFE0F Extrato \u2014 '+mesAtual.toUpperCase()),
                 /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px'}},
                   /*#__PURE__*/React.createElement("button", {
@@ -4892,7 +4892,7 @@ function App({
                     )
                   : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'6px'}},
                       ...parcelas.map((p, i) => {
-                        const badge = p.totalParcelas <= 1 ? '\xC0 vista' : 'Parcela '+p.parcelaAtual+' de '+p.totalParcelas;
+                        const badge = (!p.totalParcelas || p.totalParcelas <= 1) ? '\xC0 vista' : 'Parcela '+(p.parcelaAtual||1)+' de '+p.totalParcelas;
                         return /*#__PURE__*/React.createElement("div", {key:i, style:{display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', background:'#f8fafc', borderRadius:'10px', border:'1px solid '+C.border}},
                           /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
                             /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'700', color:C.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}, p.descricao),
@@ -4915,7 +4915,7 @@ function App({
                 /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:C.textFaint}}, 'base + parcelas')
               ),
               /*#__PURE__*/React.createElement("div", {style:{padding:'16px 20px'}},
-                /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'repeat(6, 1fr)', gap:'8px'}},
+                /*#__PURE__*/React.createElement("div", {style:{overflowX:'auto',WebkitOverflowScrolling:'touch',paddingBottom:'6px'}}, /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'repeat(6, 1fr)', gap:'8px', minWidth:'440px'}},
                   ...(()=>{
                     const ordemM = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
                     const nomesM = {jan:'Jan',fev:'Fev',mar:'Mar',abr:'Abr',mai:'Mai',jun:'Jun',jul:'Jul',ago:'Ago',set:'Set',out:'Out',nov:'Nov',dez:'Dez'};
@@ -4950,7 +4950,7 @@ function App({
                       );
                     });
                   })()
-                )
+                ))
               )
             )
           )
@@ -5380,9 +5380,10 @@ function App({
     const datasOrdenadas = Object.keys(porData).sort((a,b)=>a==='Sem data'?1:b==='Sem data'?-1:b.localeCompare(a));
     const hoje = estamosNoMesAtual ? dataAtual : null;
 
-    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'200px 1fr', gap:'16px', alignItems:'start'}},
+    const _isMobGV = window.innerWidth <= 768;
+    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns: _isMobGV ? '1fr' : '200px 1fr', gap:'16px', alignItems:'start'}},
 
-      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px', minWidth:0}},
 
         /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(150deg,#7c2d12,#c2410c,#ea580c)', borderRadius:'16px', padding:'20px', color:'#fff', boxShadow:'0 6px 24px rgba(194,65,12,0.4)', border:'1px solid rgba(255,255,255,0.1)'}},
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'10px'}}, "\uD83D\uDCCA VARI\xC1VEIS \xB7 "+mesAtual.toUpperCase()),
@@ -5500,9 +5501,10 @@ function App({
     const categorias = ['TODAS', ...Object.keys(totaisPorCat).sort((a,b)=>totaisPorCat[b]-totaisPorCat[a])];
     const sortedGastos = [...gastosFiltrados].sort((a,b) => (b.data||'').localeCompare(a.data||''));
 
-    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'200px 1fr', gap:'16px', alignItems:'start'}},
+    const _isMobGE = window.innerWidth <= 768;
+    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns: _isMobGE ? '1fr' : '200px 1fr', gap:'16px', alignItems:'start'}},
 
-      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px', minWidth:0}},
 
         /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(150deg,#78350f,#b45309,#d97706)', borderRadius:'16px', padding:'20px', color:'#fff', boxShadow:'0 6px 24px rgba(180,83,9,0.4)', border:'1px solid rgba(255,255,255,0.1)'}},
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'10px'}}, "\u26A1 EXTRAS \xB7 "+mesAtual.toUpperCase()),
@@ -5614,9 +5616,10 @@ function App({
     const porCat  = receitasDoMes.reduce((acc,r) => { acc[r.categoria] = (acc[r.categoria]||0) + r.valor; return acc; }, {});
     const catList = Object.entries(porCat).sort((a,b) => b[1]-a[1]);
 
-    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'240px 1fr 220px', gap:'16px', alignItems:'start'}},
+    const _isMobRec = window.innerWidth <= 768;
+    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns: _isMobRec ? '1fr' : '240px 1fr 220px', gap:'16px', alignItems:'start'}},
 
-      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'14px'}},
+      /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'14px', minWidth:0}},
 
         /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(150deg,#064e3b 0%,#065f46 60%,#047857 100%)', borderRadius:'16px', padding:'22px', color:'#fff', boxShadow:'0 6px 28px rgba(6,78,59,0.4)', border:'1px solid rgba(16,185,129,0.25)'}},
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'10px'}}, mesAtual.toUpperCase() + " \xB7 " + anoAtual),
@@ -5872,7 +5875,7 @@ function App({
         React.createElement('canvas', { ref: ref1, style: { maxHeight: '220px' } })
       ),
       // Cards 2 e 3 lado a lado
-      React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '16px' } },
+      React.createElement('div', { style: { display: 'grid', gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1.5fr 1fr', gap: '16px' } },
         React.createElement('div', { style: { background: C.bg, borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' } },
           React.createElement('div', { style: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px', color: '#6366f1', marginBottom: '14px', textTransform: 'uppercase' } }, '📈 Evolução do Saldo'),
           React.createElement('canvas', { ref: ref2, style: { maxHeight: '200px' } })
@@ -6214,7 +6217,7 @@ function App({
 
 // GRID 3 COLUNAS
 /*#__PURE__*/React.createElement("div", {
-  style: {display:'grid', gridTemplateColumns:'1fr 1.5fr 1fr', gap:'16px', alignItems:'start'}
+  style: {display:'grid', gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1fr 1.5fr 1fr', gap:'16px', alignItems:'start'}
 },
 
 // ═══════════════════════════════════════════════════════════
@@ -6626,7 +6629,7 @@ function App({
 
 // GRID 3 COLUNAS
 /*#__PURE__*/React.createElement("div", {
-  style: {display:'grid', gridTemplateColumns:'1fr 1.5fr 1fr', gap:'16px', alignItems:'start'}
+  style: {display:'grid', gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1fr 1.5fr 1fr', gap:'16px', alignItems:'start'}
 },
 
 // ═══════════════════════════════════════════════════════════
@@ -7103,7 +7106,7 @@ function App({
     /* ══════════════════════════════════════════════════════
        ABA 1 — SIMULADOR DE COMPRA
     ══════════════════════════════════════════════════════ */
-    (subAba === 'compra') && React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
+    (subAba === 'compra') && React.createElement('div', {style:{display:'grid',gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
 
       /* Coluna Esquerda: saldo + formulário */
       React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
@@ -7210,7 +7213,7 @@ function App({
     /* ══════════════════════════════════════════════════════
        ABA 2 — SIMULADOR DE CENÁRIOS
     ══════════════════════════════════════════════════════ */
-    (subAba === 'simulador') && React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
+    (subAba === 'simulador') && React.createElement('div', {style:{display:'grid',gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
 
       /* Coluna Esquerda: situação atual + sliders */
       React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
@@ -7318,7 +7321,7 @@ function App({
     /* ══════════════════════════════════════════════════════
        ABA 3 — SIMULADOR DE APOSENTADORIA
     ══════════════════════════════════════════════════════ */
-    (subAba === 'aposentadoria') && React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
+    (subAba === 'aposentadoria') && React.createElement('div', {style:{display:'grid',gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
 
       /* Coluna Esquerda: formulário */
       React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
@@ -7410,7 +7413,7 @@ function App({
     /* ══════════════════════════════════════════════════════
        ABA 4 — SIMULADOR DE QUITAÇÃO DE DÍVIDAS
     ══════════════════════════════════════════════════════ */
-    (subAba === 'quitacao') && React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
+    (subAba === 'quitacao') && React.createElement('div', {style:{display:'grid',gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
 
       /* Coluna Esquerda: formulário */
       React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
@@ -7521,14 +7524,15 @@ function App({
     const pctEcon = saldoMes.receitas > 0 ? (saldoMes.saldo/saldoMes.receitas*100).toFixed(1) : '0.0';
     const dadosAnuais = MESES.map(function(m){ var s=calcularSaldo(m); return {mes:m.toUpperCase(), receitas:s.receitas, despesas:s.despesas, saldo:s.saldo}; });
 
+    const _isMobRel = window.innerWidth <= 768;
     return React.createElement('div', {className:'space-y-4'},
       // Header
-      React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+      React.createElement('div', {style:{display:'flex',flexWrap:'wrap',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}},
         React.createElement('div', null,
           React.createElement('h2', {style:{fontSize:'1.1rem',fontWeight:'800',color:'#1e1b4b',margin:0}}, '📊 Relatórios Financeiros'),
           React.createElement('p', {style:{fontSize:'0.75rem',color:C.textFaint,margin:'4px 0 0'}}, 'Exporte seus dados em PDF ou Excel')
         ),
-        React.createElement('div', {style:{display:'flex',gap:'10px'}},
+        React.createElement('div', {style:{display:'flex',gap:'10px',flexWrap:'wrap'}},
           React.createElement('button', {
             onClick: exportarPDF,
             style:{display:'flex',alignItems:'center',gap:'7px',padding:'10px 18px',border:'none',borderRadius:'12px',background:'linear-gradient(135deg,#dc2626,#ef4444)',color:'#fff',fontSize:'0.82rem',fontWeight:'700',cursor:'pointer',boxShadow:'0 4px 14px rgba(239,68,68,0.35)'}
@@ -7541,7 +7545,7 @@ function App({
       ),
 
       // Cards de resumo do mês
-      React.createElement('div', {style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px'}},
+      React.createElement('div', {style:{display:'grid',gridTemplateColumns: _isMobRel ? 'repeat(2,1fr)' : 'repeat(4,1fr)',gap:'14px'}},
         [
           {label:'Receitas '+mesAtual.toUpperCase(), valor:saldoMes.receitas, bg:'linear-gradient(135deg,#065f46,#10b981)', icon:'💰'},
           {label:'Despesas '+mesAtual.toUpperCase(), valor:saldoMes.despesas, bg:'linear-gradient(135deg,#7f1d1d,#ef4444)', icon:'💸'},
@@ -7567,17 +7571,17 @@ function App({
             React.createElement('thead', null,
               React.createElement('tr', {style:{background:'#f8fafc'}},
                 ['Mês','Receitas','Despesas','Saldo'].map(function(h){
-                  return React.createElement('th', {key:h, style:{padding:'10px 16px',textAlign:'left',fontWeight:'700',color:C.textMuted,letterSpacing:'0.5px',fontSize:'0.7rem',textTransform:'uppercase'}}, h);
+                  return React.createElement('th', {key:h, style:{padding: _isMobRel ? '8px 10px' : '10px 16px',textAlign:'left',fontWeight:'700',color:C.textMuted,letterSpacing:'0.5px',fontSize:'0.7rem',textTransform:'uppercase'}}, h);
                 })
               )
             ),
             React.createElement('tbody', null,
               dadosAnuais.map(function(row, i){
                 return React.createElement('tr', {key:i, style:{borderTop:'1px solid #f1f5f9', background: row.mes === mesAtual.toUpperCase() ? '#eef2ff' : 'transparent'}},
-                  React.createElement('td', {style:{padding:'10px 16px',fontWeight:'700',color: row.mes===mesAtual.toUpperCase()?'#6366f1':'#374151'}}, row.mes),
-                  React.createElement('td', {style:{padding:'10px 16px',color:'#059669',fontWeight:'600'}}, fmt(row.receitas)),
-                  React.createElement('td', {style:{padding:'10px 16px',color:'#dc2626',fontWeight:'600'}}, fmt(row.despesas)),
-                  React.createElement('td', {style:{padding:'10px 16px',fontWeight:'700',color:row.saldo>=0?'#059669':'#dc2626'}}, fmt(row.saldo))
+                  React.createElement('td', {style:{padding: _isMobRel ? '8px 10px' : '10px 16px',fontWeight:'700',color: row.mes===mesAtual.toUpperCase()?'#6366f1':'#374151'}}, row.mes),
+                  React.createElement('td', {style:{padding: _isMobRel ? '8px 10px' : '10px 16px',color:'#059669',fontWeight:'600',fontSize: _isMobRel ? '0.72rem' : '0.78rem'}}, fmt(row.receitas)),
+                  React.createElement('td', {style:{padding: _isMobRel ? '8px 10px' : '10px 16px',color:'#dc2626',fontWeight:'600',fontSize: _isMobRel ? '0.72rem' : '0.78rem'}}, fmt(row.despesas)),
+                  React.createElement('td', {style:{padding: _isMobRel ? '8px 10px' : '10px 16px',fontWeight:'700',color:row.saldo>=0?'#059669':'#dc2626',fontSize: _isMobRel ? '0.72rem' : '0.78rem'}}, fmt(row.saldo))
                 );
               })
             )
@@ -7837,9 +7841,9 @@ function App({
 
     return /*#__PURE__*/React.createElement(React.Fragment, null,
 
-      /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'240px 1fr 220px', gap:'16px', alignItems:'start'}},
+      /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '240px 1fr 220px', gap:'16px', alignItems:'start'}},
 
-        /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
+        /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px', minWidth:0}},
           /*#__PURE__*/React.createElement("div", {style:{background:'linear-gradient(150deg,#4c1d95,#5b21b6,#6d28d9)', borderRadius:'16px', padding:'20px', color:'#fff', boxShadow:'0 6px 24px rgba(91,33,182,0.45)', border:'1px solid rgba(167,139,250,0.2)'}},
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.4px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:'8px'}}, "\uD83D\uDCB3 CONTAS A PAGAR \xB7 " + mesAtual.toUpperCase()),
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.8rem', fontWeight:'900', lineHeight:1, marginBottom:'4px'}}, "R$ " + pagamentos.total.toLocaleString('pt-BR',{minimumFractionDigits:2})),

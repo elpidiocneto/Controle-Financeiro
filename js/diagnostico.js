@@ -182,11 +182,12 @@ window.DiagnosticoComponent = function Diagnostico() {
           )
     );
 
+    const _isMobDT = window.innerWidth <= 768;
     return h('div', null,
       barraSubAbas,
-      h('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1.4fr 1fr', gap:'16px', alignItems:'start' } },
+      h('div', { style:{ display:'grid', gridTemplateColumns: _isMobDT ? '1fr' : '1fr 1.4fr 1fr', gap:'16px', alignItems:'start' } },
         // Esq
-        h('div', { style:{ display:'flex', flexDirection:'column', gap:'14px' } }, cardAgora, cardDividas),
+        h('div', { style:{ display:'flex', flexDirection:'column', gap:'14px', minWidth:0 } }, cardAgora, cardDividas),
         // Centro
         cardProjecoes,
         // Dir
@@ -407,12 +408,13 @@ window.DiagnosticoComponent = function Diagnostico() {
     )
   );
 
+  const _isMobDiag = window.innerWidth <= 768;
   return h('div', null,
     barraSubAbas,
-    h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
-      h('div',{style:{display:'flex',flexDirection:'column',gap:'14px'}}, cardScore, cardSituacao),
-      h('div',{style:{display:'flex',flexDirection:'column',gap:'0'}}, cardRendaComp, cardPoupanca, cardOrcamento),
-      h('div',{style:{display:'flex',flexDirection:'column',gap:'14px'}}, cardReserva, cardPontuacao)
+    h('div',{style:{display:'grid',gridTemplateColumns: _isMobDiag ? '1fr' : '1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
+      h('div',{style:{display:'flex',flexDirection:'column',gap:'14px',minWidth:0}}, cardScore, cardSituacao),
+      h('div',{style:{display:'flex',flexDirection:'column',gap:'0',minWidth:0}}, cardRendaComp, cardPoupanca, cardOrcamento),
+      h('div',{style:{display:'flex',flexDirection:'column',gap:'14px',minWidth:0}}, cardReserva, cardPontuacao)
     ),
     modalReserva
   );

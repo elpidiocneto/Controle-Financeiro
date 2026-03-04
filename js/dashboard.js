@@ -156,7 +156,7 @@ window.DashboardComponent = function Dashboard() {
   const cardComposicao = h('div', { style: card({ marginBottom:'14px' }) },
     secH('📊 Composição das Despesas'),
     cats.length > 0
-      ? h('div', { style:{ display:'flex', gap:'20px', alignItems:'center' } },
+      ? h('div', { style:{ display:'flex', flexDirection: window.innerWidth <= 768 ? 'column' : 'row', gap:'16px', alignItems: window.innerWidth <= 768 ? 'flex-start' : 'center' } },
           donut,
           h('div', { style:{ flex:1, display:'flex', flexDirection:'column', gap:'10px' } },
             ...cats.map((c,i) => h('div', { key:i },
@@ -296,11 +296,12 @@ window.DashboardComponent = function Dashboard() {
     cardCartoes, cardResumo
   );
 
-  // ─── LAYOUT 3 COLUNAS ────────────────────────────────────
+  // ─── LAYOUT RESPONSIVO ──────────────────────────────────
+  const _mob = window.innerWidth <= 768;
   return h('div', {
     style:{
       display:'grid',
-      gridTemplateColumns:'1fr 1.4fr 1fr',
+      gridTemplateColumns: _mob ? '1fr' : '1fr 1.4fr 1fr',
       gap:'16px',
       alignItems:'start',
     }

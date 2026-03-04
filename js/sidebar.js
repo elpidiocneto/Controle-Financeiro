@@ -182,6 +182,8 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
         ),
         // Drawer menu items
         ...[
+          { icon: 'variaveis', label: 'Gastos Variáveis', tela: 'variaveis' },
+          { icon: 'extras', label: 'Gastos Extras', tela: 'extras' },
           { icon: 'plan', label: 'Planejar', tela: 'planejamento' },
           { icon: 'farol', label: 'Contas a Pagar', tela: 'farol' },
           { icon: 'relatorios', label: 'Relatórios', tela: 'relatorios' },
