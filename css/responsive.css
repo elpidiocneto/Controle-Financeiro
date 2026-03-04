@@ -147,3 +147,42 @@
         font-size: 0.875rem !important;
     }
 }
+
+/* ===================================
+   MOBILE OVERRIDES v2 — Bottom nav + layout
+   =================================== */
+
+/* Override sidebar left margin on mobile */
+@media (max-width: 768px) {
+  .main-content-area {
+    margin-left: 0 !important;
+    padding-bottom: 72px !important;
+    transition: none !important;
+  }
+
+  /* Month tabs sticky on mobile */
+  #meses-container {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    background: var(--bg-page, #f0f2f8);
+  }
+
+  /* Inputs: prevent iOS zoom on focus */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Safe area for notch devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 768px) {
+    .main-content-area {
+      padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+    }
+    nav[style*="bottom: 0"] {
+      padding-bottom: env(safe-area-inset-bottom);
+      height: calc(60px + env(safe-area-inset-bottom));
+    }
+  }
+}

@@ -4567,7 +4567,7 @@ function App({
       /*#__PURE__*/React.createElement("input",{id:'ifatura-input',type:'file',accept:'.csv,.txt,.ofx,.qfx',style:{display:'none'},onChange:e=>processarArquivo(e.target.files[0])})
     );
 
-    return /*#__PURE__*/React.createElement("div", {style:{minWidth:'500px'}},
+    return /*#__PURE__*/React.createElement("div", {style:{width:'100%', boxSizing:'border-box'}},
       /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}},
         /*#__PURE__*/React.createElement("div", null,
           /*#__PURE__*/React.createElement("span",{style:{fontWeight:'700',color:'#374151'}}, linhasFiltradas.length+' lan\xE7amentos encontrados'),
@@ -4607,7 +4607,7 @@ function App({
   };
 
   const FormGerenciarCartoes = () => {
-    return /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'10px', minWidth:'480px'}},
+    return /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'10px', width:'100%', boxSizing:'border-box'}},
       cartoes.length === 0
         ? /*#__PURE__*/React.createElement("div", {style:{padding:'48px', textAlign:'center', color:'#9ca3af'}},
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'2rem', marginBottom:'8px'}}, '\uD83D\uDCB3'),
@@ -4751,7 +4751,8 @@ function App({
       setValorFaturaEdit(valorBase > 0 ? String(valorBase) : '');
     }, [cartaoSelId, mesAtual]);
 
-    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'280px 1fr', gap:'16px', alignItems:'start'}},
+    const _isMob = window.innerWidth <= 768;
+    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns: _isMob ? '1fr' : '280px 1fr', gap:'16px', alignItems:'start'}},
 
       /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden', display:'flex', flexDirection:'column'}},
         /*#__PURE__*/React.createElement("div", {style:{padding:'16px 18px', background:'linear-gradient(150deg,#0c4a6e,#0369a1,#0284c7)', color:'#fff'}},
@@ -4990,7 +4991,8 @@ function App({
     const diasOrdenados = Object.keys(porDia).sort((a,b) => parseInt(a)-parseInt(b));
     const hoje = estamosNoMesAtual ? dataAtual.getDate() : -1;
 
-    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns:'200px 1fr', gap:'16px', alignItems:'start'}},
+    const _isMobGF = window.innerWidth <= 768;
+    return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns: _isMobGF ? '1fr' : '200px 1fr', gap:'16px', alignItems:'start'}},
 
       // COLUNA ESQUERDA — totais + filtro
       /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
@@ -8541,7 +8543,7 @@ function App({
       onMouseEnter: e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(102,126,234,0.7)'; },
       onMouseLeave: e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(102,126,234,0.5)'; },
       style: {
-        position: 'fixed', bottom: '28px', right: '28px', zIndex: 2000,
+        position: 'fixed', bottom: window.innerWidth <= 768 ? '76px' : '28px', right: '28px', zIndex: 2000,
         width: '56px', height: '56px', borderRadius: '50%', border: 'none',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: '#fff', fontSize: '28px', fontWeight: '300', lineHeight: 1,

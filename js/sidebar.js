@@ -3,6 +3,14 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
   const [expandido, setExpandido] = React.useState(true);
   const [subMenu, setSubMenu] = React.useState(null);
   const [mostrarCalendario, setMostrarCalendario] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 768);
+  const [drawerAberto, setDrawerAberto] = React.useState(false);
+
+  React.useEffect(() => {
+    const handle = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handle);
+    return () => window.removeEventListener('resize', handle);
+  }, []);
 
   const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const mesesNome = {jan:'Janeiro',fev:'Fevereiro',mar:'Março',abr:'Abril',mai:'Maio',jun:'Junho',jul:'Julho',ago:'Agosto',set:'Setembro',out:'Outubro',nov:'Novembro',dez:'Dezembro'};
@@ -76,6 +84,143 @@ window.Sidebar = function Sidebar({ telaAtiva, setTelaAtiva, mesAtual, setMesAtu
 
   const planAtivo = telaAtiva.startsWith('planejamento');
   const despAtivo = ['fixos','variaveis','extras'].includes(telaAtiva);
+
+  // ── MOBILE BOTTOM NAV ──────────────────────────────────────────────
+  const bottomItemStyle = (tela) => {
+    const ativo = tela === 'fixos' ? despAtivo : telaAtiva === tela;
+    return {
+      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', color: ativo ? '#10b981' : '#9ca3af',
+      cursor: 'pointer', padding: '8px 4px', gap: '2px',
+      borderTop: ativo ? '2px solid #10b981' : '2px solid transparent',
+      transition: 'color 0.2s'
+    };
+  };
+  const btnSmall = {
+    width: '32px', height: '32px', border: 'none', borderRadius: '6px',
+    background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: '1rem'
+  };
+
+  if (isMobile) {
+    return React.createElement(React.Fragment, null,
+      // Bottom navigation bar
+      React.createElement('nav', {
+        style: {
+          position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
+          background: 'linear-gradient(135deg, #1e1b4b 0%, #1e3a8a 100%)',
+          display: 'flex', alignItems: 'center', zIndex: 1000,
+          boxShadow: '0 -2px 16px rgba(0,0,0,0.25)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)'
+        }
+      },
+        React.createElement('div', { onClick: () => { navegar('dashboard'); setDrawerAberto(false); }, style: bottomItemStyle('dashboard') },
+          React.createElement(window.Icon, { name: 'dashboard', size: 22 }),
+          React.createElement('span', { style: { fontSize: '0.58rem' } }, 'Geral')
+        ),
+        React.createElement('div', { onClick: () => { navegar('cartoes'); setDrawerAberto(false); }, style: bottomItemStyle('cartoes') },
+          React.createElement(window.Icon, { name: 'cartoes', size: 22 }),
+          React.createElement('span', { style: { fontSize: '0.58rem' } }, 'Cartões')
+        ),
+        React.createElement('div', { onClick: () => { navegar('receitas'); setDrawerAberto(false); }, style: bottomItemStyle('receitas') },
+          React.createElement(window.Icon, { name: 'receitas', size: 22 }),
+          React.createElement('span', { style: { fontSize: '0.58rem' } }, 'Receitas')
+        ),
+        React.createElement('div', { onClick: () => { navegar('fixos'); setDrawerAberto(false); }, style: bottomItemStyle('fixos') },
+          React.createElement(window.Icon, { name: 'despesas', size: 22 }),
+          React.createElement('span', { style: { fontSize: '0.58rem' } }, 'Despesas')
+        ),
+        React.createElement('div', {
+          onClick: () => setDrawerAberto(!drawerAberto),
+          style: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            color: drawerAberto ? '#10b981' : '#9ca3af', cursor: 'pointer', padding: '8px 4px', gap: '2px',
+            borderTop: drawerAberto ? '2px solid #10b981' : '2px solid transparent' }
+        },
+          React.createElement('span', { style: { fontSize: '1.2rem', lineHeight: 1 } }, '☰'),
+          React.createElement('span', { style: { fontSize: '0.58rem' } }, 'Mais')
+        )
+      ),
+
+      // Drawer backdrop
+      drawerAberto && React.createElement('div', {
+        onClick: () => setDrawerAberto(false),
+        style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 998 }
+      }),
+
+      // Drawer panel
+      drawerAberto && React.createElement('div', {
+        style: {
+          position: 'fixed', bottom: '60px', left: 0, right: 0,
+          background: '#1e1b4b', zIndex: 999,
+          borderRadius: '16px 16px 0 0', padding: '12px 16px 16px',
+          boxShadow: '0 -4px 32px rgba(0,0,0,0.4)',
+          maxHeight: '70vh', overflowY: 'auto'
+        }
+      },
+        // Handle
+        React.createElement('div', { style: { width: '40px', height: '4px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px', margin: '0 auto 16px' } }),
+        // Month + Year selector
+        React.createElement('div', { style: { background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '12px', marginBottom: '12px' } },
+          React.createElement('div', { style: { fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' } }, '🗓️ Selecionar Mês'),
+          React.createElement('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' } },
+            React.createElement('button', { onClick: () => mudarAno('prev'), style: btnSmall }, '◄'),
+            React.createElement('span', { style: { color: '#fff', fontWeight: '700', fontSize: '0.95rem' } }, anoAtual),
+            React.createElement('button', { onClick: () => mudarAno('next'), style: btnSmall }, '►')
+          ),
+          React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' } },
+            ...meses.map(mes => React.createElement('button', {
+              key: mes,
+              onClick: () => { selecionarMes(mes); },
+              style: {
+                padding: '8px 4px', border: 'none', borderRadius: '8px',
+                background: mes === mesAtual ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)',
+                color: mes === mesAtual ? '#10b981' : '#d1d5db', cursor: 'pointer',
+                fontSize: '0.78rem', fontWeight: mes === mesAtual ? '700' : '500',
+                outline: mes === mesAtual ? '1px solid #10b981' : '1px solid transparent'
+              }
+            }, mesesNome[mes].slice(0, 3)))
+          )
+        ),
+        // Drawer menu items
+        ...[
+          { icon: 'plan', label: 'Planejar', tela: 'planejamento' },
+          { icon: 'farol', label: 'Contas a Pagar', tela: 'farol' },
+          { icon: 'relatorios', label: 'Relatórios', tela: 'relatorios' },
+        ].map(item => React.createElement('div', {
+          key: item.tela,
+          onClick: () => { navegar(item.tela); setDrawerAberto(false); },
+          style: {
+            display: 'flex', alignItems: 'center', gap: '12px',
+            padding: '13px 16px', borderRadius: '10px', cursor: 'pointer', marginBottom: '4px',
+            background: telaAtiva === item.tela ? 'rgba(16,185,129,0.1)' : 'transparent',
+            color: telaAtiva === item.tela ? '#10b981' : '#d1d5db'
+          }
+        },
+          React.createElement(window.Icon, { name: item.icon, size: 20 }),
+          React.createElement('span', { style: { fontWeight: '500', fontSize: '0.9rem' } }, item.label)
+        )),
+        // Configurações
+        React.createElement('div', {
+          onClick: () => { navegar('configuracoes'); setDrawerAberto(false); },
+          style: {
+            display: 'flex', alignItems: 'center', gap: '12px',
+            padding: '13px 16px', borderRadius: '10px', cursor: 'pointer',
+            background: telaAtiva === 'configuracoes' ? 'rgba(16,185,129,0.1)' : 'transparent',
+            color: telaAtiva === 'configuracoes' ? '#10b981' : '#d1d5db',
+            borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '4px', paddingTop: '13px'
+          }
+        },
+          React.createElement('div', {
+            style: { width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '800', fontSize: '0.75rem', flexShrink: 0 }
+          }, (userEmail || 'U')[0].toUpperCase()),
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)' } }, userEmail || 'usuário'),
+            React.createElement('div', { style: { fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' } }, '⚙️ Configurações')
+          )
+        )
+      )
+    );
+  }
+  // ── FIM MOBILE BOTTOM NAV ──────────────────────────────────────
 
   return React.createElement('div', {
     style: {
