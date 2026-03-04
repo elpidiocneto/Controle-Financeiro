@@ -4904,6 +4904,7 @@ function App({
   const TelaGastosFixos = () => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
     const [busca, setBusca] = useState('');
+    const [valoresEditFixos, setValoresEditFixos] = useState({});
 
     // CORREÇÃO: Verificar se estamos no mês atual
     const mesesOrdem = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -5048,8 +5049,11 @@ function App({
                         /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:C.textFaint, marginTop:'2px'}}, gasto.categoria)
                       ),
                       /*#__PURE__*/React.createElement("input", {
-                        type:"number", step:"0.01", value:gasto.valor,
-                        onChange:e=>editarValorGastoFixo(gasto.id,e.target.value),
+                        type:"number", step:"0.01",
+                        value: valoresEditFixos[gasto.id] !== undefined ? valoresEditFixos[gasto.id] : gasto.valor,
+                        onChange: e => setValoresEditFixos({...valoresEditFixos, [gasto.id]: e.target.value}),
+                        onBlur: e => { editarValorGastoFixo(gasto.id, e.target.value); setValoresEditFixos(v => { const n={...v}; delete n[gasto.id]; return n; }); },
+                        onKeyDown: e => { if (e.key==='Enter') { editarValorGastoFixo(gasto.id, valoresEditFixos[gasto.id] ?? gasto.valor); e.target.blur(); } },
                         style:{width:'88px', padding:'5px 8px', border:'2px solid '+C.border, borderRadius:'8px', fontSize:'0.82rem', fontWeight:'700', textAlign:'right', outline:'none'}
                       }),
                       /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px'}},
