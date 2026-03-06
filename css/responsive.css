@@ -4,14 +4,21 @@
 
 /* MOBILE OPTIMIZATIONS */
 @media (max-width: 768px) {
-    /* Modal fullscreen no mobile */
+    /* Modal como bottom-sheet no mobile */
+    .modal-overlay {
+        align-items: flex-end !important;
+        padding: 0 !important;
+    }
     .modal-content {
-        max-width: 100%;
-        width: 100%;
-        height: 100%;
-        max-height: 100vh;
-        border-radius: 0;
-        padding: 1rem;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: 92vh !important;
+        border-radius: 20px 20px 0 0 !important;
+        padding: 1.25rem 1rem 2rem !important;
+        margin: 0 !important;
+        /* handle visual */
+        background-image: linear-gradient(to bottom, rgba(0,0,0,0.04) 0%, transparent 4px) !important;
     }
 
     /* Ajustar conteúdo principal */

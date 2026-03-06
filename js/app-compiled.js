@@ -65,8 +65,13 @@ function ToastContainer() {
     info:    {bg: 'linear-gradient(135deg,#4f46e5,#6366f1)', icone: 'ℹ️'}
   };
 
+  var _toastMob = window.innerWidth <= 768;
   return React.createElement('div', {
-    style: {position:'fixed', bottom:'24px', right:'24px', zIndex:999999,
+    style: {position:'fixed',
+            bottom: _toastMob ? '88px' : '24px',
+            right: _toastMob ? '12px' : '24px',
+            left: _toastMob ? '12px' : 'auto',
+            zIndex:999999,
             display:'flex', flexDirection:'column-reverse', gap:'10px', pointerEvents:'none'}
   },
     toasts.map(function(t) {
@@ -78,7 +83,7 @@ function ToastContainer() {
           padding: '12px 18px', borderRadius: '14px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
           fontSize: '0.87rem', fontWeight: '600',
-          maxWidth: '340px', lineHeight: '1.5',
+          maxWidth: _toastMob ? '100%' : '340px', lineHeight: '1.5',
           pointerEvents: 'auto', cursor: 'default',
           animation: 'toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards'
         }
@@ -839,6 +844,9 @@ const UserMenu = ({
   const nome = user.displayName || user.email?.split('@')[0] || 'Usuário';
   const inicial = nome.charAt(0).toUpperCase();
   const email = user.email || '';
+  const _mob = window.innerWidth <= 768;
+  // No mobile, mostra só o primeiro nome
+  const nomeExibido = _mob ? nome.split(' ')[0] : nome;
   return /*#__PURE__*/React.createElement("div", {
     ref: ref,
     style: {
@@ -853,38 +861,39 @@ const UserMenu = ({
     style: {
       display: 'flex',
       alignItems: 'center',
-      gap: '8px',
-      padding: '6px 12px',
+      gap: _mob ? '6px' : '8px',
+      padding: _mob ? '4px 8px' : '6px 12px',
       borderRadius: '8px',
       background: aberto ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.1)',
       border: '1px solid rgba(255,255,255,0.15)',
       cursor: 'pointer',
-      color: '#fff'
+      color: '#fff',
+      minHeight: 'unset'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      width: '30px',
-      height: '30px',
+      width: _mob ? '26px' : '30px',
+      height: _mob ? '26px' : '30px',
       borderRadius: '50%',
       background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       fontWeight: '700',
-      fontSize: '0.9rem',
+      fontSize: _mob ? '0.8rem' : '0.9rem',
       color: '#fff',
       flexShrink: 0
     }
   }, inicial), /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: '0.85rem',
+      fontSize: _mob ? '0.78rem' : '0.85rem',
       fontWeight: '600',
-      maxWidth: '120px',
+      maxWidth: _mob ? '80px' : '120px',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap'
     }
-  }, nome), /*#__PURE__*/React.createElement("span", {
+  }, nomeExibido), /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: '0.7rem',
       opacity: 0.7
@@ -8062,7 +8071,7 @@ function App({
     style: {
       maxWidth: '1280px',
       margin: '0 auto',
-      padding: '14px 16px',
+      padding: window.innerWidth <= 768 ? '7px 12px' : '14px 16px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -8073,14 +8082,14 @@ function App({
     src: window.LOGO_B64,
     alt: "Estrat\xE9gia Finan\xE7as",
     style: {
-      maxHeight: '38px',
+      maxHeight: window.innerWidth <= 768 ? '26px' : '38px',
       width: 'auto',
       objectFit: 'contain'
     }
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'absolute',
-      right: '16px'
+      right: window.innerWidth <= 768 ? '10px' : '16px'
     }
   }, /*#__PURE__*/React.createElement(UserMenu, {
     user: user,
