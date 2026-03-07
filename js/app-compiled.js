@@ -6048,6 +6048,12 @@ function App({
     const [simCompra, setSimCompra] = useState({ nome:'', valor:'', forma:'avista', parcelas:12, taxaJuros:2.5, resultado:null });
     const [simApos, setSimApos] = useState({ idadeAtual:30, idadeAposentadoria:65, patrimonioAtual:0, aporteMensal:500, taxaAnual:8, inflacao:4, rendaDesejada:5000, resultado:null });
     const [simQuit, setSimQuit] = useState({ nomeDiv:'', saldoDevedor:'', taxaMensal:'', pagamentoAtual:'', pagamentoExtra:'', estrategia:'avalanche', resultado:null });
+    // Metas: modais locais
+    const [metaSelecionada,  setMetaSelecionada]  = useState(null);
+    const [modalMetaAberto,  setModalMetaAberto]  = useState(null); // 'depositar' | 'editar'
+    const [depositarValor,   setDepositarValor]   = useState('');
+    const [editMetaForm,     setEditMetaForm]     = useState({});
+    const fecharModalMeta = function() { setModalMetaAberto(null); setMetaSelecionada(null); setDepositarValor(''); setEditMetaForm({}); };
     const orcadoTotal = orcamento.cartoes + orcamento.fixos + orcamento.variaveis;
     const gastadoTotal = totais.total;
     const diferenca = orcadoTotal - gastadoTotal;
@@ -6896,26 +6902,21 @@ function App({
           return /*#__PURE__*/React.createElement("div", {
             key: meta.id,
             style: {
-              background:'#fafafa',
+              background: C.bgMuted || '#fafafa',
               borderRadius:'12px',
               padding:'14px',
               border:'1px solid '+C.border,
-              transition:'all 0.2s',
-              cursor:'pointer'
-            },
-            onClick: () => {
-              setItemEditando(meta);
-              setTipoEditando('meta');
-              setModalAberto('editar');
+              transition:'all 0.2s'
             }
           },
+            // Header: título + percentual
             /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px'}},
               /*#__PURE__*/React.createElement("div", {style:{flex:1}},
-                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:C.text, marginBottom:'4px'}}, 
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:C.text, marginBottom:'4px'}},
                   meta.titulo
                 ),
                 /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textFaint}},
-                  'R$ ' + (meta.valorAtual || 0).toFixed(0) + ' de R$ ' + meta.valor.toFixed(0)
+                  'R$ ' + (meta.valorAtual || 0).toFixed(2) + ' de R$ ' + meta.valor.toFixed(2)
                 )
               ),
               /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
@@ -6939,8 +6940,23 @@ function App({
                 }
               })
             ),
-            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textMuted}},
-              'Faltam: R$ ' + falta.toFixed(0)
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:C.textMuted, marginBottom:'10px'}},
+              'Faltam: R$ ' + falta.toFixed(2)
+            ),
+            // Botões de ação
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px', flexWrap:'wrap'}},
+              /*#__PURE__*/React.createElement("button", {
+                onClick: function(e) { e.stopPropagation(); setMetaSelecionada(meta); setDepositarValor(''); setModalMetaAberto('depositar'); },
+                style:{flex:1, padding:'7px 10px', border:'none', borderRadius:'8px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontSize:'0.72rem', fontWeight:'700', cursor:'pointer'}
+              }, '💰 Depositar'),
+              /*#__PURE__*/React.createElement("button", {
+                onClick: function(e) { e.stopPropagation(); setMetaSelecionada(meta); setEditMetaForm({ titulo:meta.titulo, valor:String(meta.valor), valorAtual:String(meta.valorAtual||0), prazo:meta.prazo||'curto', dataMeta:meta.dataMeta||'' }); setModalMetaAberto('editar'); },
+                style:{padding:'7px 10px', border:'1.5px solid '+C.border, borderRadius:'8px', background:'transparent', color:C.text, fontSize:'0.72rem', fontWeight:'700', cursor:'pointer'}
+              }, '✏️ Editar'),
+              /*#__PURE__*/React.createElement("button", {
+                onClick: function(e) { e.stopPropagation(); if(confirm('Excluir a meta "'+meta.titulo+'"?')) deletarMeta(meta.id); },
+                style:{padding:'7px 10px', border:'1.5px solid #fca5a5', borderRadius:'8px', background:'transparent', color:'#dc2626', fontSize:'0.72rem', fontWeight:'700', cursor:'pointer'}
+              }, '🗑️')
             )
           );
         })
@@ -7652,7 +7668,148 @@ function App({
       )
     )
   ),
-  (abaAtiva === 'historico') && React.createElement(TelaHistorico, null)
+  (abaAtiva === 'historico') && React.createElement(TelaHistorico, null),
+
+  // ── Modal: Depositar na Meta ──────────────────────────────────────────────
+  modalMetaAberto === 'depositar' && metaSelecionada && React.createElement('div', {
+    style:{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}
+  },
+    React.createElement('div', {style:{background:C.bg,borderRadius:'20px',padding:'28px',width:'100%',maxWidth:'400px',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}},
+      React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}},
+        React.createElement('div', {style:{fontWeight:'900',fontSize:'1.1rem',color:C.text}}, '💰 Depositar na Meta'),
+        React.createElement('button', {onClick:fecharModalMeta, style:{fontSize:'1.4rem',background:'none',border:'none',cursor:'pointer',color:C.textMuted,lineHeight:1}}, '×')
+      ),
+      React.createElement('div', {style:{marginBottom:'18px'}},
+        React.createElement('div', {style:{fontWeight:'700',fontSize:'0.95rem',color:C.text,marginBottom:'4px'}}, metaSelecionada.titulo),
+        React.createElement('div', {style:{fontSize:'0.78rem',color:C.textFaint,marginBottom:'14px'}},
+          'Acumulado: R$ ' + (metaSelecionada.valorAtual||0).toFixed(2) + ' / R$ ' + metaSelecionada.valor.toFixed(2)
+        ),
+        // Barra de progresso
+        React.createElement('div', {style:{height:'6px',background:'#e5e7eb',borderRadius:'3px',overflow:'hidden',marginBottom:'18px'}},
+          React.createElement('div', {style:{height:'100%',width:Math.min(100,(metaSelecionada.valorAtual||0)/metaSelecionada.valor*100)+'%',background:'linear-gradient(90deg,#10b981,#059669)',borderRadius:'3px'}})
+        ),
+        React.createElement('label', {style:{display:'block',fontSize:'0.78rem',fontWeight:'700',color:C.textMuted,marginBottom:'8px'}}, 'Valor a depositar (R$)'),
+        React.createElement('input', {
+          type:'number', min:'0.01', step:'0.01', autoFocus:true,
+          value:depositarValor, onChange:function(e){setDepositarValor(e.target.value);},
+          placeholder:'0,00',
+          style:{width:'100%',padding:'11px 14px',border:'2px solid #6366f1',borderRadius:'10px',fontSize:'1rem',fontWeight:'700',outline:'none',color:C.text,background:C.input,boxSizing:'border-box'}
+        })
+      ),
+      React.createElement('div', {style:{display:'flex',gap:'10px'}},
+        React.createElement('button', {
+          onClick:fecharModalMeta,
+          style:{flex:1,padding:'11px',border:'1.5px solid '+C.border,borderRadius:'10px',background:'transparent',color:C.text,fontWeight:'700',cursor:'pointer',fontSize:'0.85rem'}
+        }, 'Cancelar'),
+        React.createElement('button', {
+          onClick:function() {
+            var v = parseFloat(depositarValor);
+            if (!v || v <= 0) { showToast('Informe um valor maior que zero', 'warning', 3500); return; }
+            var novoAcumulado = (metaSelecionada.valorAtual||0) + v;
+            var concluida = novoAcumulado >= metaSelecionada.valor;
+            setMetasFinanceiras(metasFinanceiras.map(function(m) {
+              return m.id === metaSelecionada.id ? {...m, valorAtual: novoAcumulado, concluida: concluida} : m;
+            }));
+            fecharModalMeta();
+            showToast(concluida ? '🎉 Meta "'+metaSelecionada.titulo+'" concluída!' : '✅ R$ '+v.toFixed(2)+' adicionado à meta!', concluida?'success':'success', 4000);
+          },
+          style:{flex:1,padding:'11px',border:'none',borderRadius:'10px',background:'linear-gradient(135deg,#10b981,#059669)',color:'#fff',fontWeight:'700',cursor:'pointer',fontSize:'0.85rem'}
+        }, '💰 Confirmar')
+      )
+    )
+  ),
+
+  // ── Modal: Editar Meta ────────────────────────────────────────────────────
+  modalMetaAberto === 'editar' && metaSelecionada && React.createElement('div', {
+    style:{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}
+  },
+    React.createElement('div', {style:{background:C.bg,borderRadius:'20px',padding:'28px',width:'100%',maxWidth:'420px',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}},
+      React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}},
+        React.createElement('div', {style:{fontWeight:'900',fontSize:'1.1rem',color:C.text}}, '✏️ Editar Meta'),
+        React.createElement('button', {onClick:fecharModalMeta, style:{fontSize:'1.4rem',background:'none',border:'none',cursor:'pointer',color:C.textMuted,lineHeight:1}}, '×')
+      ),
+      React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px',marginBottom:'20px'}},
+        // Título
+        React.createElement('div', null,
+          React.createElement('label', {style:{display:'block',fontSize:'0.75rem',fontWeight:'700',color:C.textMuted,marginBottom:'6px'}}, 'Título'),
+          React.createElement('input', {
+            type:'text', value:editMetaForm.titulo||'',
+            onChange:function(e){setEditMetaForm(function(f){return{...f,titulo:e.target.value};});},
+            style:{width:'100%',padding:'10px 12px',border:'1.5px solid '+C.border,borderRadius:'10px',background:C.input,color:C.text,fontSize:'0.9rem',outline:'none',boxSizing:'border-box'}
+          })
+        ),
+        // Valor objetivo + Acumulado
+        React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}},
+          React.createElement('div', null,
+            React.createElement('label', {style:{display:'block',fontSize:'0.75rem',fontWeight:'700',color:C.textMuted,marginBottom:'6px'}}, 'Valor Objetivo (R$)'),
+            React.createElement('input', {
+              type:'number', min:'0', step:'0.01', value:editMetaForm.valor||'',
+              onChange:function(e){setEditMetaForm(function(f){return{...f,valor:e.target.value};});},
+              style:{width:'100%',padding:'10px 12px',border:'1.5px solid '+C.border,borderRadius:'10px',background:C.input,color:C.text,fontSize:'0.9rem',outline:'none',boxSizing:'border-box'}
+            })
+          ),
+          React.createElement('div', null,
+            React.createElement('label', {style:{display:'block',fontSize:'0.75rem',fontWeight:'700',color:C.textMuted,marginBottom:'6px'}}, 'Já acumulado (R$)'),
+            React.createElement('input', {
+              type:'number', min:'0', step:'0.01', value:editMetaForm.valorAtual||'',
+              onChange:function(e){setEditMetaForm(function(f){return{...f,valorAtual:e.target.value};});},
+              style:{width:'100%',padding:'10px 12px',border:'1.5px solid '+C.border,borderRadius:'10px',background:C.input,color:C.text,fontSize:'0.9rem',outline:'none',boxSizing:'border-box'}
+            })
+          )
+        ),
+        // Prazo + Data
+        React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}},
+          React.createElement('div', null,
+            React.createElement('label', {style:{display:'block',fontSize:'0.75rem',fontWeight:'700',color:C.textMuted,marginBottom:'6px'}}, 'Prazo'),
+            React.createElement('select', {
+              value:editMetaForm.prazo||'curto',
+              onChange:function(e){setEditMetaForm(function(f){return{...f,prazo:e.target.value};});},
+              style:{width:'100%',padding:'10px 12px',border:'1.5px solid '+C.border,borderRadius:'10px',background:C.input,color:C.text,fontSize:'0.85rem',outline:'none',boxSizing:'border-box'}
+            },
+              React.createElement('option',{value:'curto'},'⚡ Curto (até 1 ano)'),
+              React.createElement('option',{value:'medio'},'📅 Médio (1-5 anos)'),
+              React.createElement('option',{value:'longo'},'🏆 Longo (5+ anos)')
+            )
+          ),
+          React.createElement('div', null,
+            React.createElement('label', {style:{display:'block',fontSize:'0.75rem',fontWeight:'700',color:C.textMuted,marginBottom:'6px'}}, 'Data Meta'),
+            React.createElement('input', {
+              type:'date', value:editMetaForm.dataMeta||'',
+              onChange:function(e){setEditMetaForm(function(f){return{...f,dataMeta:e.target.value};});},
+              style:{width:'100%',padding:'10px 12px',border:'1.5px solid '+C.border,borderRadius:'10px',background:C.input,color:C.text,fontSize:'0.85rem',outline:'none',boxSizing:'border-box'}
+            })
+          )
+        )
+      ),
+      React.createElement('div', {style:{display:'flex',gap:'10px'}},
+        React.createElement('button', {
+          onClick:fecharModalMeta,
+          style:{flex:1,padding:'11px',border:'1.5px solid '+C.border,borderRadius:'10px',background:'transparent',color:C.text,fontWeight:'700',cursor:'pointer',fontSize:'0.85rem'}
+        }, 'Cancelar'),
+        React.createElement('button', {
+          onClick:function() {
+            if (!editMetaForm.titulo || !editMetaForm.valor) { showToast('Preencha título e valor', 'warning', 3500); return; }
+            var novoValorAtual = parseFloat(editMetaForm.valorAtual)||0;
+            var novoValor     = parseFloat(editMetaForm.valor)||0;
+            setMetasFinanceiras(metasFinanceiras.map(function(m) {
+              return m.id === metaSelecionada.id ? {
+                ...m,
+                titulo:    editMetaForm.titulo,
+                valor:     novoValor,
+                valorAtual:novoValorAtual,
+                prazo:     editMetaForm.prazo||'curto',
+                dataMeta:  editMetaForm.dataMeta||m.dataMeta,
+                concluida: novoValorAtual >= novoValor
+              } : m;
+            }));
+            fecharModalMeta();
+            showToast('✅ Meta atualizada!', 'success', 3500);
+          },
+          style:{flex:1,padding:'11px',border:'none',borderRadius:'10px',background:'linear-gradient(135deg,#6366f1,#4f46e5)',color:'#fff',fontWeight:'700',cursor:'pointer',fontSize:'0.85rem'}
+        }, '💾 Salvar')
+      )
+    )
+  )
 )
 
   };
