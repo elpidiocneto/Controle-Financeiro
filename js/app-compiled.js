@@ -8165,20 +8165,28 @@ function App({
         notifStatus === 'granted'
           ? React.createElement('button', {
               onClick: function() {
-                navigator.serviceWorker.ready.then(function(reg) {
-                  reg.showNotification('🔔 Teste — Estratégia Finanças', {
-                    body: 'Notificações funcionando! Você será avisado das contas do dia.',
-                    icon: '/icons/icon-192.png',
-                    badge: '/icons/icon-192.png',
-                    tag: 'notif-teste'
-                  });
-                  showToast('📲 Notificação de teste enviada!', 'success', 3500);
-                }).catch(function() {
+                var titulo = '🔔 Estratégia Finanças — Teste';
+                var corpo  = 'Notificações funcionando! Você será avisado das contas do dia.';
+                function enviarDireto() {
                   try {
-                    new Notification('🔔 Teste — Estratégia Finanças', { body: 'Notificações funcionando!' });
+                    new Notification(titulo, { body: corpo, icon: '/icons/icon-192.png' });
                     showToast('📲 Notificação de teste enviada!', 'success', 3500);
-                  } catch(e) { showToast('Erro ao enviar notificação de teste', 'error', 3500); }
-                });
+                  } catch(e) {
+                    showToast('Erro: ' + (e.message || 'verifique as permissões'), 'error', 5000);
+                  }
+                }
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                  navigator.serviceWorker.ready.then(function(reg) {
+                    return reg.showNotification(titulo, {
+                      body: corpo, icon: '/icons/icon-192.png',
+                      badge: '/icons/icon-192.png', tag: 'notif-teste'
+                    });
+                  }).then(function() {
+                    showToast('📲 Notificação de teste enviada!', 'success', 3500);
+                  }).catch(enviarDireto);
+                } else {
+                  enviarDireto();
+                }
               },
               style:{width:'100%', padding:'11px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontWeight:'700', cursor:'pointer', fontSize:'0.82rem'}
             }, '📲 Enviar Notificação de Teste')
