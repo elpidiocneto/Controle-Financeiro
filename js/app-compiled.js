@@ -8024,154 +8024,203 @@ function App({
 
       // ── Heatmap de Gastos ────────────────────────────────────────────────
       (function(){
-        var idxHM      = MESES.indexOf(heatmapMes);
-        var diasNoMes  = new Date(heatmapAno, idxHM+1, 0).getDate();
-        var priDiaSem  = new Date(heatmapAno, idxHM, 1).getDay();
+        var idxHM     = MESES.indexOf(heatmapMes);
+        var diasNoMes = new Date(heatmapAno, idxHM+1, 0).getDate();
+        var priDiaSem = new Date(heatmapAno, idxHM, 1).getDay();
 
-        // Todos os gastos do mês selecionado
         var gvMes = gastosVariaveis.filter(function(g){return g.mes===heatmapMes&&g.ano===heatmapAno;});
         var geMes = gastosExtras.filter(function(g){return g.mes===heatmapMes&&g.ano===heatmapAno;});
         var gfMes = gastosFixos.filter(function(g){return (!g.mes||g.mes===heatmapMes)&&(!g.ano||g.ano===heatmapAno);});
         var totalCartoes = cartoes.reduce(function(s,c){return s+(c.valores?.[heatmapAno]?.[heatmapMes]||0);},0);
 
-        function intensidade(v,max){ return (!max||v===0)?0:Math.max(0.08,Math.min(1,v/max)); }
+        // Escala de cor: roxo único — limpo e profissional
         function corHeat(pct){
-          if(pct===0) return darkMode?'#1e293b':'#f1f5f9';
-          if(pct<0.25) return 'rgba(16,185,129,'+(0.2+pct*1.5)+')';
-          if(pct<0.6)  return 'rgba(251,146,60,'+(0.3+pct)+')';
-          return 'rgba(239,68,68,'+(0.5+pct*0.5)+')';
+          if(!pct||pct===0) return darkMode?'rgba(255,255,255,0.04)':'#f8f7ff';
+          var a = Math.max(0.12, Math.min(1, pct));
+          return 'rgba(109,40,217,'+a.toFixed(2)+')';
         }
+        function pct(v,max){ return (!max||!v)?0:Math.max(0.12,Math.min(1,v/max)); }
+        function fmtK(v){ return v>=1000?'R$'+Math.round(v/1000)+'k':'R$'+Math.round(v); }
 
-        // ── View 1: Calendário (todos os gastos com data) ────────────────────
-        var spendDay = {};
-        gvMes.forEach(function(g){ var d=g.dataCompleta?parseInt(g.dataCompleta.split('-')[2]):null; if(d) spendDay[d]=(spendDay[d]||0)+g.valor; });
-        geMes.forEach(function(g){ var d=g.dataCompleta?parseInt(g.dataCompleta.split('-')[2]):null; if(d) spendDay[d]=(spendDay[d]||0)+g.valor; });
-        gfMes.forEach(function(g){ if(g.vencimento) spendDay[g.vencimento]=(spendDay[g.vencimento]||0)+g.valor; });
-        // cartões: distribuir no dia de vencimento de cada cartão (ou dia 1 se não definido)
-        cartoes.forEach(function(c){ var v=c.valores?.[heatmapAno]?.[heatmapMes]||0; if(v>0){ var dia=c.diaVencimento||c.vencimento||1; spendDay[dia]=(spendDay[dia]||0)+v; } });
-        var maxDay = Math.max.apply(null,Object.values(spendDay).concat([1]));
+        // ── Calendário ──────────────────────────────────────────────────────
+        var spendDay={};
+        gvMes.forEach(function(g){var d=g.dataCompleta?+g.dataCompleta.split('-')[2]:0;if(d)spendDay[d]=(spendDay[d]||0)+g.valor;});
+        geMes.forEach(function(g){var d=g.dataCompleta?+g.dataCompleta.split('-')[2]:0;if(d)spendDay[d]=(spendDay[d]||0)+g.valor;});
+        gfMes.forEach(function(g){if(g.vencimento)spendDay[g.vencimento]=(spendDay[g.vencimento]||0)+g.valor;});
+        cartoes.forEach(function(c){var v=c.valores?.[heatmapAno]?.[heatmapMes]||0;if(v>0){var d=c.diaVencimento||c.vencimento||1;spendDay[d]=(spendDay[d]||0)+v;}});
+        var maxDay=Math.max.apply(null,Object.values(spendDay).concat([1]));
 
         var cells=[];
-        for(var pad=0;pad<priDiaSem;pad++) cells.push(null);
+        for(var p=0;p<priDiaSem;p++) cells.push(null);
         for(var d2=1;d2<=diasNoMes;d2++) cells.push(d2);
-        while(cells.length%7!==0) cells.push(null);
+        while(cells.length%7) cells.push(null);
 
+        var nomesMes={jan:'Janeiro',fev:'Fevereiro',mar:'Março',abr:'Abril',mai:'Maio',jun:'Junho',jul:'Julho',ago:'Agosto',set:'Setembro',out:'Outubro',nov:'Novembro',dez:'Dezembro'};
         var viewCalendario = React.createElement('div',null,
-          React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'3px',marginBottom:'4px'}},
-            ['D','S','T','Q','Q','S','S'].map(function(l,i){ return React.createElement('div',{key:i,style:{textAlign:'center',fontSize:'0.55rem',fontWeight:'700',color:C.textFaint}},l); })
+          // Sub-header: total do mês
+          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}},
+            React.createElement('span',{style:{fontSize:'0.7rem',color:C.textFaint}}),
+            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
+              React.createElement('span',{style:{fontSize:'0.6rem',color:C.textFaint}},'Sem gasto'),
+              [0.15,0.35,0.55,0.75,0.95].map(function(a,i){return React.createElement('div',{key:i,style:{width:'14px',height:'14px',borderRadius:'4px',background:'rgba(109,40,217,'+a+')'}});}),
+              React.createElement('span',{style:{fontSize:'0.6rem',color:C.textFaint}},'Pico')
+            )
           ),
-          React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'3px'}},
+          // Cabeçalho dias da semana
+          React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'4px',marginBottom:'4px'}},
+            ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(function(l,i){
+              return React.createElement('div',{key:i,style:{textAlign:'center',fontSize:'0.58rem',fontWeight:'600',color:C.textFaint,paddingBottom:'2px'}},l);
+            })
+          ),
+          // Grid de dias
+          React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'4px'}},
             cells.map(function(day,i){
               if(!day) return React.createElement('div',{key:i,style:{aspectRatio:'1'}});
               var v=spendDay[day]||0;
-              var pct=intensidade(v,maxDay);
-              return React.createElement('div',{key:i,title:'Dia '+day+(v?' — R$ '+v.toFixed(2):''),
-                style:{aspectRatio:'1',borderRadius:'5px',background:corHeat(pct),display:'flex',alignItems:'center',justifyContent:'center',cursor:'default'}},
-                React.createElement('span',{style:{fontSize:'0.58rem',fontWeight:'700',color:pct>0.4?'#fff':(v>0?C.text:C.textFaint)}},day)
+              var p2=pct(v,maxDay);
+              var isHot=p2>0.6;
+              return React.createElement('div',{key:i,
+                title:'Dia '+day+(v?' — R$ '+v.toFixed(2):' — sem gastos'),
+                style:{aspectRatio:'1',borderRadius:'7px',background:corHeat(v?p2:0),
+                  display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+                  cursor:'default',border:'1px solid '+(v?'rgba(109,40,217,0.2)':(darkMode?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)'))
+                }},
+                React.createElement('span',{style:{fontSize:'0.62rem',fontWeight:v?'700':'400',lineHeight:1,color:isHot?'#fff':(v?'#5b21b6':C.textFaint)}},day),
+                v>0&&React.createElement('span',{style:{fontSize:'0.46rem',fontWeight:'600',color:isHot?'rgba(255,255,255,0.8)':'rgba(109,40,217,0.7)',lineHeight:1,marginTop:'1px'}},fmtK(v))
               );
             })
-          ),
-          React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'5px',marginTop:'8px',justifyContent:'flex-end'}},
-            React.createElement('span',{style:{fontSize:'0.58rem',color:C.textFaint}},'Menos'),
-            ['#f1f5f9','rgba(16,185,129,0.4)','rgba(251,146,60,0.7)','rgba(239,68,68,0.9)'].map(function(c,i){
-              return React.createElement('div',{key:i,style:{width:'12px',height:'12px',borderRadius:'3px',background:c}});
-            }),
-            React.createElement('span',{style:{fontSize:'0.58rem',color:C.textFaint}},'Mais')
           )
         );
 
-        // ── View 2: Categoria × Semana (todos os gastos) ─────────────────────
-        var matrizCat = {};
-        function addCatSem(cat,sem,val){ if(!matrizCat[cat]) matrizCat[cat]={1:0,2:0,3:0,4:0,5:0}; matrizCat[cat][Math.min(sem,5)]+=val; }
-        gvMes.concat(geMes).forEach(function(g){
-          var sem = g.dataCompleta ? Math.ceil(parseInt(g.dataCompleta.split('-')[2])/7) : 1;
-          addCatSem(g.categoria, sem, g.valor);
-        });
-        gfMes.forEach(function(g){ addCatSem('🏠 Fixos', Math.ceil((g.vencimento||1)/7), g.valor); });
-        if(totalCartoes>0) addCatSem('💳 Cartões', 1, totalCartoes);
-        var catsOrdenadas = Object.keys(matrizCat).sort(function(a,b){
-          return Object.values(matrizCat[b]).reduce(function(s,v){return s+v;},0) - Object.values(matrizCat[a]).reduce(function(s,v){return s+v;},0);
-        }).slice(0,9);
+        // ── Categoria × Semana ──────────────────────────────────────────────
+        var matrizCat={};
+        function addCS(cat,sem,val){if(!matrizCat[cat])matrizCat[cat]={1:0,2:0,3:0,4:0,5:0,tot:0};matrizCat[cat][Math.min(sem,5)]+=val;matrizCat[cat].tot+=val;}
+        gvMes.concat(geMes).forEach(function(g){addCS(g.categoria,g.dataCompleta?Math.ceil(+g.dataCompleta.split('-')[2]/7):1,g.valor);});
+        gfMes.forEach(function(g){addCS('🏠 Fixos',Math.ceil((g.vencimento||1)/7),g.valor);});
+        if(totalCartoes>0)addCS('💳 Cartões',1,totalCartoes);
+        var catsOrd=Object.keys(matrizCat).sort(function(a,b){return matrizCat[b].tot-matrizCat[a].tot;}).slice(0,9);
         var maxCat=1;
-        catsOrdenadas.forEach(function(c){ [1,2,3,4,5].forEach(function(s){ if(matrizCat[c][s]>maxCat) maxCat=matrizCat[c][s]; }); });
+        catsOrd.forEach(function(c){[1,2,3,4,5].forEach(function(s){if(matrizCat[c][s]>maxCat)maxCat=matrizCat[c][s];});});
 
-        var viewCategorias = catsOrdenadas.length===0
-          ? React.createElement('div',{style:{padding:'30px',textAlign:'center',color:C.textFaint,fontSize:'0.8rem'}},'Sem gastos no mês')
+        var viewCategorias = catsOrd.length===0
+          ? React.createElement('div',{style:{padding:'32px',textAlign:'center',color:C.textFaint,fontSize:'0.8rem'}},'Sem gastos no período')
           : React.createElement('div',{style:{overflowX:'auto'}},
-              React.createElement('table',{style:{width:'100%',borderCollapse:'separate',borderSpacing:'3px',fontSize:'0.68rem'}},
+              React.createElement('table',{style:{width:'100%',borderCollapse:'separate',borderSpacing:'0 3px'}},
                 React.createElement('thead',null,React.createElement('tr',null,
-                  React.createElement('th',{style:{textAlign:'left',padding:'3px 6px',color:C.textFaint,fontWeight:'700',fontSize:'0.6rem'}},'Categoria'),
-                  ['S1','S2','S3','S4','S5'].map(function(s,i){ return React.createElement('th',{key:i,style:{textAlign:'center',padding:'3px',color:C.textFaint,fontWeight:'700',fontSize:'0.6rem',minWidth:'48px'}},s); })
+                  React.createElement('th',{style:{textAlign:'left',padding:'0 12px 8px 0',color:C.textFaint,fontWeight:'600',fontSize:'0.62rem',textTransform:'uppercase',letterSpacing:'0.5px',whiteSpace:'nowrap'}},'Categoria'),
+                  ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Total'].map(function(s,i){
+                    return React.createElement('th',{key:i,style:{textAlign:'center',padding:'0 2px 8px',color:C.textFaint,fontWeight:'600',fontSize:'0.62rem',textTransform:'uppercase',letterSpacing:'0.5px',minWidth:'52px'}},s);
+                  })
                 )),
                 React.createElement('tbody',null,
-                  catsOrdenadas.map(function(cat){
+                  catsOrd.map(function(cat,ci){
+                    var totCat=matrizCat[cat].tot;
                     return React.createElement('tr',{key:cat},
-                      React.createElement('td',{style:{padding:'3px 6px',fontWeight:'600',color:C.text,whiteSpace:'nowrap',fontSize:'0.68rem',maxWidth:'100px',overflow:'hidden',textOverflow:'ellipsis'}},cat),
+                      React.createElement('td',{style:{padding:'2px 12px 2px 0',maxWidth:'120px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},
+                        React.createElement('span',{style:{fontSize:'0.72rem',fontWeight:'600',color:C.text}},cat)
+                      ),
                       [1,2,3,4,5].map(function(s){
-                        var v=matrizCat[cat][s]; var pct=intensidade(v,maxCat);
-                        return React.createElement('td',{key:s,title:cat+' · S'+s+(v?' — R$ '+v.toFixed(2):''),
-                          style:{background:corHeat(pct),borderRadius:'5px',textAlign:'center',padding:'5px 3px',
-                            color:pct>0.4?'#fff':C.text,fontWeight:'700',fontSize:'0.6rem',cursor:'default'}},
-                          v>0?'R$'+Math.round(v):'');
-                      })
+                        var v=matrizCat[cat][s];var p3=pct(v,maxCat);
+                        return React.createElement('td',{key:s,
+                          title:cat+' · Sem '+s+(v?' — R$ '+v.toFixed(2):' — sem gastos'),
+                          style:{textAlign:'center',padding:'2px',cursor:'default'}},
+                          React.createElement('div',{style:{background:corHeat(p3),borderRadius:'7px',padding:'5px 3px',
+                            color:p3>0.5?'#fff':(v?'#5b21b6':C.textFaint),fontWeight:'700',fontSize:'0.62rem',minWidth:'44px'}},
+                            v>0?fmtK(v):'—')
+                        );
+                      }),
+                      React.createElement('td',{style:{textAlign:'center',padding:'2px',cursor:'default'}},
+                        React.createElement('div',{style:{background:darkMode?'rgba(255,255,255,0.06)':'#f3f0ff',borderRadius:'7px',padding:'5px 3px',
+                          color:'#6d28d9',fontWeight:'800',fontSize:'0.62rem',minWidth:'44px'}},
+                          fmtK(totCat))
+                      )
                     );
                   })
                 )
               )
             );
 
-        // ── View 3: Treemap (todos os gastos) ────────────────────────────────
-        var treeCats = {};
-        gvMes.concat(geMes).forEach(function(g){ treeCats[g.categoria]=(treeCats[g.categoria]||0)+g.valor; });
-        gfMes.forEach(function(g){ treeCats['🏠 Fixos']=(treeCats['🏠 Fixos']||0)+g.valor; });
-        if(totalCartoes>0) treeCats['💳 Cartões']=(treeCats['💳 Cartões']||0)+totalCartoes;
-        var treeEntries=Object.entries(treeCats).sort(function(a,b){return b[1]-a[1];});
-        var treeTotal=treeEntries.reduce(function(s,e){return s+e[1];},0)||1;
-        var treeColors=['#ef4444','#f97316','#eab308','#10b981','#06b6d4','#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#84cc16','#0ea5e9'];
-        var viewTreemap = treeEntries.length===0
-          ? React.createElement('div',{style:{padding:'30px',textAlign:'center',color:C.textFaint,fontSize:'0.8rem'}},'Sem gastos no mês')
-          : React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:'5px'}},
-              treeEntries.map(function(e,i){
-                var pct=e[1]/treeTotal;
-                return React.createElement('div',{key:e[0],title:e[0]+' — R$ '+e[1].toFixed(2)+' ('+Math.round(pct*100)+'%)',
-                  style:{flexGrow:pct*20,flexShrink:0,flexBasis:(_isMobRel?'70px':'88px'),
-                    minHeight:Math.max(52,Math.round(pct*140))+'px',
-                    background:treeColors[i%treeColors.length],borderRadius:'8px',padding:'8px',
-                    display:'flex',flexDirection:'column',justifyContent:'flex-end',cursor:'default'}},
-                  React.createElement('div',{style:{fontSize:'0.58rem',fontWeight:'800',color:'rgba(255,255,255,0.85)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:'1px'}},e[0]),
-                  React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'900',color:'#fff'}},'R$'+Math.round(e[1]).toLocaleString('pt-BR')),
-                  React.createElement('div',{style:{fontSize:'0.55rem',color:'rgba(255,255,255,0.7)'}},Math.round(pct*100)+'%')
-                );
-              })
+        // ── Treemap ─────────────────────────────────────────────────────────
+        var treeCats={};
+        gvMes.concat(geMes).forEach(function(g){treeCats[g.categoria]=(treeCats[g.categoria]||0)+g.valor;});
+        gfMes.forEach(function(g){treeCats['🏠 Fixos']=(treeCats['🏠 Fixos']||0)+g.valor;});
+        if(totalCartoes>0)treeCats['💳 Cartões']=(treeCats['💳 Cartões']||0)+totalCartoes;
+        var treeArr=Object.entries(treeCats).sort(function(a,b){return b[1]-a[1];});
+        var treeTot=treeArr.reduce(function(s,e){return s+e[1];},0)||1;
+        // paleta distinta por categoria
+        var paleta=['#6d28d9','#7c3aed','#8b5cf6','#a78bfa','#4f46e5','#4338ca','#5b21b6','#7e22ce','#9333ea','#a855f7','#c026d3','#db2777'];
+
+        var viewTreemap = treeArr.length===0
+          ? React.createElement('div',{style:{padding:'32px',textAlign:'center',color:C.textFaint}},'Sem gastos no período')
+          : React.createElement('div',null,
+              // Blocos proporcionais — altura fixa, largura proporcional
+              React.createElement('div',{style:{display:'flex',gap:'4px',height:'120px',borderRadius:'10px',overflow:'hidden',marginBottom:'12px'}},
+                treeArr.map(function(e,i){
+                  var p4=e[1]/treeTot;
+                  return React.createElement('div',{key:e[0],title:e[0]+' — R$ '+e[1].toFixed(2)+' ('+Math.round(p4*100)+'%)',
+                    style:{flex:Math.max(p4*100,2),background:paleta[i%paleta.length],
+                      display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:'8px 6px',
+                      cursor:'default',minWidth:'0',overflow:'hidden',position:'relative'}},
+                    p4>0.06&&React.createElement('div',{style:{fontSize:'0.58rem',fontWeight:'800',color:'rgba(255,255,255,0.85)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:'2px'}},e[0]),
+                    p4>0.04&&React.createElement('div',{style:{fontSize:'0.75rem',fontWeight:'900',color:'#fff',whiteSpace:'nowrap'}},'R$'+Math.round(e[1]).toLocaleString('pt-BR')),
+                    p4>0.08&&React.createElement('div',{style:{fontSize:'0.52rem',color:'rgba(255,255,255,0.65)',marginTop:'1px'}},Math.round(p4*100)+'%')
+                  );
+                })
+              ),
+              // Legenda em grid
+              React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:'6px'}},
+                treeArr.map(function(e,i){
+                  var p5=e[1]/treeTot;
+                  return React.createElement('div',{key:e[0],style:{display:'flex',alignItems:'center',gap:'6px',padding:'5px 8px',
+                    borderRadius:'8px',background:darkMode?'rgba(255,255,255,0.04)':'#faf9ff',
+                    border:'1px solid '+(darkMode?'rgba(255,255,255,0.06)':'rgba(109,40,217,0.1)')}},
+                    React.createElement('div',{style:{width:'10px',height:'10px',borderRadius:'3px',flexShrink:0,background:paleta[i%paleta.length]}}),
+                    React.createElement('span',{style:{fontSize:'0.65rem',fontWeight:'600',color:C.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1}},e[0]),
+                    React.createElement('span',{style:{fontSize:'0.65rem',fontWeight:'800',color:'#6d28d9',flexShrink:0}},Math.round(p5*100)+'%')
+                  );
+                })
+              )
             );
 
+        // ── Render do card ───────────────────────────────────────────────────
         var views={calendario:viewCalendario,categorias:viewCategorias,treemap:viewTreemap};
-        var tabLabels=[{v:'calendario',l:'📅 Calendário'},{v:'categorias',l:'🔥 Cat × Semana'},{v:'treemap',l:'🟥 Treemap'}];
+        var tabs=[{v:'calendario',l:'Calendário'},{v:'categorias',l:'Cat × Semana'},{v:'treemap',l:'Treemap'}];
+        function hmPrev(){var i=MESES.indexOf(heatmapMes);if(i>0)setHeatmapMes(MESES[i-1]);else{setHeatmapMes(MESES[11]);setHeatmapAno(heatmapAno-1);}}
+        function hmNext(){var i=MESES.indexOf(heatmapMes);if(i<11)setHeatmapMes(MESES[i+1]);else{setHeatmapMes(MESES[0]);setHeatmapAno(heatmapAno+1);}}
 
-        // Navegação de mês do heatmap
-        function hmPrev(){ var i=MESES.indexOf(heatmapMes); if(i>0){setHeatmapMes(MESES[i-1]);}else{setHeatmapMes(MESES[11]);setHeatmapAno(heatmapAno-1);} }
-        function hmNext(){ var i=MESES.indexOf(heatmapMes); if(i<11){setHeatmapMes(MESES[i+1]);}else{setHeatmapMes(MESES[0]);setHeatmapAno(heatmapAno+1);} }
-
-        return React.createElement('div',{style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,overflow:'hidden',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
-          React.createElement('div',{style:{padding:'12px 16px',borderBottom:'1px solid '+C.borderLight,display:'flex',flexWrap:'wrap',justifyContent:'space-between',alignItems:'center',gap:'8px',background:C.bgMuted}},
-            // Título + seletor de mês
-            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},
-              React.createElement('span',{style:{fontWeight:'800',fontSize:'0.82rem',color:C.text}},'🌡️ Mapa de Calor'),
-              React.createElement('button',{onClick:hmPrev,style:{width:'24px',height:'24px',border:'1px solid '+C.border,borderRadius:'6px',background:C.bg,color:C.text,cursor:'pointer',fontSize:'0.8rem',display:'flex',alignItems:'center',justifyContent:'center',padding:0}},'‹'),
-              React.createElement('span',{style:{fontSize:'0.78rem',fontWeight:'700',color:'#6d28d9',minWidth:'70px',textAlign:'center'}},heatmapMes.toUpperCase()+' '+heatmapAno),
-              React.createElement('button',{onClick:hmNext,style:{width:'24px',height:'24px',border:'1px solid '+C.border,borderRadius:'6px',background:C.bg,color:C.text,cursor:'pointer',fontSize:'0.8rem',display:'flex',alignItems:'center',justifyContent:'center',padding:0}},'›')
+        return React.createElement('div',{style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,overflow:'hidden',boxShadow:'0 2px 12px rgba(109,40,217,0.08)'}},
+          // Header
+          React.createElement('div',{style:{padding:'12px 18px',borderBottom:'1px solid '+C.borderLight,display:'flex',flexWrap:'wrap',alignItems:'center',gap:'10px',justifyContent:'space-between',background:darkMode?'rgba(109,40,217,0.08)':'rgba(109,40,217,0.03)'}},
+            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'10px'}},
+              React.createElement('div',{style:{width:'28px',height:'28px',borderRadius:'8px',background:'linear-gradient(135deg,#7c3aed,#6d28d9)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}},'🌡️'),
+              React.createElement('div',null,
+                React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'800',color:C.text}},'Mapa de Calor de Gastos'),
+                React.createElement('div',{style:{fontSize:'0.62rem',color:C.textFaint,marginTop:'1px'}},'Identifique onde está seu dinheiro')
+              )
             ),
-            // Tabs
-            React.createElement('div',{style:{display:'flex',gap:'5px',flexWrap:'wrap'}},
-              tabLabels.map(function(t){
-                return React.createElement('button',{key:t.v,onClick:function(){setHeatmapView(t.v);},
-                  style:{padding:'4px 10px',border:'none',borderRadius:'20px',cursor:'pointer',fontSize:'0.65rem',fontWeight:'700',
-                    background:heatmapView===t.v?'#6d28d9':(darkMode?'#334155':'#f3f4f6'),
-                    color:heatmapView===t.v?'#fff':C.textFaint}},t.l);
-              })
+            // Navegação de mês + tabs
+            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}},
+              // Seletor de mês
+              React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'0',border:'1px solid '+C.border,borderRadius:'8px',overflow:'hidden'}},
+                React.createElement('button',{onClick:hmPrev,style:{width:'28px',height:'28px',border:'none',background:C.bg,color:C.text,cursor:'pointer',fontSize:'0.85rem',display:'flex',alignItems:'center',justifyContent:'center',padding:0}},'‹'),
+                React.createElement('span',{style:{padding:'0 10px',fontSize:'0.72rem',fontWeight:'700',color:'#6d28d9',background:darkMode?'rgba(109,40,217,0.12)':'#f5f3ff',height:'28px',display:'flex',alignItems:'center',whiteSpace:'nowrap'}},nomesMes[heatmapMes]+' '+heatmapAno),
+                React.createElement('button',{onClick:hmNext,style:{width:'28px',height:'28px',border:'none',background:C.bg,color:C.text,cursor:'pointer',fontSize:'0.85rem',display:'flex',alignItems:'center',justifyContent:'center',padding:0}},'›')
+              ),
+              // Tabs
+              React.createElement('div',{style:{display:'flex',background:darkMode?'rgba(255,255,255,0.06)':'#f3f0ff',borderRadius:'8px',padding:'2px',gap:'2px'}},
+                tabs.map(function(t){
+                  var ativo=heatmapView===t.v;
+                  return React.createElement('button',{key:t.v,onClick:function(){setHeatmapView(t.v);},
+                    style:{padding:'5px 11px',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'0.65rem',fontWeight:'700',transition:'all .15s',
+                      background:ativo?'#6d28d9':'transparent',
+                      color:ativo?'#fff':C.textFaint,
+                      boxShadow:ativo?'0 1px 4px rgba(109,40,217,0.4)':'none'}},t.l);
+                })
+              )
             )
           ),
-          React.createElement('div',{style:{padding:'14px 16px'}},views[heatmapView])
+          // Conteúdo
+          React.createElement('div',{style:{padding:'16px 18px'}},views[heatmapView])
         );
       })(),
 
