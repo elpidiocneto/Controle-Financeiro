@@ -3,7 +3,7 @@
    Estratégia: Network-first com fallback offline
    ============================================= */
 
-const CACHE_NAME = 'financas-v2';
+const CACHE_NAME = 'financas-v3';
 
 // Arquivos essenciais para funcionamento offline
 const STATIC_ASSETS = [
@@ -61,8 +61,14 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   if (url.origin !== self.location.origin) return;
 
+  // Para JS/CSS: força busca sem cache HTTP para garantir versão mais recente
+  const isAsset = url.pathname.endsWith('.js') || url.pathname.endsWith('.css');
+  const fetchRequest = isAsset
+    ? new Request(event.request, { cache: 'no-cache' })
+    : event.request;
+
   event.respondWith(
-    fetch(event.request)
+    fetch(fetchRequest)
       .then(response => {
         // Atualizar cache com resposta fresca
         if (response.ok) {
