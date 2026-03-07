@@ -998,6 +998,9 @@ function App({
   // Busca global
   const [buscaGlobal, setBuscaGlobal] = useState('');
   const [buscaOpen,   setBuscaOpen]   = useState(false);
+  // WhatsApp / Notificações
+  const [whatsappPhone,  setWhatsappPhone]  = useState(() => localStorage.getItem('whatsappPhone')  || '');
+  const [whatsappApiKey, setWhatsappApiKey] = useState(() => localStorage.getItem('whatsappApiKey') || '');
   const [modalAberto, setModalAberto] = useState(null);
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
@@ -1638,6 +1641,48 @@ function App({
       }
     });
   }, [mesAtual, anoAtual]);
+  // ────────────────────────────────────────────────────────────────────────
+
+  // ── Notificações Push + CallMeBot (executa 1x no mount) ─────────────────
+  useEffect(function() {
+    // 1) Pedir permissão para notificações do browser
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    // 2) Contas com vencimento hoje
+    var diaHoje = new Date().getDate();
+    var contasHoje = gastosFixos.filter(function(g) { return g.vencimento === diaHoje; });
+    if (contasHoje.length === 0) return;
+    // 3) Notificação nativa via Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(function(reg) {
+        if (Notification.permission === 'granted') {
+          var linhas = contasHoje.slice(0,5).map(function(g) {
+            return g.descricao + ' — R$ ' + (g.valor||0).toFixed(2);
+          }).join('\n');
+          reg.showNotification('💸 Contas vencem hoje!', {
+            body: linhas,
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png',
+            tag: 'contas-hoje',
+            renotify: true
+          });
+        }
+      }).catch(function(){});
+    }
+    // 4) CallMeBot: enviar WhatsApp automático
+    var phone  = localStorage.getItem('whatsappPhone')  || '';
+    var apikey = localStorage.getItem('whatsappApiKey') || '';
+    if (phone && apikey) {
+      var linhasMensagem = contasHoje.slice(0,8).map(function(g) {
+        return '• ' + g.descricao + ' — R$ ' + (g.valor||0).toFixed(2);
+      }).join('\n');
+      var mensagem = '💸 *Contas que vencem HOJE (dia ' + diaHoje + '):*\n' + linhasMensagem;
+      var url = 'https://api.callmebot.com/whatsapp.php?phone=' + encodeURIComponent(phone) +
+        '&text=' + encodeURIComponent(mensagem) + '&apikey=' + encodeURIComponent(apikey);
+      fetch(url).catch(function(){});
+    }
+  }, []); // executa apenas 1x no mount
   // ────────────────────────────────────────────────────────────────────────
 
   // ── Recorrência Automática ───────────────────────────────────────────────
@@ -7880,6 +7925,81 @@ function App({
             style:{padding:'9px 16px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#059669,#047857)', color:'#fff', fontWeight:'700', cursor:'pointer', fontSize:'0.78rem'}
           }, '📥 Exportar')
         )
+      ]),
+
+      card([
+        sectionTitle('📱', 'Notificações WhatsApp'),
+
+        // Instrução CallMeBot
+        React.createElement('div', {style:{background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:'10px', padding:'12px 14px', marginBottom:'16px', fontSize:'0.73rem', color:'#166534', lineHeight:'1.6'}},
+          React.createElement('div', {style:{fontWeight:'800', marginBottom:'4px'}}, '📲 Como ativar o CallMeBot (mensagem automática):'),
+          React.createElement('ol', {style:{paddingLeft:'16px', margin:'0', display:'flex', flexDirection:'column', gap:'2px'}},
+            React.createElement('li', null, 'Salve o número +34 644 44 63 07 como "CallMeBot" nos contatos'),
+            React.createElement('li', null, 'Envie a mensagem: ', React.createElement('strong', null, 'I allow callmebot to send me messages')),
+            React.createElement('li', null, 'Você receberá um ', React.createElement('strong', null, 'apikey'), ' no WhatsApp'),
+            React.createElement('li', null, 'Preencha os campos abaixo e salve')
+          )
+        ),
+
+        // Phone
+        React.createElement('div', {style:{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'12px'}},
+          React.createElement('label', {style:{fontSize:'0.72rem', fontWeight:'700', color:C.textMuted}}, '📞 Seu número (com DDD e código do país, ex: 5511999887766)'),
+          React.createElement('input', {
+            type:'tel', value:whatsappPhone,
+            onChange: function(e) { setWhatsappPhone(e.target.value.replace(/\D/g,'')); },
+            placeholder:'5511999887766',
+            style:{padding:'9px 12px', border:'1.5px solid '+C.border, borderRadius:'10px', background:C.input, color:C.text, fontSize:'0.85rem', fontFamily:'monospace', outline:'none', width:'100%', boxSizing:'border-box'}
+          })
+        ),
+
+        // API Key
+        React.createElement('div', {style:{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'16px'}},
+          React.createElement('label', {style:{fontSize:'0.72rem', fontWeight:'700', color:C.textMuted}}, '🔑 API Key do CallMeBot'),
+          React.createElement('input', {
+            type:'text', value:whatsappApiKey,
+            onChange: function(e) { setWhatsappApiKey(e.target.value.trim()); },
+            placeholder:'ex: 123456',
+            style:{padding:'9px 12px', border:'1.5px solid '+C.border, borderRadius:'10px', background:C.input, color:C.text, fontSize:'0.85rem', fontFamily:'monospace', outline:'none', width:'100%', boxSizing:'border-box'}
+          })
+        ),
+
+        // Botões
+        React.createElement('div', {style:{display:'flex', gap:'8px', flexWrap:'wrap'}},
+          // Salvar
+          React.createElement('button', {
+            onClick: function() {
+              localStorage.setItem('whatsappPhone',  whatsappPhone);
+              localStorage.setItem('whatsappApiKey', whatsappApiKey);
+              showToast('✅ Configurações WhatsApp salvas!', 'success', 3500);
+            },
+            style:{flex:1, padding:'9px 14px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#6366f1,#4f46e5)', color:'#fff', fontWeight:'700', cursor:'pointer', fontSize:'0.78rem'}
+          }, '💾 Salvar'),
+
+          // Testar CallMeBot
+          React.createElement('button', {
+            onClick: function() {
+              if (!whatsappPhone || !whatsappApiKey) { showToast('Preencha o número e a API Key primeiro', 'warning', 4000); return; }
+              var msg = '✅ Teste do Estratégia Finanças! Notificações WhatsApp configuradas com sucesso 🎉';
+              var url = 'https://api.callmebot.com/whatsapp.php?phone=' + encodeURIComponent(whatsappPhone) + '&text=' + encodeURIComponent(msg) + '&apikey=' + encodeURIComponent(whatsappApiKey);
+              fetch(url)
+                .then(function() { showToast('📤 Mensagem de teste enviada!', 'success', 4000); })
+                .catch(function() { showToast('Erro ao enviar. Verifique os dados.', 'error', 5000); });
+            },
+            style:{flex:1, padding:'9px 14px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#25D366,#128C7E)', color:'#fff', fontWeight:'700', cursor:'pointer', fontSize:'0.78rem'}
+          }, '📤 Testar CallMeBot'),
+
+          // Notificações nativas
+          React.createElement('button', {
+            onClick: function() {
+              if (!('Notification' in window)) { showToast('Notificações não suportadas neste browser', 'warning'); return; }
+              Notification.requestPermission().then(function(p) {
+                if (p === 'granted') showToast('🔔 Notificações ativadas!', 'success', 3500);
+                else showToast('Permissão negada. Habilite nas configurações do browser.', 'warning', 5000);
+              });
+            },
+            style:{flex:1, padding:'9px 14px', border:'1.5px solid '+C.border, borderRadius:'10px', background:'transparent', color:C.text, fontWeight:'700', cursor:'pointer', fontSize:'0.78rem'}
+          }, '🔔 Ativar Notificações')
+        )
       ])
     );
   };
@@ -7932,6 +8052,15 @@ function App({
 
     const porDia = itensFiltrados.reduce((acc,i) => { (acc[i.vencimento]=acc[i.vencimento]||[]).push(i); return acc; }, {});
     const diasOrdenados = Object.keys(porDia).sort((a,b) => parseInt(a)-parseInt(b));
+
+    // ── WhatsApp: compartilhar contas de hoje ─────────────────────────────
+    const compartilharWhatsApp = function() {
+      if (vencHoje.length === 0) { showToast('Nenhuma conta vence hoje! 🎉', 'info', 4000); return; }
+      var d = new Date();
+      var linhas = vencHoje.map(function(i) { return '• ' + i.nome + ' — R$ ' + i.valor.toFixed(2); }).join('\n');
+      var texto = '💸 *Contas do dia ' + d.getDate() + '/' + (d.getMonth()+1) + ':*\n' + linhas + '\n\n*Total: R$ ' + totalHoje.toFixed(2) + '*';
+      window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+    };
 
     return /*#__PURE__*/React.createElement(React.Fragment, null,
 
@@ -7993,7 +8122,12 @@ function App({
                 estamosNoMesAtual ? "Hoje: " + hoje + " de " + mesAtual : "Visualizando: " + mesAtual + "/" + anoAtual
               )
             ),
-            /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'6px'}},
+            /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap'}},
+              estamosNoMesAtual && /*#__PURE__*/React.createElement("button", {
+                onClick: compartilharWhatsApp,
+                title: 'Compartilhar contas de hoje no WhatsApp',
+                style:{padding:'6px 11px', border:'none', borderRadius:'8px', background:'#25D366', color:'#fff', fontSize:'0.7rem', fontWeight:'700', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px', boxShadow:'0 2px 8px rgba(37,211,102,0.35)'}
+              }, '📲 WhatsApp'),
               /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:'#64748b'}}, "Pago"),
               /*#__PURE__*/React.createElement("div", {style:{width:'28px', height:'4px', background:'linear-gradient(90deg,#10b981,#059669)', borderRadius:'2px'}}),
               /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:'#64748b', marginLeft:'6px'}}, "Pendente"),
