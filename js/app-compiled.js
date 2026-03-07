@@ -998,9 +998,7 @@ function App({
   // Busca global
   const [buscaGlobal, setBuscaGlobal] = useState('');
   const [buscaOpen,   setBuscaOpen]   = useState(false);
-  // WhatsApp / Notificações
-  const [whatsappPhone,  setWhatsappPhone]  = useState(() => localStorage.getItem('whatsappPhone')  || '');
-  const [whatsappApiKey, setWhatsappApiKey] = useState(() => localStorage.getItem('whatsappApiKey') || '');
+  // (WhatsApp wa.me — sem estado global necessário)
   const [modalAberto, setModalAberto] = useState(null);
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
@@ -1652,7 +1650,7 @@ function App({
   }, [mesAtual, anoAtual]);
   // ────────────────────────────────────────────────────────────────────────
 
-  // ── Notificações Push + CallMeBot (executa 1x no mount) ─────────────────
+  // ── Notificações Push (executa 1x no mount) ──────────────────────────────
   useEffect(function() {
     // 1) Pedir permissão para notificações do browser
     if ('Notification' in window && Notification.permission === 'default') {
@@ -1678,18 +1676,6 @@ function App({
           });
         }
       }).catch(function(){});
-    }
-    // 4) CallMeBot: enviar WhatsApp automático
-    var phone  = localStorage.getItem('whatsappPhone')  || '';
-    var apikey = localStorage.getItem('whatsappApiKey') || '';
-    if (phone && apikey) {
-      var linhasMensagem = contasHoje.slice(0,8).map(function(g) {
-        return '• ' + g.descricao + ' — R$ ' + (g.valor||0).toFixed(2);
-      }).join('\n');
-      var mensagem = '💸 *Contas que vencem HOJE (dia ' + diaHoje + '):*\n' + linhasMensagem;
-      var url = 'https://api.callmebot.com/whatsapp.php?phone=' + encodeURIComponent(phone) +
-        '&text=' + encodeURIComponent(mensagem) + '&apikey=' + encodeURIComponent(apikey);
-      fetch(url).catch(function(){});
     }
   }, []); // executa apenas 1x no mount
   // ────────────────────────────────────────────────────────────────────────
@@ -8025,9 +8011,6 @@ function App({
     const [codigoEntrada, setCodigoEntrada] = React.useState('');
     const [mostrarEntrar, setMostrarEntrar] = React.useState(false);
     const [copiado, setCopiado] = React.useState(false);
-    // Estado LOCAL para campos WhatsApp — evita re-render do App inteiro ao digitar
-    const [localPhone,  setLocalPhone]  = React.useState(() => localStorage.getItem('whatsappPhone')  || '');
-    const [localApiKey, setLocalApiKey] = React.useState(() => localStorage.getItem('whatsappApiKey') || '');
 
     const copiarCodigo = () => {
       if (coupleId) { navigator.clipboard.writeText(coupleId).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }
@@ -8131,80 +8114,43 @@ function App({
       ]),
 
       card([
-        sectionTitle('📱', 'Notificações WhatsApp'),
+        sectionTitle('🔔', 'Notificações'),
 
-        // Instrução CallMeBot
-        React.createElement('div', {style:{background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:'10px', padding:'12px 14px', marginBottom:'16px', fontSize:'0.73rem', color:'#166534', lineHeight:'1.6'}},
-          React.createElement('div', {style:{fontWeight:'800', marginBottom:'4px'}}, '📲 Como ativar o CallMeBot (mensagem automática):'),
-          React.createElement('ol', {style:{paddingLeft:'16px', margin:'0', display:'flex', flexDirection:'column', gap:'2px'}},
-            React.createElement('li', null, 'Salve o número +34 644 44 63 07 como "CallMeBot" nos contatos'),
-            React.createElement('li', null, 'Envie a mensagem: ', React.createElement('strong', null, 'I allow callmebot to send me messages')),
-            React.createElement('li', null, 'Você receberá um ', React.createElement('strong', null, 'apikey'), ' no WhatsApp'),
-            React.createElement('li', null, 'Preencha os campos abaixo e salve')
+        // Descrição
+        React.createElement('div', {style:{fontSize:'0.78rem', color:C.textMuted, marginBottom:'16px', lineHeight:'1.6'}},
+          'Receba um aviso no dispositivo quando houver contas vencendo hoje. Funciona mesmo com o app em segundo plano (PWA instalado).'
+        ),
+
+        // Status atual
+        React.createElement('div', {style:{display:'flex', alignItems:'center', gap:'10px', padding:'10px 14px', background:C.bgMuted, borderRadius:'10px', marginBottom:'14px'}},
+          React.createElement('div', {style:{fontSize:'1.2rem'}},
+            typeof Notification !== 'undefined' && Notification.permission === 'granted' ? '✅' :
+            typeof Notification !== 'undefined' && Notification.permission === 'denied'  ? '🚫' : '🔕'
+          ),
+          React.createElement('div', null,
+            React.createElement('div', {style:{fontSize:'0.8rem', fontWeight:'700', color:C.text}},
+              typeof Notification !== 'undefined' && Notification.permission === 'granted' ? 'Notificações ativadas' :
+              typeof Notification !== 'undefined' && Notification.permission === 'denied'  ? 'Notificações bloqueadas' : 'Notificações não ativadas'
+            ),
+            React.createElement('div', {style:{fontSize:'0.7rem', color:C.textFaint, marginTop:'1px'}},
+              typeof Notification !== 'undefined' && Notification.permission === 'denied'
+                ? 'Habilite nas configurações do browser'
+                : 'Alerta de contas que vencem hoje'
+            )
           )
         ),
 
-        // Phone
-        React.createElement('div', {style:{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'12px'}},
-          React.createElement('label', {style:{fontSize:'0.72rem', fontWeight:'700', color:C.textMuted}}, '📞 Seu número (com DDD e código do país, ex: 5511999887766)'),
-          React.createElement('input', {
-            type:'tel', value:localPhone,
-            onChange: function(e) { setLocalPhone(e.target.value.replace(/\D/g,'')); },
-            placeholder:'5511999887766',
-            style:{padding:'9px 12px', border:'1.5px solid '+C.border, borderRadius:'10px', background:C.input, color:C.text, fontSize:'0.85rem', fontFamily:'monospace', outline:'none', width:'100%', boxSizing:'border-box'}
-          })
-        ),
-
-        // API Key
-        React.createElement('div', {style:{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'16px'}},
-          React.createElement('label', {style:{fontSize:'0.72rem', fontWeight:'700', color:C.textMuted}}, '🔑 API Key do CallMeBot'),
-          React.createElement('input', {
-            type:'text', value:localApiKey,
-            onChange: function(e) { setLocalApiKey(e.target.value.trim()); },
-            placeholder:'ex: 123456',
-            style:{padding:'9px 12px', border:'1.5px solid '+C.border, borderRadius:'10px', background:C.input, color:C.text, fontSize:'0.85rem', fontFamily:'monospace', outline:'none', width:'100%', boxSizing:'border-box'}
-          })
-        ),
-
-        // Botões
-        React.createElement('div', {style:{display:'flex', gap:'8px', flexWrap:'wrap'}},
-          // Salvar
-          React.createElement('button', {
-            onClick: function() {
-              localStorage.setItem('whatsappPhone',  localPhone);
-              localStorage.setItem('whatsappApiKey', localApiKey);
-              setWhatsappPhone(localPhone);
-              setWhatsappApiKey(localApiKey);
-              showToast('✅ Configurações WhatsApp salvas!', 'success', 3500);
-            },
-            style:{flex:1, padding:'9px 14px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#6366f1,#4f46e5)', color:'#fff', fontWeight:'700', cursor:'pointer', fontSize:'0.78rem'}
-          }, '💾 Salvar'),
-
-          // Testar CallMeBot
-          React.createElement('button', {
-            onClick: function() {
-              if (!localPhone || !localApiKey) { showToast('Preencha o número e a API Key primeiro', 'warning', 4000); return; }
-              var msg = '✅ Teste do Estratégia Finanças! Notificações WhatsApp configuradas com sucesso 🎉';
-              var url = 'https://api.callmebot.com/whatsapp.php?phone=' + encodeURIComponent(localPhone) + '&text=' + encodeURIComponent(msg) + '&apikey=' + encodeURIComponent(localApiKey);
-              fetch(url)
-                .then(function() { showToast('📤 Mensagem de teste enviada!', 'success', 4000); })
-                .catch(function() { showToast('Erro ao enviar. Verifique os dados.', 'error', 5000); });
-            },
-            style:{flex:1, padding:'9px 14px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#25D366,#128C7E)', color:'#fff', fontWeight:'700', cursor:'pointer', fontSize:'0.78rem'}
-          }, '📤 Testar CallMeBot'),
-
-          // Notificações nativas
-          React.createElement('button', {
-            onClick: function() {
-              if (!('Notification' in window)) { showToast('Notificações não suportadas neste browser', 'warning'); return; }
-              Notification.requestPermission().then(function(p) {
-                if (p === 'granted') showToast('🔔 Notificações ativadas!', 'success', 3500);
-                else showToast('Permissão negada. Habilite nas configurações do browser.', 'warning', 5000);
-              });
-            },
-            style:{flex:1, padding:'9px 14px', border:'1.5px solid '+C.border, borderRadius:'10px', background:'transparent', color:C.text, fontWeight:'700', cursor:'pointer', fontSize:'0.78rem'}
-          }, '🔔 Ativar Notificações')
-        )
+        // Botão ativar
+        React.createElement('button', {
+          onClick: function() {
+            if (!('Notification' in window)) { showToast('Notificações não suportadas neste browser', 'warning', 4000); return; }
+            Notification.requestPermission().then(function(p) {
+              if (p === 'granted') showToast('🔔 Notificações ativadas! Você será avisado das contas do dia.', 'success', 4000);
+              else showToast('Permissão negada. Habilite nas configurações do browser.', 'warning', 5000);
+            });
+          },
+          style:{width:'100%', padding:'11px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#6366f1,#4f46e5)', color:'#fff', fontWeight:'700', cursor:'pointer', fontSize:'0.82rem'}
+        }, '🔔 Ativar Notificações do Dispositivo')
       ])
     );
   };
