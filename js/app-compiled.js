@@ -1001,6 +1001,9 @@ function App({
   // (WhatsApp wa.me — sem estado global necessário)
   // Cartão selecionado — App level para sobreviver troca de mês
   const [cartaoSelId, setCartaoSelId] = useState(() => null);
+  // Heatmap — mês analisado independente do mês global
+  const [heatmapMes, setHeatmapMes] = useState(() => mesAtual);
+  const [heatmapAno, setHeatmapAno] = useState(() => anoAtual);
   const [modalAberto, setModalAberto] = useState(null);
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
@@ -8021,104 +8024,95 @@ function App({
 
       // ── Heatmap de Gastos ────────────────────────────────────────────────
       (function(){
-        var idxMesHM   = MESES.indexOf(mesAtual);
-        var diasNoMes  = new Date(anoAtual, idxMesHM+1, 0).getDate();
-        var priDiaSem  = new Date(anoAtual, idxMesHM, 1).getDay(); // 0=Dom
+        var idxHM      = MESES.indexOf(heatmapMes);
+        var diasNoMes  = new Date(heatmapAno, idxHM+1, 0).getDate();
+        var priDiaSem  = new Date(heatmapAno, idxHM, 1).getDay();
 
-        // Gastos com data no mês
-        var gvMes = gastosVariaveis.filter(function(g){return g.mes===mesAtual&&g.ano===anoAtual;});
-        var geMes = gastosExtras.filter(function(g){return g.mes===mesAtual&&g.ano===anoAtual;});
-        var gfMes = gastosFixos.filter(function(g){return (!g.mes||g.mes===mesAtual)&&(!g.ano||g.ano===anoAtual);});
+        // Todos os gastos do mês selecionado
+        var gvMes = gastosVariaveis.filter(function(g){return g.mes===heatmapMes&&g.ano===heatmapAno;});
+        var geMes = gastosExtras.filter(function(g){return g.mes===heatmapMes&&g.ano===heatmapAno;});
+        var gfMes = gastosFixos.filter(function(g){return (!g.mes||g.mes===heatmapMes)&&(!g.ano||g.ano===heatmapAno);});
+        var totalCartoes = cartoes.reduce(function(s,c){return s+(c.valores?.[heatmapAno]?.[heatmapMes]||0);},0);
 
-        // ── helpers ─────────────────────────────────────────────────────────
-        function intensidade(v, max) {
-          if (!max||v===0) return 0;
-          return Math.max(0.08, Math.min(1, v/max));
-        }
-        function corHeat(pct) {
-          // 0→cinza, 0.1→verde claro, 0.5→laranja, 1→vermelho
-          if (pct===0) return darkMode?'#1e293b':'#f1f5f9';
-          if (pct<0.25) return 'rgba(16,185,129,'+(0.2+pct*1.5)+')';
-          if (pct<0.6)  return 'rgba(251,146,60,'+(0.3+pct)+')';
+        function intensidade(v,max){ return (!max||v===0)?0:Math.max(0.08,Math.min(1,v/max)); }
+        function corHeat(pct){
+          if(pct===0) return darkMode?'#1e293b':'#f1f5f9';
+          if(pct<0.25) return 'rgba(16,185,129,'+(0.2+pct*1.5)+')';
+          if(pct<0.6)  return 'rgba(251,146,60,'+(0.3+pct)+')';
           return 'rgba(239,68,68,'+(0.5+pct*0.5)+')';
         }
 
-        // ── View 1: Calendário ───────────────────────────────────────────────
+        // ── View 1: Calendário (todos os gastos com data) ────────────────────
         var spendDay = {};
         gvMes.forEach(function(g){ var d=g.dataCompleta?parseInt(g.dataCompleta.split('-')[2]):null; if(d) spendDay[d]=(spendDay[d]||0)+g.valor; });
         geMes.forEach(function(g){ var d=g.dataCompleta?parseInt(g.dataCompleta.split('-')[2]):null; if(d) spendDay[d]=(spendDay[d]||0)+g.valor; });
         gfMes.forEach(function(g){ if(g.vencimento) spendDay[g.vencimento]=(spendDay[g.vencimento]||0)+g.valor; });
-        var maxDay = Math.max.apply(null, Object.values(spendDay).concat([1]));
+        // cartões: distribuir no dia de vencimento de cada cartão (ou dia 1 se não definido)
+        cartoes.forEach(function(c){ var v=c.valores?.[heatmapAno]?.[heatmapMes]||0; if(v>0){ var dia=c.diaVencimento||c.vencimento||1; spendDay[dia]=(spendDay[dia]||0)+v; } });
+        var maxDay = Math.max.apply(null,Object.values(spendDay).concat([1]));
 
-        var cells = [];
+        var cells=[];
         for(var pad=0;pad<priDiaSem;pad++) cells.push(null);
         for(var d2=1;d2<=diasNoMes;d2++) cells.push(d2);
         while(cells.length%7!==0) cells.push(null);
 
-        var semLabels = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-        var viewCalendario = React.createElement('div', null,
-          React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'4px',marginBottom:'6px'}},
-            semLabels.map(function(l,i){ return React.createElement('div',{key:i,style:{textAlign:'center',fontSize:'0.6rem',fontWeight:'700',color:C.textFaint}},l); })
+        var viewCalendario = React.createElement('div',null,
+          React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'3px',marginBottom:'4px'}},
+            ['D','S','T','Q','Q','S','S'].map(function(l,i){ return React.createElement('div',{key:i,style:{textAlign:'center',fontSize:'0.55rem',fontWeight:'700',color:C.textFaint}},l); })
           ),
-          React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'4px'}},
+          React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'3px'}},
             cells.map(function(day,i){
-              if(!day) return React.createElement('div',{key:i});
+              if(!day) return React.createElement('div',{key:i,style:{aspectRatio:'1'}});
               var v=spendDay[day]||0;
               var pct=intensidade(v,maxDay);
-              return React.createElement('div',{key:i,
-                title:'Dia '+day+(v?' — R$ '+v.toFixed(2):''),
-                style:{aspectRatio:'1',borderRadius:'6px',background:corHeat(pct),display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',cursor:'default',transition:'transform .1s'}},
-                React.createElement('span',{style:{fontSize:'0.6rem',fontWeight:'700',color:v>0?(pct>0.5?'#fff':C.text):C.textFaint}},day),
-                v>0&&React.createElement('span',{style:{fontSize:'0.48rem',color:pct>0.5?'rgba(255,255,255,0.8)':C.textFaint}},'R$'+Math.round(v))
+              return React.createElement('div',{key:i,title:'Dia '+day+(v?' — R$ '+v.toFixed(2):''),
+                style:{aspectRatio:'1',borderRadius:'5px',background:corHeat(pct),display:'flex',alignItems:'center',justifyContent:'center',cursor:'default'}},
+                React.createElement('span',{style:{fontSize:'0.58rem',fontWeight:'700',color:pct>0.4?'#fff':(v>0?C.text:C.textFaint)}},day)
               );
             })
           ),
-          React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'6px',marginTop:'10px',justifyContent:'flex-end'}},
-            React.createElement('span',{style:{fontSize:'0.6rem',color:C.textFaint}},'Menos'),
-            ['#f1f5f9','rgba(16,185,129,0.3)','rgba(251,146,60,0.6)','rgba(239,68,68,0.9)'].map(function(c,i){
-              return React.createElement('div',{key:i,style:{width:'14px',height:'14px',borderRadius:'3px',background:c}});
+          React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'5px',marginTop:'8px',justifyContent:'flex-end'}},
+            React.createElement('span',{style:{fontSize:'0.58rem',color:C.textFaint}},'Menos'),
+            ['#f1f5f9','rgba(16,185,129,0.4)','rgba(251,146,60,0.7)','rgba(239,68,68,0.9)'].map(function(c,i){
+              return React.createElement('div',{key:i,style:{width:'12px',height:'12px',borderRadius:'3px',background:c}});
             }),
-            React.createElement('span',{style:{fontSize:'0.6rem',color:C.textFaint}},'Mais')
+            React.createElement('span',{style:{fontSize:'0.58rem',color:C.textFaint}},'Mais')
           )
         );
 
-        // ── View 2: Categoria × Semana ───────────────────────────────────────
-        var todosCats = {};
-        gvMes.concat(geMes).forEach(function(g){ todosCats[g.categoria]=(todosCats[g.categoria]||0)+g.valor; });
-        var catsOrdenadas = Object.keys(todosCats).sort(function(a,b){return todosCats[b]-todosCats[a];}).slice(0,8);
-        var semanas = ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5'];
+        // ── View 2: Categoria × Semana (todos os gastos) ─────────────────────
         var matrizCat = {};
-        catsOrdenadas.forEach(function(c){ matrizCat[c]={1:0,2:0,3:0,4:0,5:0}; });
+        function addCatSem(cat,sem,val){ if(!matrizCat[cat]) matrizCat[cat]={1:0,2:0,3:0,4:0,5:0}; matrizCat[cat][Math.min(sem,5)]+=val; }
         gvMes.concat(geMes).forEach(function(g){
-          if(!g.dataCompleta||!matrizCat[g.categoria]) return;
-          var sem=Math.ceil(parseInt(g.dataCompleta.split('-')[2])/7);
-          matrizCat[g.categoria][Math.min(sem,5)]+=g.valor;
+          var sem = g.dataCompleta ? Math.ceil(parseInt(g.dataCompleta.split('-')[2])/7) : 1;
+          addCatSem(g.categoria, sem, g.valor);
         });
-        var maxCat = 1;
+        gfMes.forEach(function(g){ addCatSem('🏠 Fixos', Math.ceil((g.vencimento||1)/7), g.valor); });
+        if(totalCartoes>0) addCatSem('💳 Cartões', 1, totalCartoes);
+        var catsOrdenadas = Object.keys(matrizCat).sort(function(a,b){
+          return Object.values(matrizCat[b]).reduce(function(s,v){return s+v;},0) - Object.values(matrizCat[a]).reduce(function(s,v){return s+v;},0);
+        }).slice(0,9);
+        var maxCat=1;
         catsOrdenadas.forEach(function(c){ [1,2,3,4,5].forEach(function(s){ if(matrizCat[c][s]>maxCat) maxCat=matrizCat[c][s]; }); });
 
         var viewCategorias = catsOrdenadas.length===0
-          ? React.createElement('div',{style:{padding:'40px',textAlign:'center',color:C.textFaint,fontSize:'0.8rem'}},'Sem gastos variáveis ou extras no mês')
+          ? React.createElement('div',{style:{padding:'30px',textAlign:'center',color:C.textFaint,fontSize:'0.8rem'}},'Sem gastos no mês')
           : React.createElement('div',{style:{overflowX:'auto'}},
-              React.createElement('table',{style:{width:'100%',borderCollapse:'separate',borderSpacing:'3px',fontSize:'0.7rem'}},
-                React.createElement('thead',null,
-                  React.createElement('tr',null,
-                    React.createElement('th',{style:{textAlign:'left',padding:'4px 8px',color:C.textFaint,fontWeight:'700',fontSize:'0.62rem'}},'Categoria'),
-                    semanas.map(function(s,i){ return React.createElement('th',{key:i,style:{textAlign:'center',padding:'4px',color:C.textFaint,fontWeight:'700',fontSize:'0.62rem',minWidth:'54px'}},s); })
-                  )
-                ),
+              React.createElement('table',{style:{width:'100%',borderCollapse:'separate',borderSpacing:'3px',fontSize:'0.68rem'}},
+                React.createElement('thead',null,React.createElement('tr',null,
+                  React.createElement('th',{style:{textAlign:'left',padding:'3px 6px',color:C.textFaint,fontWeight:'700',fontSize:'0.6rem'}},'Categoria'),
+                  ['S1','S2','S3','S4','S5'].map(function(s,i){ return React.createElement('th',{key:i,style:{textAlign:'center',padding:'3px',color:C.textFaint,fontWeight:'700',fontSize:'0.6rem',minWidth:'48px'}},s); })
+                )),
                 React.createElement('tbody',null,
                   catsOrdenadas.map(function(cat){
                     return React.createElement('tr',{key:cat},
-                      React.createElement('td',{style:{padding:'4px 8px',fontWeight:'600',color:C.text,whiteSpace:'nowrap',fontSize:'0.72rem'}},cat),
+                      React.createElement('td',{style:{padding:'3px 6px',fontWeight:'600',color:C.text,whiteSpace:'nowrap',fontSize:'0.68rem',maxWidth:'100px',overflow:'hidden',textOverflow:'ellipsis'}},cat),
                       [1,2,3,4,5].map(function(s){
-                        var v=matrizCat[cat][s];
-                        var pct=intensidade(v,maxCat);
-                        return React.createElement('td',{key:s,
-                          title:cat+' · '+semanas[s-1]+(v?' — R$ '+v.toFixed(2):''),
-                          style:{background:corHeat(pct),borderRadius:'6px',textAlign:'center',padding:'6px 4px',color:pct>0.5?'#fff':C.text,fontWeight:'700',fontSize:'0.62rem',cursor:'default'}},
-                          v>0?'R$'+Math.round(v):'—'
-                        );
+                        var v=matrizCat[cat][s]; var pct=intensidade(v,maxCat);
+                        return React.createElement('td',{key:s,title:cat+' · S'+s+(v?' — R$ '+v.toFixed(2):''),
+                          style:{background:corHeat(pct),borderRadius:'5px',textAlign:'center',padding:'5px 3px',
+                            color:pct>0.4?'#fff':C.text,fontWeight:'700',fontSize:'0.6rem',cursor:'default'}},
+                          v>0?'R$'+Math.round(v):'');
                       })
                     );
                   })
@@ -8126,59 +8120,58 @@ function App({
               )
             );
 
-        // ── View 3: Treemap ──────────────────────────────────────────────────
+        // ── View 3: Treemap (todos os gastos) ────────────────────────────────
         var treeCats = {};
         gvMes.concat(geMes).forEach(function(g){ treeCats[g.categoria]=(treeCats[g.categoria]||0)+g.valor; });
-        if(totais.fixos>0)   treeCats['Contas Fixas']=(treeCats['Contas Fixas']||0)+totais.fixos;
-        if(totais.cartoes>0) treeCats['Cartões']=(treeCats['Cartões']||0)+totais.cartoes;
-        var treeEntries = Object.entries(treeCats).sort(function(a,b){return b[1]-a[1];});
-        var treeTotal   = treeEntries.reduce(function(s,e){return s+e[1];},0)||1;
-        var treeColors  = ['#ef4444','#f97316','#eab308','#10b981','#06b6d4','#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b'];
+        gfMes.forEach(function(g){ treeCats['🏠 Fixos']=(treeCats['🏠 Fixos']||0)+g.valor; });
+        if(totalCartoes>0) treeCats['💳 Cartões']=(treeCats['💳 Cartões']||0)+totalCartoes;
+        var treeEntries=Object.entries(treeCats).sort(function(a,b){return b[1]-a[1];});
+        var treeTotal=treeEntries.reduce(function(s,e){return s+e[1];},0)||1;
+        var treeColors=['#ef4444','#f97316','#eab308','#10b981','#06b6d4','#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#84cc16','#0ea5e9'];
         var viewTreemap = treeEntries.length===0
-          ? React.createElement('div',{style:{padding:'40px',textAlign:'center',color:C.textFaint,fontSize:'0.8rem'}},'Sem gastos no mês')
-          : React.createElement('div',null,
-              React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'12px'}},
-                treeEntries.map(function(e,i){
-                  var pct=e[1]/treeTotal;
-                  var cor=treeColors[i%treeColors.length];
-                  var minW = _isMobRel ? '80px' : '100px';
-                  return React.createElement('div',{key:e[0],
-                    title:e[0]+' — R$ '+e[1].toFixed(2)+' ('+Math.round(pct*100)+'%)',
-                    style:{
-                      flexGrow:pct*20, flexShrink:0, flexBasis:minW,
-                      minHeight: Math.max(60, Math.round(pct*200))+'px',
-                      background:cor, borderRadius:'10px', padding:'10px',
-                      display:'flex',flexDirection:'column',justifyContent:'flex-end',
-                      boxShadow:'inset 0 0 0 1px rgba(0,0,0,0.1)',
-                      cursor:'default', transition:'transform .15s',
-                      opacity: 0.85+pct*0.15,
-                    }},
-                    React.createElement('div',{style:{fontSize:'0.65rem',fontWeight:'800',color:'rgba(255,255,255,0.85)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},e[0]),
-                    React.createElement('div',{style:{fontSize:'0.9rem',fontWeight:'900',color:'#fff'}},'R$ '+Math.round(e[1]).toLocaleString('pt-BR')),
-                    React.createElement('div',{style:{fontSize:'0.6rem',color:'rgba(255,255,255,0.7)',marginTop:'2px'}},Math.round(pct*100)+'%')
-                  );
-                })
-              )
+          ? React.createElement('div',{style:{padding:'30px',textAlign:'center',color:C.textFaint,fontSize:'0.8rem'}},'Sem gastos no mês')
+          : React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:'5px'}},
+              treeEntries.map(function(e,i){
+                var pct=e[1]/treeTotal;
+                return React.createElement('div',{key:e[0],title:e[0]+' — R$ '+e[1].toFixed(2)+' ('+Math.round(pct*100)+'%)',
+                  style:{flexGrow:pct*20,flexShrink:0,flexBasis:(_isMobRel?'70px':'88px'),
+                    minHeight:Math.max(52,Math.round(pct*140))+'px',
+                    background:treeColors[i%treeColors.length],borderRadius:'8px',padding:'8px',
+                    display:'flex',flexDirection:'column',justifyContent:'flex-end',cursor:'default'}},
+                  React.createElement('div',{style:{fontSize:'0.58rem',fontWeight:'800',color:'rgba(255,255,255,0.85)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:'1px'}},e[0]),
+                  React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'900',color:'#fff'}},'R$'+Math.round(e[1]).toLocaleString('pt-BR')),
+                  React.createElement('div',{style:{fontSize:'0.55rem',color:'rgba(255,255,255,0.7)'}},Math.round(pct*100)+'%')
+                );
+              })
             );
 
-        var views = {calendario:viewCalendario, categorias:viewCategorias, treemap:viewTreemap};
-        var tabLabels = [{v:'calendario',l:'📅 Calendário'},{v:'categorias',l:'🔥 Categoria × Semana'},{v:'treemap',l:'🟥 Treemap'}];
+        var views={calendario:viewCalendario,categorias:viewCategorias,treemap:viewTreemap};
+        var tabLabels=[{v:'calendario',l:'📅 Calendário'},{v:'categorias',l:'🔥 Cat × Semana'},{v:'treemap',l:'🟥 Treemap'}];
+
+        // Navegação de mês do heatmap
+        function hmPrev(){ var i=MESES.indexOf(heatmapMes); if(i>0){setHeatmapMes(MESES[i-1]);}else{setHeatmapMes(MESES[11]);setHeatmapAno(heatmapAno-1);} }
+        function hmNext(){ var i=MESES.indexOf(heatmapMes); if(i<11){setHeatmapMes(MESES[i+1]);}else{setHeatmapMes(MESES[0]);setHeatmapAno(heatmapAno+1);} }
 
         return React.createElement('div',{style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,overflow:'hidden',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
-          // Header + Tabs
-          React.createElement('div',{style:{padding:'14px 20px',borderBottom:'1px solid '+C.borderLight,display:'flex',flexWrap:'wrap',justifyContent:'space-between',alignItems:'center',gap:'10px',background:C.bgMuted}},
-            React.createElement('div',{style:{fontWeight:'800',fontSize:'0.85rem',color:C.text}},'🌡️ Mapa de Calor de Gastos — '+mesAtual.toUpperCase()),
-            React.createElement('div',{style:{display:'flex',gap:'6px',flexWrap:'wrap'}},
+          React.createElement('div',{style:{padding:'12px 16px',borderBottom:'1px solid '+C.borderLight,display:'flex',flexWrap:'wrap',justifyContent:'space-between',alignItems:'center',gap:'8px',background:C.bgMuted}},
+            // Título + seletor de mês
+            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},
+              React.createElement('span',{style:{fontWeight:'800',fontSize:'0.82rem',color:C.text}},'🌡️ Mapa de Calor'),
+              React.createElement('button',{onClick:hmPrev,style:{width:'24px',height:'24px',border:'1px solid '+C.border,borderRadius:'6px',background:C.bg,color:C.text,cursor:'pointer',fontSize:'0.8rem',display:'flex',alignItems:'center',justifyContent:'center',padding:0}},'‹'),
+              React.createElement('span',{style:{fontSize:'0.78rem',fontWeight:'700',color:'#6d28d9',minWidth:'70px',textAlign:'center'}},heatmapMes.toUpperCase()+' '+heatmapAno),
+              React.createElement('button',{onClick:hmNext,style:{width:'24px',height:'24px',border:'1px solid '+C.border,borderRadius:'6px',background:C.bg,color:C.text,cursor:'pointer',fontSize:'0.8rem',display:'flex',alignItems:'center',justifyContent:'center',padding:0}},'›')
+            ),
+            // Tabs
+            React.createElement('div',{style:{display:'flex',gap:'5px',flexWrap:'wrap'}},
               tabLabels.map(function(t){
                 return React.createElement('button',{key:t.v,onClick:function(){setHeatmapView(t.v);},
-                  style:{padding:'5px 12px',border:'none',borderRadius:'20px',cursor:'pointer',fontSize:'0.68rem',fontWeight:'700',
+                  style:{padding:'4px 10px',border:'none',borderRadius:'20px',cursor:'pointer',fontSize:'0.65rem',fontWeight:'700',
                     background:heatmapView===t.v?'#6d28d9':(darkMode?'#334155':'#f3f4f6'),
                     color:heatmapView===t.v?'#fff':C.textFaint}},t.l);
               })
             )
           ),
-          // Conteúdo
-          React.createElement('div',{style:{padding:'16px 20px'}},views[heatmapView])
+          React.createElement('div',{style:{padding:'14px 16px'}},views[heatmapView])
         );
       })(),
 
