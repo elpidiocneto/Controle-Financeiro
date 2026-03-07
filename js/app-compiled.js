@@ -8011,6 +8011,11 @@ function App({
     const [codigoEntrada, setCodigoEntrada] = React.useState('');
     const [mostrarEntrar, setMostrarEntrar] = React.useState(false);
     const [copiado, setCopiado] = React.useState(false);
+    // Status de notificações — reativo (atualiza após o usuário clicar)
+    const [notifStatus, setNotifStatus] = React.useState(function() {
+      if (typeof Notification === 'undefined') return 'unsupported';
+      return Notification.permission; // 'default' | 'granted' | 'denied'
+    });
 
     const copiarCodigo = () => {
       if (coupleId) { navigator.clipboard.writeText(coupleId).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }
@@ -8116,41 +8121,74 @@ function App({
       card([
         sectionTitle('🔔', 'Notificações'),
 
-        // Descrição
-        React.createElement('div', {style:{fontSize:'0.78rem', color:C.textMuted, marginBottom:'16px', lineHeight:'1.6'}},
-          'Receba um aviso no dispositivo quando houver contas vencendo hoje. Funciona mesmo com o app em segundo plano (PWA instalado).'
-        ),
-
-        // Status atual
-        React.createElement('div', {style:{display:'flex', alignItems:'center', gap:'10px', padding:'10px 14px', background:C.bgMuted, borderRadius:'10px', marginBottom:'14px'}},
-          React.createElement('div', {style:{fontSize:'1.2rem'}},
-            typeof Notification !== 'undefined' && Notification.permission === 'granted' ? '✅' :
-            typeof Notification !== 'undefined' && Notification.permission === 'denied'  ? '🚫' : '🔕'
+        // Status atual — reativo via notifStatus
+        React.createElement('div', {
+          style:{
+            display:'flex', alignItems:'center', gap:'12px', padding:'14px',
+            borderRadius:'12px', marginBottom:'16px',
+            background: notifStatus === 'granted' ? '#f0fdf4' : notifStatus === 'denied' ? '#fef2f2' : C.bgMuted,
+            border: '1px solid ' + (notifStatus === 'granted' ? '#86efac' : notifStatus === 'denied' ? '#fca5a5' : C.border)
+          }
+        },
+          React.createElement('div', {style:{fontSize:'1.6rem', flexShrink:0}},
+            notifStatus === 'granted' ? '✅' : notifStatus === 'denied' ? '🚫' : notifStatus === 'unsupported' ? '❌' : '🔕'
           ),
           React.createElement('div', null,
-            React.createElement('div', {style:{fontSize:'0.8rem', fontWeight:'700', color:C.text}},
-              typeof Notification !== 'undefined' && Notification.permission === 'granted' ? 'Notificações ativadas' :
-              typeof Notification !== 'undefined' && Notification.permission === 'denied'  ? 'Notificações bloqueadas' : 'Notificações não ativadas'
+            React.createElement('div', {style:{fontSize:'0.82rem', fontWeight:'800', color: notifStatus === 'granted' ? '#166534' : notifStatus === 'denied' ? '#dc2626' : C.text}},
+              notifStatus === 'granted'     ? 'Notificações ativas' :
+              notifStatus === 'denied'      ? 'Bloqueadas pelo browser' :
+              notifStatus === 'unsupported' ? 'Não suportado' : 'Notificações desativadas'
             ),
-            React.createElement('div', {style:{fontSize:'0.7rem', color:C.textFaint, marginTop:'1px'}},
-              typeof Notification !== 'undefined' && Notification.permission === 'denied'
-                ? 'Habilite nas configurações do browser'
-                : 'Alerta de contas que vencem hoje'
+            React.createElement('div', {style:{fontSize:'0.72rem', color: notifStatus === 'granted' ? '#16a34a' : notifStatus === 'denied' ? '#ef4444' : C.textFaint, marginTop:'2px'}},
+              notifStatus === 'granted'     ? 'Você será avisado das contas que vencem hoje' :
+              notifStatus === 'denied'      ? 'Veja as instruções abaixo para desbloquear' :
+              notifStatus === 'unsupported' ? 'Use um browser compatível (Chrome, Edge, Firefox)' :
+              'Clique no botão abaixo para ativar'
             )
           )
         ),
 
-        // Botão ativar
-        React.createElement('button', {
-          onClick: function() {
-            if (!('Notification' in window)) { showToast('Notificações não suportadas neste browser', 'warning', 4000); return; }
-            Notification.requestPermission().then(function(p) {
-              if (p === 'granted') showToast('🔔 Notificações ativadas! Você será avisado das contas do dia.', 'success', 4000);
-              else showToast('Permissão negada. Habilite nas configurações do browser.', 'warning', 5000);
-            });
-          },
-          style:{width:'100%', padding:'11px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#6366f1,#4f46e5)', color:'#fff', fontWeight:'700', cursor:'pointer', fontSize:'0.82rem'}
-        }, '🔔 Ativar Notificações do Dispositivo')
+        // Instruções de desbloqueio — só aparece se bloqueado
+        notifStatus === 'denied' && React.createElement('div', {
+          style:{background:'#fffbeb', border:'1px solid #fde68a', borderRadius:'10px', padding:'12px 14px', marginBottom:'14px', fontSize:'0.73rem', color:'#92400e', lineHeight:'1.7'}
+        },
+          React.createElement('div', {style:{fontWeight:'800', marginBottom:'6px'}}, '🔓 Como desbloquear no Chrome:'),
+          React.createElement('ol', {style:{paddingLeft:'16px', margin:0}},
+            React.createElement('li', null, 'Clique no ícone 🔒 na barra de endereço'),
+            React.createElement('li', null, 'Selecione ', React.createElement('strong', null, '"Configurações do site"')),
+            React.createElement('li', null, 'Em Notificações, mude de ', React.createElement('strong', null, '"Bloqueado"'), ' para ', React.createElement('strong', null, '"Permitir"')),
+            React.createElement('li', null, 'Recarregue a página e clique no botão abaixo')
+          )
+        ),
+
+        // Botão — muda conforme estado
+        notifStatus === 'granted'
+          ? React.createElement('div', {style:{display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', padding:'11px', borderRadius:'10px', background:'#f0fdf4', border:'1px solid #86efac', fontSize:'0.82rem', fontWeight:'700', color:'#166534'}},
+              '✅ Notificações já estão ativas!'
+            )
+          : notifStatus === 'unsupported'
+          ? React.createElement('div', {style:{padding:'11px', borderRadius:'10px', background:C.bgMuted, fontSize:'0.78rem', color:C.textFaint, textAlign:'center'}},
+              'Seu browser não suporta notificações'
+            )
+          : React.createElement('button', {
+              onClick: function() {
+                if (notifStatus === 'denied') {
+                  showToast('Permissão bloqueada. Siga as instruções acima para desbloquear no browser.', 'warning', 6000);
+                  return;
+                }
+                Notification.requestPermission().then(function(p) {
+                  setNotifStatus(p);
+                  if (p === 'granted') {
+                    showToast('🔔 Notificações ativadas! Você será avisado das contas do dia.', 'success', 4500);
+                  } else if (p === 'denied') {
+                    showToast('Bloqueado pelo browser. Siga as instruções acima para desbloquear.', 'warning', 6000);
+                  } else {
+                    showToast('Permissão não concedida. Tente novamente.', 'warning', 4000);
+                  }
+                });
+              },
+              style:{width:'100%', padding:'11px', border:'none', borderRadius:'10px', background: notifStatus === 'denied' ? '#9ca3af' : 'linear-gradient(135deg,#6366f1,#4f46e5)', color:'#fff', fontWeight:'700', cursor: notifStatus === 'denied' ? 'not-allowed' : 'pointer', fontSize:'0.82rem'}
+            }, notifStatus === 'denied' ? '🚫 Bloqueado — siga as instruções acima' : '🔔 Ativar Notificações do Dispositivo')
       ])
     );
   };
