@@ -8031,7 +8031,12 @@ function App({
         var gvMes = gastosVariaveis.filter(function(g){return g.mes===heatmapMes&&g.ano===heatmapAno;});
         var geMes = gastosExtras.filter(function(g){return g.mes===heatmapMes&&g.ano===heatmapAno;});
         var gfMes = gastosFixos.filter(function(g){return (!g.mes||g.mes===heatmapMes)&&(!g.ano||g.ano===heatmapAno);});
-        var totalCartoes = cartoes.reduce(function(s,c){return s+(c.valores?.[heatmapAno]?.[heatmapMes]||0);},0);
+        // Total cartões: fatura manual (valores) + parcelamentos já lançados no mês
+        var totalCartoes = cartoes.reduce(function(s,c){
+          var vBase = c.valores?.[heatmapAno]?.[heatmapMes]||0;
+          var vParc = comprasParceladas.filter(function(p){return p.cartao===c.nome&&p.meses&&p.meses.includes(heatmapMes);}).reduce(function(ss,p){return ss+(p.valorParcela||0);},0);
+          return s+vBase+vParc;
+        },0);
 
         // Escala de cor: roxo único — limpo e profissional
         function corHeat(pct){
@@ -8047,7 +8052,13 @@ function App({
         gvMes.forEach(function(g){var d=g.dataCompleta?+g.dataCompleta.split('-')[2]:0;if(d)spendDay[d]=(spendDay[d]||0)+g.valor;});
         geMes.forEach(function(g){var d=g.dataCompleta?+g.dataCompleta.split('-')[2]:0;if(d)spendDay[d]=(spendDay[d]||0)+g.valor;});
         gfMes.forEach(function(g){if(g.vencimento)spendDay[g.vencimento]=(spendDay[g.vencimento]||0)+g.valor;});
-        cartoes.forEach(function(c){var v=c.valores?.[heatmapAno]?.[heatmapMes]||0;if(v>0){var d=c.diaFechamento||c.vencimento||1;spendDay[d]=(spendDay[d]||0)+v;}});
+        // Cartões: fatura manual + parcelamentos lançados — plotados no dia de fechamento
+        cartoes.forEach(function(c){
+          var vBase = c.valores?.[heatmapAno]?.[heatmapMes]||0;
+          var vParc = comprasParceladas.filter(function(p){return p.cartao===c.nome&&p.meses&&p.meses.includes(heatmapMes);}).reduce(function(ss,p){return ss+(p.valorParcela||0);},0);
+          var v=vBase+vParc;
+          if(v>0){var d=c.diaFechamento||c.vencimento||1;spendDay[d]=(spendDay[d]||0)+v;}
+        });
         var maxDay=Math.max.apply(null,Object.values(spendDay).concat([1]));
 
         var cells=[];
