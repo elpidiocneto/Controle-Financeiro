@@ -5065,8 +5065,9 @@ function App({
 
         gastosFiltrados.length===0
           ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83C\uDFE0"),
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:C.textFaint, marginBottom:'6px'}}, "Nenhuma conta fixa"),
+              /*#__PURE__*/React.createElement("div", {style:{display:'inline-flex', alignItems:'center', justifyContent:'center', width:'72px', height:'72px', borderRadius:'20px', background:darkMode?'#1e293b':'#f1f5f9', fontSize:'2.5rem', marginBottom:'16px'}}, "\uD83C\uDFE0"),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'800', color:C.text, marginBottom:'6px'}}, "Nenhuma conta fixa"),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:C.textFaint, marginBottom:'20px'}}, "Adicione suas contas fixas mensais como aluguel, internet e assinaturas"),
               /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'580px', overflowY:'auto'}},
@@ -5440,8 +5441,9 @@ function App({
 
         gastosFiltrados.length===0
           ? /*#__PURE__*/React.createElement("div", {style:{padding:'50px 20px', textAlign:'center'}},
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'3rem', marginBottom:'12px'}}, "\uD83D\uDCCA"),
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:C.textFaint, marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhuma compra ou gasto em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
+              /*#__PURE__*/React.createElement("div", {style:{display:'inline-flex', alignItems:'center', justifyContent:'center', width:'72px', height:'72px', borderRadius:'20px', background:darkMode?'#1e293b':'#f1f5f9', fontSize:'2.5rem', marginBottom:'16px'}}, "\uD83D\uDED2"),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'800', color:C.text, marginBottom:'6px'}}, categoriaFiltro==='TODAS'?"Nenhuma compra ou gasto em "+mesAtual:"Nenhum gasto em "+categoriaFiltro),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:C.textFaint, marginBottom:'20px'}}, "Registre gastos do dia a dia como mercado, farm\xE1cia e transporte"),
               /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
@@ -8089,9 +8091,31 @@ function App({
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'absolute',
-      right: window.innerWidth <= 768 ? '10px' : '16px'
+      right: window.innerWidth <= 768 ? '10px' : '16px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: window.innerWidth <= 768 ? '4px' : '8px'
     }
-  }, /*#__PURE__*/React.createElement(UserMenu, {
+  }, /*#__PURE__*/React.createElement('button', {
+    onClick: () => setDarkMode(!darkMode),
+    title: darkMode ? 'Modo claro' : 'Modo escuro',
+    style: {
+      width: window.innerWidth <= 768 ? '28px' : '32px',
+      height: window.innerWidth <= 768 ? '28px' : '32px',
+      minHeight: 'unset',
+      borderRadius: '50%',
+      border: '1px solid rgba(255,255,255,0.25)',
+      background: 'rgba(255,255,255,0.12)',
+      color: '#fff',
+      fontSize: window.innerWidth <= 768 ? '0.85rem' : '1rem',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '0',
+      transition: 'background 0.2s'
+    }
+  }, darkMode ? '\u2600\uFE0F' : '\uD83C\uDF19'), /*#__PURE__*/React.createElement(UserMenu, {
     user: user,
     onLogout: async () => {
       ['cartoes', 'gastosFixos', 'gastosVariaveis', 'gastosExtras', 'receitas', 'orcamentos', 'metasMensais', 'metasFinanceiras', 'planejados', 'dividas', 'categorias', 'farol', '_currentUserId'].forEach(k => localStorage.removeItem(k));
