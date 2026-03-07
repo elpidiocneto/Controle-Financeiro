@@ -8163,9 +8163,25 @@ function App({
 
         // Botão — muda conforme estado
         notifStatus === 'granted'
-          ? React.createElement('div', {style:{display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', padding:'11px', borderRadius:'10px', background:'#f0fdf4', border:'1px solid #86efac', fontSize:'0.82rem', fontWeight:'700', color:'#166534'}},
-              '✅ Notificações já estão ativas!'
-            )
+          ? React.createElement('button', {
+              onClick: function() {
+                navigator.serviceWorker.ready.then(function(reg) {
+                  reg.showNotification('🔔 Teste — Estratégia Finanças', {
+                    body: 'Notificações funcionando! Você será avisado das contas do dia.',
+                    icon: '/icons/icon-192.png',
+                    badge: '/icons/icon-192.png',
+                    tag: 'notif-teste'
+                  });
+                  showToast('📲 Notificação de teste enviada!', 'success', 3500);
+                }).catch(function() {
+                  try {
+                    new Notification('🔔 Teste — Estratégia Finanças', { body: 'Notificações funcionando!' });
+                    showToast('📲 Notificação de teste enviada!', 'success', 3500);
+                  } catch(e) { showToast('Erro ao enviar notificação de teste', 'error', 3500); }
+                });
+              },
+              style:{width:'100%', padding:'11px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff', fontWeight:'700', cursor:'pointer', fontSize:'0.82rem'}
+            }, '📲 Enviar Notificação de Teste')
           : notifStatus === 'unsupported'
           ? React.createElement('div', {style:{padding:'11px', borderRadius:'10px', background:C.bgMuted, fontSize:'0.78rem', color:C.textFaint, textAlign:'center'}},
               'Seu browser não suporta notificações'
