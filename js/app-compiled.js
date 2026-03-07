@@ -8272,14 +8272,6 @@ function App({
     const porDia = itensFiltrados.reduce((acc,i) => { (acc[i.vencimento]=acc[i.vencimento]||[]).push(i); return acc; }, {});
     const diasOrdenados = Object.keys(porDia).sort((a,b) => parseInt(a)-parseInt(b));
 
-    // ── WhatsApp: compartilhar contas de hoje ─────────────────────────────
-    const compartilharWhatsApp = function() {
-      if (vencHoje.length === 0) { showToast('Nenhuma conta vence hoje! 🎉', 'info', 4000); return; }
-      var d = new Date();
-      var linhas = vencHoje.map(function(i) { return '• ' + i.nome + ' — R$ ' + i.valor.toFixed(2); }).join('\n');
-      var texto = '💸 *Contas do dia ' + d.getDate() + '/' + (d.getMonth()+1) + ':*\n' + linhas + '\n\n*Total: R$ ' + totalHoje.toFixed(2) + '*';
-      window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
-    };
 
     return /*#__PURE__*/React.createElement(React.Fragment, null,
 
@@ -8342,11 +8334,6 @@ function App({
               )
             ),
             /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap'}},
-              estamosNoMesAtual && /*#__PURE__*/React.createElement("button", {
-                onClick: compartilharWhatsApp,
-                title: 'Compartilhar contas de hoje no WhatsApp',
-                style:{padding:'6px 11px', border:'none', borderRadius:'8px', background:'#25D366', color:'#fff', fontSize:'0.7rem', fontWeight:'700', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px', boxShadow:'0 2px 8px rgba(37,211,102,0.35)'}
-              }, '📲 WhatsApp'),
               /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:'#64748b'}}, "Pago"),
               /*#__PURE__*/React.createElement("div", {style:{width:'28px', height:'4px', background:'linear-gradient(90deg,#10b981,#059669)', borderRadius:'2px'}}),
               /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:'#64748b', marginLeft:'6px'}}, "Pendente"),
