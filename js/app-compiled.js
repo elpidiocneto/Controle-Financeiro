@@ -999,6 +999,8 @@ function App({
   const [buscaGlobal, setBuscaGlobal] = useState('');
   const [buscaOpen,   setBuscaOpen]   = useState(false);
   // (WhatsApp wa.me — sem estado global necessário)
+  // Cartão selecionado — App level para sobreviver troca de mês
+  const [cartaoSelId, setCartaoSelId] = useState(() => null);
   const [modalAberto, setModalAberto] = useState(null);
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
@@ -4788,7 +4790,7 @@ function App({
     const estamosNoMesAtual = mesAtual === mesAtualSistema && anoAtual === anoAtualSistema;
     const hoje = estamosNoMesAtual ? dataAtual.getDate() : -1;
 
-    const [cartaoSelId, setCartaoSelId] = React.useState(cartoes[0]?.id || null);
+    // cartaoSelId / setCartaoSelId vêm do App level (sobrevivem troca de mês)
     const [valorFaturaEdit, setValorFaturaEdit] = React.useState('');
 
     React.useEffect(() => {
@@ -4797,7 +4799,7 @@ function App({
       } else if (cartoes.length === 0) {
         setCartaoSelId(null);
       }
-    }, [cartoes.length]);
+    }, [cartoes.length, cartaoSelId]);
 
     const totaisPorCartao = {};
     let totalGeralMes = 0;
@@ -5038,9 +5040,13 @@ function App({
                       const pct = Math.max(3, Math.round(t.total/maxTotal*100));
                       const corBar = isCurrent ? '#3b82f6' : t.total===0 ? '#e2e8f0' : '#94a3b8';
                       return /*#__PURE__*/React.createElement("div", {key:i,
+                        onClick: () => setMesAtual(t.mes),
+                        title: 'Ver ' + t.nome,
                         style:{textAlign:'center', padding:'10px 6px', borderRadius:'10px',
+                          cursor: 'pointer',
                           background: isCurrent?'#eff6ff':'#f8fafc',
-                          border:'1px solid '+(isCurrent?'#bfdbfe':C.border)}
+                          border:'1px solid '+(isCurrent?'#bfdbfe':C.border),
+                          transition:'box-shadow .15s, transform .15s'}
                       },
                         /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'0.5px', textTransform:'uppercase', color: isCurrent?'#2563eb':C.textFaint, marginBottom:'8px'}}, t.nome),
                         /*#__PURE__*/React.createElement("div", {style:{height:'48px', display:'flex', alignItems:'flex-end', justifyContent:'center', marginBottom:'6px'}},
