@@ -7982,6 +7982,9 @@ function App({
     const [codigoEntrada, setCodigoEntrada] = React.useState('');
     const [mostrarEntrar, setMostrarEntrar] = React.useState(false);
     const [copiado, setCopiado] = React.useState(false);
+    // Estado LOCAL para campos WhatsApp — evita re-render do App inteiro ao digitar
+    const [localPhone,  setLocalPhone]  = React.useState(() => localStorage.getItem('whatsappPhone')  || '');
+    const [localApiKey, setLocalApiKey] = React.useState(() => localStorage.getItem('whatsappApiKey') || '');
 
     const copiarCodigo = () => {
       if (coupleId) { navigator.clipboard.writeText(coupleId).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }
@@ -8102,8 +8105,8 @@ function App({
         React.createElement('div', {style:{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'12px'}},
           React.createElement('label', {style:{fontSize:'0.72rem', fontWeight:'700', color:C.textMuted}}, '📞 Seu número (com DDD e código do país, ex: 5511999887766)'),
           React.createElement('input', {
-            type:'tel', value:whatsappPhone,
-            onChange: function(e) { setWhatsappPhone(e.target.value.replace(/\D/g,'')); },
+            type:'tel', value:localPhone,
+            onChange: function(e) { setLocalPhone(e.target.value.replace(/\D/g,'')); },
             placeholder:'5511999887766',
             style:{padding:'9px 12px', border:'1.5px solid '+C.border, borderRadius:'10px', background:C.input, color:C.text, fontSize:'0.85rem', fontFamily:'monospace', outline:'none', width:'100%', boxSizing:'border-box'}
           })
@@ -8113,8 +8116,8 @@ function App({
         React.createElement('div', {style:{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'16px'}},
           React.createElement('label', {style:{fontSize:'0.72rem', fontWeight:'700', color:C.textMuted}}, '🔑 API Key do CallMeBot'),
           React.createElement('input', {
-            type:'text', value:whatsappApiKey,
-            onChange: function(e) { setWhatsappApiKey(e.target.value.trim()); },
+            type:'text', value:localApiKey,
+            onChange: function(e) { setLocalApiKey(e.target.value.trim()); },
             placeholder:'ex: 123456',
             style:{padding:'9px 12px', border:'1.5px solid '+C.border, borderRadius:'10px', background:C.input, color:C.text, fontSize:'0.85rem', fontFamily:'monospace', outline:'none', width:'100%', boxSizing:'border-box'}
           })
@@ -8125,8 +8128,10 @@ function App({
           // Salvar
           React.createElement('button', {
             onClick: function() {
-              localStorage.setItem('whatsappPhone',  whatsappPhone);
-              localStorage.setItem('whatsappApiKey', whatsappApiKey);
+              localStorage.setItem('whatsappPhone',  localPhone);
+              localStorage.setItem('whatsappApiKey', localApiKey);
+              setWhatsappPhone(localPhone);
+              setWhatsappApiKey(localApiKey);
               showToast('✅ Configurações WhatsApp salvas!', 'success', 3500);
             },
             style:{flex:1, padding:'9px 14px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#6366f1,#4f46e5)', color:'#fff', fontWeight:'700', cursor:'pointer', fontSize:'0.78rem'}
@@ -8135,9 +8140,9 @@ function App({
           // Testar CallMeBot
           React.createElement('button', {
             onClick: function() {
-              if (!whatsappPhone || !whatsappApiKey) { showToast('Preencha o número e a API Key primeiro', 'warning', 4000); return; }
+              if (!localPhone || !localApiKey) { showToast('Preencha o número e a API Key primeiro', 'warning', 4000); return; }
               var msg = '✅ Teste do Estratégia Finanças! Notificações WhatsApp configuradas com sucesso 🎉';
-              var url = 'https://api.callmebot.com/whatsapp.php?phone=' + encodeURIComponent(whatsappPhone) + '&text=' + encodeURIComponent(msg) + '&apikey=' + encodeURIComponent(whatsappApiKey);
+              var url = 'https://api.callmebot.com/whatsapp.php?phone=' + encodeURIComponent(localPhone) + '&text=' + encodeURIComponent(msg) + '&apikey=' + encodeURIComponent(localApiKey);
               fetch(url)
                 .then(function() { showToast('📤 Mensagem de teste enviada!', 'success', 4000); })
                 .catch(function() { showToast('Erro ao enviar. Verifique os dados.', 'error', 5000); });
