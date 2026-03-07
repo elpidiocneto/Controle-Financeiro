@@ -8047,7 +8047,7 @@ function App({
         gvMes.forEach(function(g){var d=g.dataCompleta?+g.dataCompleta.split('-')[2]:0;if(d)spendDay[d]=(spendDay[d]||0)+g.valor;});
         geMes.forEach(function(g){var d=g.dataCompleta?+g.dataCompleta.split('-')[2]:0;if(d)spendDay[d]=(spendDay[d]||0)+g.valor;});
         gfMes.forEach(function(g){if(g.vencimento)spendDay[g.vencimento]=(spendDay[g.vencimento]||0)+g.valor;});
-        cartoes.forEach(function(c){var v=c.valores?.[heatmapAno]?.[heatmapMes]||0;if(v>0){var d=c.diaVencimento||c.vencimento||1;spendDay[d]=(spendDay[d]||0)+v;}});
+        cartoes.forEach(function(c){var v=c.valores?.[heatmapAno]?.[heatmapMes]||0;if(v>0){var d=c.diaFechamento||c.vencimento||1;spendDay[d]=(spendDay[d]||0)+v;}});
         var maxDay=Math.max.apply(null,Object.values(spendDay).concat([1]));
 
         var cells=[];
