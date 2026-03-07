@@ -5471,24 +5471,32 @@ function App({
     const [busca, setBusca] = useState('');
     const [minVal, setMinVal] = useState('');
     const [maxVal, setMaxVal] = useState('');
-    const [filtrosAbertos, setFiltrosAbertos] = useState(false);
-    
+    const [periodoFiltro, setPeriodoFiltro] = useState('mes'); // 'mes'|'semana'|'30dias'|'faixa'
+
     // CORREÇÃO: Verificar se estamos no mês atual
     const mesesOrdem = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
     const dataAtual = new Date();
     const mesAtualSistema = mesesOrdem[dataAtual.getMonth()];
     const anoAtualSistema = dataAtual.getFullYear();
     const estamosNoMesAtual = mesAtual === mesAtualSistema && anoAtual === anoAtualSistema;
-    
-    const gastosDoMes = gastosVariaveis.filter(g => g.mes===mesAtual && g.ano===anoAtual);
+
+    // Período base para filtro
+    const _isoSemana = (function(){ var d=new Date(); d.setDate(d.getDate()-d.getDay()); return d.toISOString().split('T')[0]; })();
+    const _iso30d = new Date(Date.now()-30*24*60*60*1000).toISOString().split('T')[0];
+    const gastosDoMes = periodoFiltro==='semana'
+      ? gastosVariaveis.filter(g => (g.dataCompleta||'') >= _isoSemana)
+      : periodoFiltro==='30dias'
+      ? gastosVariaveis.filter(g => (g.dataCompleta||'') >= _iso30d)
+      : gastosVariaveis.filter(g => g.mes===mesAtual && g.ano===anoAtual);
+
     const totaisPorCat = {};
     gastosDoMes.forEach(g => { totaisPorCat[g.categoria] = (totaisPorCat[g.categoria]||0) + g.valor; });
     const totalMes = gastosDoMes.reduce((s,g) => s+g.valor, 0);
     const gastosDoMesCat = categoriaFiltro==='TODAS' ? gastosDoMes : gastosDoMes.filter(g => g.categoria===categoriaFiltro);
     const gastosFiltrados = gastosDoMesCat
       .filter(g => !busca || g.descricao.toLowerCase().includes(busca.toLowerCase()) || g.categoria.toLowerCase().includes(busca.toLowerCase()))
-      .filter(g => !minVal || g.valor >= parseFloat(minVal))
-      .filter(g => !maxVal || g.valor <= parseFloat(maxVal));
+      .filter(g => periodoFiltro!=='faixa' || !minVal || g.valor >= parseFloat(minVal))
+      .filter(g => periodoFiltro!=='faixa' || !maxVal || g.valor <= parseFloat(maxVal));
     const totalFiltrado = gastosFiltrados.reduce((s,g) => s+g.valor, 0);
     const categorias = ['TODAS', ...Object.keys(totaisPorCat).sort((a,b)=>totaisPorCat[b]-totaisPorCat[a])];
 
@@ -5521,6 +5529,31 @@ function App({
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.2rem', fontWeight:'900', color:'#c2410c', marginBottom:'6px'}}, (totalMes/totais.total*100).toFixed(0)+"%"),
           /*#__PURE__*/React.createElement("div", {style:{height:'5px', background:C.bgTable, borderRadius:'3px', overflow:'hidden'}},
             /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:(totalMes/totais.total*100)+'%', background:'linear-gradient(90deg,#f97316,#fb923c)', borderRadius:'3px', transition:'width .6s ease'}})
+          )
+        ),
+
+        /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'12px', padding:'14px', border:'1px solid '+C.border}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, "\uD83D\uDCC5 Período"),
+          React.createElement('div', {style:{display:'flex', flexDirection:'column', gap:'5px'}},
+            [
+              {v:'mes',    l:'📅 Este mês'},
+              {v:'semana', l:'📅 Esta semana'},
+              {v:'30dias', l:'🗓️ Últimos 30 dias'},
+              {v:'faixa',  l:'💰 Faixa de valor'},
+            ].map(function(p) {
+              return React.createElement('button', {
+                key:p.v, onClick:function(){ setPeriodoFiltro(p.v); setMinVal(''); setMaxVal(''); },
+                style:{width:'100%', padding:'7px 10px', border:'none', borderRadius:'8px', cursor:'pointer', textAlign:'left', fontSize:'0.73rem', fontWeight:'600',
+                  background:periodoFiltro===p.v?'#fff7ed':'transparent',
+                  color:periodoFiltro===p.v?'#c2410c':'#6b7280'}
+              }, p.l);
+            }),
+            periodoFiltro==='faixa' && React.createElement('div', {style:{display:'flex', gap:'6px', marginTop:'6px'}},
+              React.createElement('input', {type:'number', placeholder:'Mín R$', value:minVal, onChange:function(e){setMinVal(e.target.value);},
+                style:{flex:1, padding:'5px 8px', borderRadius:'8px', border:'1px solid '+C.border, background:C.input, color:C.text, fontSize:'0.72rem', minWidth:0}}),
+              React.createElement('input', {type:'number', placeholder:'Máx R$', value:maxVal, onChange:function(e){setMaxVal(e.target.value);},
+                style:{flex:1, padding:'5px 8px', borderRadius:'8px', border:'1px solid '+C.border, background:C.input, color:C.text, fontSize:'0.72rem', minWidth:0}})
+            )
           )
         ),
 
@@ -5626,11 +5659,26 @@ function App({
 
   const TelaGastosExtras = () => {
     const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS');
-    const gastosDoMes = gastosExtras.filter(g => g.mes===mesAtual && g.ano===anoAtual);
+    const [periodoFiltroE, setPeriodoFiltroE] = useState('mes'); // 'mes'|'semana'|'30dias'|'faixa'
+    const [minValE, setMinValE] = useState('');
+    const [maxValE, setMaxValE] = useState('');
+
+    // Período base
+    const _isoSemanaE = (function(){ var d=new Date(); d.setDate(d.getDate()-d.getDay()); return d.toISOString().split('T')[0]; })();
+    const _iso30dE = new Date(Date.now()-30*24*60*60*1000).toISOString().split('T')[0];
+    const gastosDoMes = periodoFiltroE==='semana'
+      ? gastosExtras.filter(g => (g.dataCompleta||'') >= _isoSemanaE)
+      : periodoFiltroE==='30dias'
+      ? gastosExtras.filter(g => (g.dataCompleta||'') >= _iso30dE)
+      : gastosExtras.filter(g => g.mes===mesAtual && g.ano===anoAtual);
+
     const totaisPorCat = {};
     gastosDoMes.forEach(g => { totaisPorCat[g.categoria] = (totaisPorCat[g.categoria]||0) + g.valor; });
     const totalMes = gastosDoMes.reduce((s,g) => s+g.valor, 0);
-    const gastosFiltrados = categoriaFiltro==='TODAS' ? gastosDoMes : gastosDoMes.filter(g => g.categoria===categoriaFiltro);
+    const gastosFiltradosBase = categoriaFiltro==='TODAS' ? gastosDoMes : gastosDoMes.filter(g => g.categoria===categoriaFiltro);
+    const gastosFiltrados = gastosFiltradosBase
+      .filter(g => periodoFiltroE!=='faixa' || !minValE || g.valor >= parseFloat(minValE))
+      .filter(g => periodoFiltroE!=='faixa' || !maxValE || g.valor <= parseFloat(maxValE));
     const totalFiltrado = gastosFiltrados.reduce((s,g) => s+g.valor, 0);
     const categorias = ['TODAS', ...Object.keys(totaisPorCat).sort((a,b)=>totaisPorCat[b]-totaisPorCat[a])];
     const sortedGastos = [...gastosFiltrados].sort((a,b) => {
@@ -5656,6 +5704,31 @@ function App({
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.2rem', fontWeight:'900', color:'#b45309', marginBottom:'6px'}}, (totalMes/totais.total*100).toFixed(0)+"%"),
           /*#__PURE__*/React.createElement("div", {style:{height:'5px', background:C.bgTable, borderRadius:'3px', overflow:'hidden'}},
             /*#__PURE__*/React.createElement("div", {style:{height:'100%', width:(totalMes/totais.total*100)+'%', background:'linear-gradient(90deg,#d97706,#fbbf24)', borderRadius:'3px', transition:'width .6s ease'}})
+          )
+        ),
+
+        /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'12px', padding:'14px', border:'1px solid '+C.border}},
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.58rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint, marginBottom:'10px'}}, "\uD83D\uDCC5 Período"),
+          React.createElement('div', {style:{display:'flex', flexDirection:'column', gap:'5px'}},
+            [
+              {v:'mes',    l:'📅 Este mês'},
+              {v:'semana', l:'📅 Esta semana'},
+              {v:'30dias', l:'🗓️ Últimos 30 dias'},
+              {v:'faixa',  l:'💰 Faixa de valor'},
+            ].map(function(p) {
+              return React.createElement('button', {
+                key:p.v, onClick:function(){ setPeriodoFiltroE(p.v); setMinValE(''); setMaxValE(''); },
+                style:{width:'100%', padding:'7px 10px', border:'none', borderRadius:'8px', cursor:'pointer', textAlign:'left', fontSize:'0.73rem', fontWeight:'600',
+                  background:periodoFiltroE===p.v?'#fffbeb':'transparent',
+                  color:periodoFiltroE===p.v?'#b45309':'#6b7280'}
+              }, p.l);
+            }),
+            periodoFiltroE==='faixa' && React.createElement('div', {style:{display:'flex', gap:'6px', marginTop:'6px'}},
+              React.createElement('input', {type:'number', placeholder:'Mín R$', value:minValE, onChange:function(e){setMinValE(e.target.value);},
+                style:{flex:1, padding:'5px 8px', borderRadius:'8px', border:'1px solid '+C.border, background:C.input, color:C.text, fontSize:'0.72rem', minWidth:0}}),
+              React.createElement('input', {type:'number', placeholder:'Máx R$', value:maxValE, onChange:function(e){setMaxValE(e.target.value);},
+                style:{flex:1, padding:'5px 8px', borderRadius:'8px', border:'1px solid '+C.border, background:C.input, color:C.text, fontSize:'0.72rem', minWidth:0}})
+            )
           )
         ),
 
@@ -7856,6 +7929,52 @@ function App({
     const dadosAnuais = MESES.map(function(m){ var s=calcularSaldo(m); return {mes:m.toUpperCase(), receitas:s.receitas, despesas:s.despesas, saldo:s.saldo}; });
 
     const _isMobRel = window.innerWidth <= 768;
+
+    // ── Feature 4: ref do gráfico de tendência ─────────────────────────────
+    const refTendencia = React.useRef(null);
+    React.useEffect(function() {
+      if (!refTendencia.current) return;
+      var idxAtual = MESES.indexOf(mesAtual);
+      var meses6 = Array.from({length:6}, function(_,i) {
+        var offset = i - 5;
+        var idx = (idxAtual + offset + 12) % 12;
+        var ano  = (idxAtual + offset < 0) ? anoAtual - 1 : anoAtual;
+        return { mes: MESES[idx], ano: ano, label: MESES[idx].toUpperCase() };
+      });
+      var receitas6 = meses6.map(function(m) {
+        return receitas.filter(function(r){ return r.mes===m.mes && r.ano===m.ano; }).reduce(function(s,r){return s+r.valor;},0);
+      });
+      var gastos6 = meses6.map(function(m) {
+        var gf = gastosFixos.filter(function(g){ return g.mes===m.mes && g.ano===m.ano; }).reduce(function(s,g){return s+g.valor;},0);
+        var gv = gastosVariaveis.filter(function(g){ return g.mes===m.mes && g.ano===m.ano; }).reduce(function(s,g){return s+g.valor;},0);
+        var ge = gastosExtras.filter(function(g){ return g.mes===m.mes && g.ano===m.ano; }).reduce(function(s,g){return s+g.valor;},0);
+        var gc = cartoes.reduce(function(s,c){ return s + (c.valores?.[m.ano]?.[m.mes]||0); },0);
+        return gf + gv + ge + gc;
+      });
+      var saldo6 = meses6.map(function(_,i){ return receitas6[i] - gastos6[i]; });
+      if (refTendencia.current._chartInstance) refTendencia.current._chartInstance.destroy();
+      refTendencia.current._chartInstance = new Chart(refTendencia.current, {
+        type: 'line',
+        data: {
+          labels: meses6.map(function(m){ return m.label; }),
+          datasets: [
+            { label:'Receitas', data:receitas6, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.08)', fill:true,  tension:0.4, pointRadius:4, pointBackgroundColor:'#10b981' },
+            { label:'Gastos',   data:gastos6,   borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.08)',  fill:true,  tension:0.4, pointRadius:4, pointBackgroundColor:'#ef4444' },
+            { label:'Saldo',    data:saldo6,    borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.05)', fill:false, tension:0.4, pointRadius:4,
+              pointBackgroundColor: saldo6.map(function(v){ return v>=0?'#10b981':'#ef4444'; }) }
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          interaction:{ mode:'index', intersect:false },
+          plugins:{
+            legend:{ position:'top' },
+            tooltip:{ callbacks:{ label: function(ctx){ return ' R$ '+ctx.raw.toLocaleString('pt-BR',{minimumFractionDigits:2}); } } }
+          },
+          scales:{ y:{ ticks:{ callback: function(v){ return 'R$'+(v/1000).toFixed(0)+'k'; } } } }
+        }
+      });
+    }, [mesAtual, anoAtual]);
     return React.createElement('div', {className:'space-y-4'},
       // Header
       React.createElement('div', {style:{display:'flex',flexWrap:'wrap',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}},
@@ -7891,6 +8010,14 @@ function App({
         })
       ),
 
+      // ── Feature 4: Gráfico de Tendência 6 Meses ────────────────────────────
+      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,padding:'20px',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+        React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',textTransform:'uppercase',letterSpacing:'1px',color:C.textFaint,marginBottom:'16px'}}, '📈 Tendência — Últimos 6 Meses'),
+        React.createElement('div', {style:{height:'220px',position:'relative'}},
+          React.createElement('canvas', {ref:refTendencia})
+        )
+      ),
+
       // Preview anual
       React.createElement('div', {style:{background:C.bg,borderRadius:'16px',border:'1px solid #e2e8f0',overflow:'hidden',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
         React.createElement('div', {style:{padding:'16px 20px',borderBottom:'1px solid #f1f5f9',background:'#fafbff'}},
@@ -7919,6 +8046,56 @@ function App({
           )
         )
       ),
+
+      // ── Feature 6: Comparativo Mês vs. Mês Anterior ────────────────────────
+      (function(){
+        var idxMes     = MESES.indexOf(mesAtual);
+        var mesAnt     = idxMes > 0 ? MESES[idxMes-1] : MESES[11];
+        var anoAnt     = idxMes === 0 ? anoAtual-1 : anoAtual;
+        var tAt        = calcularTotais(mesAtual);
+        var gfAnt      = gastosFixos.filter(function(g){return g.mes===mesAnt&&g.ano===anoAnt;}).reduce(function(s,g){return s+g.valor;},0);
+        var gvAnt      = gastosVariaveis.filter(function(g){return g.mes===mesAnt&&g.ano===anoAnt;}).reduce(function(s,g){return s+g.valor;},0);
+        var geAnt      = gastosExtras.filter(function(g){return g.mes===mesAnt&&g.ano===anoAnt;}).reduce(function(s,g){return s+g.valor;},0);
+        var gcAnt      = cartoes.reduce(function(s,c){return s+(c.valores?.[anoAnt]?.[mesAnt]||0);},0);
+        var totalAnt   = gfAnt+gvAnt+geAnt+gcAnt;
+        var rAt        = receitas.filter(function(r){return r.mes===mesAtual&&r.ano===anoAtual;}).reduce(function(s,r){return s+r.valor;},0);
+        var rAnt       = receitas.filter(function(r){return r.mes===mesAnt&&r.ano===anoAnt;}).reduce(function(s,r){return s+r.valor;},0);
+        var linhas = [
+          {label:'💰 Receitas',     atual:rAt,          anterior:rAnt,    inverter:false},
+          {label:'🏠 Fixos',        atual:tAt.fixos,    anterior:gfAnt,   inverter:true},
+          {label:'🛒 Variáveis',    atual:tAt.variaveis,anterior:gvAnt,   inverter:true},
+          {label:'⚡ Extras',       atual:tAt.extras,   anterior:geAnt,   inverter:true},
+          {label:'💳 Cartões',      atual:tAt.cartoes,  anterior:gcAnt,   inverter:true},
+          {label:'📊 Total Gastos', atual:tAt.total,    anterior:totalAnt,inverter:true},
+          {label:'✅ Saldo',        atual:rAt-tAt.total,anterior:rAnt-totalAnt,inverter:false},
+        ];
+        return React.createElement('div', {style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,overflow:'hidden',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+          React.createElement('div', {style:{padding:'14px 20px',borderBottom:'1px solid '+C.borderLight,display:'flex',justifyContent:'space-between',alignItems:'center',background:C.bgMuted}},
+            React.createElement('div', {style:{fontWeight:'800',fontSize:'0.85rem',color:C.text}}, '⚖️ Comparativo Meses'),
+            React.createElement('div', {style:{fontSize:'0.7rem',color:C.textFaint,fontWeight:'600'}}, mesAnt.toUpperCase()+' vs '+mesAtual.toUpperCase())
+          ),
+          React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 72px',padding:'8px 20px',background:C.bgTable,fontSize:'0.62rem',fontWeight:'800',color:C.textFaint,textTransform:'uppercase',letterSpacing:'0.5px'}},
+            React.createElement('div',null,'Categoria'),
+            React.createElement('div',{style:{textAlign:'right'}},mesAnt.toUpperCase()),
+            React.createElement('div',{style:{textAlign:'right'}},mesAtual.toUpperCase()),
+            React.createElement('div',{style:{textAlign:'right'}},'Var. %')
+          ),
+          linhas.map(function(linha,i){
+            var diff = linha.anterior > 0 ? Math.round((linha.atual-linha.anterior)/linha.anterior*100) : null;
+            var melhorou = linha.inverter ? (linha.atual < linha.anterior) : (linha.atual > linha.anterior);
+            var corVar = diff===null ? C.textFaint : (melhorou ? '#10b981' : '#ef4444');
+            var isLast = i===linhas.length-1;
+            return React.createElement('div', {key:i, style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 72px',padding:'10px 20px',borderTop:'1px solid '+C.borderLight,background:isLast?(darkMode?'rgba(99,102,241,0.08)':'#f5f3ff'):'transparent'}},
+              React.createElement('div',{style:{color:C.text,fontWeight:isLast?'800':'600',fontSize:'0.78rem'}},linha.label),
+              React.createElement('div',{style:{textAlign:'right',color:C.textMuted,fontSize:'0.75rem'}},fmt(linha.anterior)),
+              React.createElement('div',{style:{textAlign:'right',color:C.text,fontWeight:'700',fontSize:'0.78rem'}},fmt(linha.atual)),
+              React.createElement('div',{style:{textAlign:'right',fontWeight:'800',fontSize:'0.78rem',color:corVar}},
+                diff===null ? '—' : (diff>0?'+':'')+diff+'%'
+              )
+            );
+          })
+        );
+      })(),
 
       // Botões grandes de export
       React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}},
