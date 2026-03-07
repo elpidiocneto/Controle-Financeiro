@@ -5066,7 +5066,54 @@ function App({
                   })()
                 ))
               )
-            )
+            ),
+
+            // ── Feature D: Progresso de Todas as Compras Parceladas ─────────────
+            (function(){
+              if(comprasParceladas.length===0)return null;
+              var todasParc=comprasParceladas.slice().sort(function(a,b){
+                var ai=a.meses?a.meses.indexOf(mesAtual):-1;
+                var bi=b.meses?b.meses.indexOf(mesAtual):-1;
+                var aPct=a.totalParcelas>0?(ai>=0?ai+1:a.totalParcelas)/a.totalParcelas:1;
+                var bPct=b.totalParcelas>0?(bi>=0?bi+1:b.totalParcelas)/b.totalParcelas:1;
+                return bPct-aPct;
+              });
+              var impactoMes=comprasParceladas.filter(function(p){return p.meses&&p.meses.includes(mesAtual);}).reduce(function(s,p){return s+(p.valorParcela||0);},0);
+              return React.createElement('div',{style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,overflow:'hidden',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
+                React.createElement('div',{style:{padding:'12px 16px',borderBottom:'1px solid '+C.borderLight,display:'flex',justifyContent:'space-between',alignItems:'center',background:'linear-gradient(135deg,#f5f3ff,#fff)'}},
+                  React.createElement('div',{style:{fontSize:'0.6rem',fontWeight:'800',letterSpacing:'1.2px',textTransform:'uppercase',color:C.textFaint}},'📊 Progresso — Compras Parceladas'),
+                  impactoMes>0&&React.createElement('div',{style:{fontSize:'0.68rem',fontWeight:'700',color:'#6d28d9'}},'R$ '+impactoMes.toFixed(2)+'/mês')
+                ),
+                React.createElement('div',{style:{padding:'12px 16px',display:'flex',flexDirection:'column',gap:'8px'}},
+                  todasParc.map(function(p,i){
+                    var mesIdx=p.meses?p.meses.indexOf(mesAtual):-1;
+                    var numAtual=mesIdx>=0?mesIdx+1:p.totalParcelas||1;
+                    var total=p.totalParcelas||1;
+                    var pct=total>0?numAtual/total:1;
+                    var restantes=Math.max(0,total-numAtual);
+                    var ativa=mesIdx>=0;
+                    var cor=pct>=0.85?'#10b981':pct>=0.5?'#6366f1':'#f59e0b';
+                    return React.createElement('div',{key:p.id||i,style:{padding:'10px 12px',borderRadius:'10px',background:ativa?(darkMode?'rgba(99,102,241,0.08)':'#f5f3ff'):(darkMode?'rgba(255,255,255,0.03)':'#f8fafc'),border:'1px solid '+(ativa?'rgba(99,102,241,0.2)':C.border)}},
+                      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'6px'}},
+                        React.createElement('div',{style:{flex:1,minWidth:0}},
+                          React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'700',color:C.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},p.descricao),
+                          React.createElement('div',{style:{fontSize:'0.62rem',color:C.textFaint,marginTop:'1px'}},
+                            p.cartao+(total>1?' · '+numAtual+'/'+total+' parcelas'+(restantes>0?' · '+restantes+' restante'+(restantes!==1?'s':''):''):'  · À vista')+(ativa?' · ✅ este mês':'')
+                          )
+                        ),
+                        React.createElement('div',{style:{textAlign:'right',flexShrink:0,marginLeft:'8px'}},
+                          React.createElement('div',{style:{fontSize:'0.82rem',fontWeight:'800',color:'#0284c7'}},'R$ '+p.valorParcela.toFixed(2)),
+                          total>1&&React.createElement('div',{style:{fontSize:'0.58rem',color:C.textFaint,marginTop:'1px'}},(pct*100).toFixed(0)+'% concluído')
+                        )
+                      ),
+                      total>1&&React.createElement('div',{style:{height:'5px',background:C.bgTable,borderRadius:'3px',overflow:'hidden'}},
+                        React.createElement('div',{style:{height:'100%',width:(pct*100).toFixed(1)+'%',background:cor,borderRadius:'3px',transition:'width .6s ease'}})
+                      )
+                    );
+                  })
+                )
+              );
+            })()
           )
     );
   };
@@ -6749,6 +6796,46 @@ function App({
     )
   )
 )
+,
+
+// ── Feature C: Gastos Variáveis & Extras por Categoria ────────────────
+(function(){
+  var catV={};
+  gastosVariaveis.filter(function(g){return g.mes===mesAtual&&g.ano===anoAtual;}).forEach(function(g){if(g.categoria&&g.valor)catV[g.categoria]=(catV[g.categoria]||0)+g.valor;});
+  gastosExtras.filter(function(g){return g.mes===mesAtual&&g.ano===anoAtual;}).forEach(function(g){if(g.categoria&&g.valor)catV[g.categoria]=(catV[g.categoria]||0)+g.valor;});
+  var arrV=Object.entries(catV).sort(function(a,b){return b[1]-a[1];});
+  var totV=arrV.reduce(function(s,c){return s+c[1];},0);
+  if(arrV.length===0)return null;
+  var coresV=['#6366f1','#8b5cf6','#0ea5e9','#10b981','#f59e0b','#f97316','#ef4444','#ec4899','#06b6d4','#84cc16','#a78bfa','#14b8a6'];
+  return React.createElement('div',{style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,overflow:'hidden',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
+    React.createElement('div',{style:{padding:'14px 20px',borderBottom:'1px solid '+C.borderLight,background:C.bgMuted,display:'flex',justifyContent:'space-between',alignItems:'center'}},
+      React.createElement('div',{style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:C.textMuted}},'🏷️ Variáveis & Extras por Categoria — '+mesAtual.toUpperCase()),
+      React.createElement('div',{style:{fontSize:'0.75rem',fontWeight:'800',color:C.text}},'R$ '+totV.toFixed(2))
+    ),
+    React.createElement('div',{style:{padding:'16px 20px',display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:'10px'}},
+      arrV.map(function(entry,i){
+        var cat=entry[0],val=entry[1];
+        var p=totV>0?val/totV:0;
+        var cor=coresV[i%coresV.length];
+        return React.createElement('div',{key:cat,style:{padding:'10px 12px',borderRadius:'10px',background:darkMode?'rgba(255,255,255,0.03)':'#fafafa',border:'1px solid '+C.border}},
+          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}},
+            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
+              React.createElement('div',{style:{width:'8px',height:'8px',borderRadius:'2px',background:cor,flexShrink:0}}),
+              React.createElement('span',{style:{fontSize:'0.75rem',fontWeight:'700',color:C.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'140px'}},cat)
+            ),
+            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'6px',flexShrink:0}},
+              React.createElement('span',{style:{fontSize:'0.68rem',color:C.textFaint}},(p*100).toFixed(0)+'%'),
+              React.createElement('span',{style:{fontSize:'0.75rem',fontWeight:'800',color:C.text}},'R$ '+val.toFixed(2))
+            )
+          ),
+          React.createElement('div',{style:{height:'5px',background:C.bgTable,borderRadius:'3px',overflow:'hidden'}},
+            React.createElement('div',{style:{height:'100%',width:(p*100).toFixed(1)+'%',background:cor,borderRadius:'3px',transition:'width .6s ease'}})
+          )
+        );
+      })
+    )
+  );
+})()
 
 )),
 
@@ -8232,6 +8319,105 @@ function App({
           ),
           // Conteúdo
           React.createElement('div',{style:{padding:'16px 18px'}},views[heatmapView])
+        );
+      })(),
+
+      // ── Feature A: Gastos por Categoria (Consolidado) ──────────────────────
+      (function(){
+        var catMap={};
+        function addCat(cat,val){if(!cat||!val)return;catMap[cat]=(catMap[cat]||0)+val;}
+        gastosVariaveis.filter(function(g){return g.mes===mesAtual&&g.ano===anoAtual;}).forEach(function(g){addCat(g.categoria,g.valor);});
+        gastosExtras.filter(function(g){return g.mes===mesAtual&&g.ano===anoAtual;}).forEach(function(g){addCat(g.categoria,g.valor);});
+        gastosFixos.filter(function(g){return (!g.mes||g.mes===mesAtual)&&(!g.ano||g.ano===anoAtual);}).forEach(function(g){addCat(g.categoria||'Contas Fixas',g.valor);});
+        var totalCart=cartoes.reduce(function(s,c){var vB=c.valores?.[anoAtual]?.[mesAtual]||0;var vP=comprasParceladas.filter(function(p){return p.cartao===c.nome&&p.meses&&p.meses.includes(mesAtual);}).reduce(function(ss,p){return ss+(p.valorParcela||0);},0);return s+vB+vP;},0);
+        if(totalCart>0)addCat('💳 Cartões',totalCart);
+        var arr=Object.entries(catMap).sort(function(a,b){return b[1]-a[1];});
+        var tot=arr.reduce(function(s,c){return s+c[1];},0);
+        if(arr.length===0)return null;
+        var cores=['#6366f1','#8b5cf6','#a78bfa','#0ea5e9','#06b6d4','#10b981','#f59e0b','#f97316','#ef4444','#ec4899','#84cc16','#14b8a6'];
+        return React.createElement('div',{style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,overflow:'hidden',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+          React.createElement('div',{style:{padding:'14px 20px',borderBottom:'1px solid '+C.borderLight,background:C.bgMuted,display:'flex',justifyContent:'space-between',alignItems:'center'}},
+            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'10px'}},
+              React.createElement('div',{style:{width:'28px',height:'28px',borderRadius:'8px',background:'linear-gradient(135deg,#6366f1,#8b5cf6)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}},'🏷️'),
+              React.createElement('div',null,
+                React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'800',color:C.text}},'Gastos por Categoria'),
+                React.createElement('div',{style:{fontSize:'0.62rem',color:C.textFaint,marginTop:'1px'}},'Todos os tipos · '+mesAtual.toUpperCase()+' '+anoAtual)
+              )
+            ),
+            React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'800',color:C.text}},fmt(tot))
+          ),
+          React.createElement('div',{style:{padding:'16px 20px',display:'flex',flexDirection:'column',gap:'8px'}},
+            arr.map(function(entry,i){
+              var cat=entry[0],val=entry[1];
+              var p=tot>0?val/tot:0;
+              var cor=cores[i%cores.length];
+              return React.createElement('div',{key:cat},
+                React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}},
+                  React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
+                    React.createElement('div',{style:{width:'8px',height:'8px',borderRadius:'2px',background:cor,flexShrink:0}}),
+                    React.createElement('span',{style:{fontSize:'0.75rem',fontWeight:'700',color:C.text}},cat)
+                  ),
+                  React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},
+                    React.createElement('span',{style:{fontSize:'0.7rem',color:C.textFaint}},(p*100).toFixed(1)+'%'),
+                    React.createElement('span',{style:{fontSize:'0.75rem',fontWeight:'800',color:C.text}},fmt(val))
+                  )
+                ),
+                React.createElement('div',{style:{height:'6px',background:C.bgTable,borderRadius:'3px',overflow:'hidden'}},
+                  React.createElement('div',{style:{height:'100%',width:(p*100).toFixed(1)+'%',background:cor,borderRadius:'3px',transition:'width .6s ease'}})
+                )
+              );
+            })
+          )
+        );
+      })(),
+
+      // ── Feature B: Fluxo de Caixa por Dia ──────────────────────────────────
+      (function(){
+        var idxM=MESES.indexOf(mesAtual);
+        var diasNoMes=new Date(anoAtual,idxM+1,0).getDate();
+        var flowDay={};
+        gastosVariaveis.filter(function(g){return g.mes===mesAtual&&g.ano===anoAtual;}).forEach(function(g){var d=g.dataCompleta?+g.dataCompleta.split('-')[2]:0;if(d)flowDay[d]=(flowDay[d]||0)+g.valor;});
+        gastosExtras.filter(function(g){return g.mes===mesAtual&&g.ano===anoAtual;}).forEach(function(g){var d=g.dataCompleta?+g.dataCompleta.split('-')[2]:0;if(d)flowDay[d]=(flowDay[d]||0)+g.valor;});
+        gastosFixos.filter(function(g){return (!g.mes||g.mes===mesAtual)&&(!g.ano||g.ano===anoAtual);}).forEach(function(g){if(g.vencimento)flowDay[g.vencimento]=(flowDay[g.vencimento]||0)+g.valor;});
+        cartoes.forEach(function(c){var v=(c.valores?.[anoAtual]?.[mesAtual]||0)+comprasParceladas.filter(function(p){return p.cartao===c.nome&&p.meses&&p.meses.includes(mesAtual);}).reduce(function(ss,p){return ss+(p.valorParcela||0);},0);if(v>0){var d=c.diaFechamento||c.vencimento||1;flowDay[d]=(flowDay[d]||0)+v;}});
+        if(Object.keys(flowDay).length===0)return null;
+        var days=Array.from({length:diasNoMes},function(_,i){return {d:i+1,v:flowDay[i+1]||0};});
+        var maxV=Math.max.apply(null,days.map(function(d){return d.v;}).concat([1]));
+        var sorted=days.slice().sort(function(a,b){return b.v-a.v;});
+        var top3=new Set(sorted.slice(0,3).filter(function(d){return d.v>0;}).map(function(d){return d.d;}));
+        return React.createElement('div',{style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,overflow:'hidden',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+          React.createElement('div',{style:{padding:'14px 20px',borderBottom:'1px solid '+C.borderLight,background:C.bgMuted,display:'flex',justifyContent:'space-between',alignItems:'center'}},
+            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'10px'}},
+              React.createElement('div',{style:{width:'28px',height:'28px',borderRadius:'8px',background:'linear-gradient(135deg,#f97316,#fb923c)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}},'📅'),
+              React.createElement('div',null,
+                React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'800',color:C.text}},'Fluxo de Caixa por Dia'),
+                React.createElement('div',{style:{fontSize:'0.62rem',color:C.textFaint,marginTop:'1px'}},'Saídas por dia · '+mesAtual.toUpperCase()+' '+anoAtual)
+              )
+            )
+          ),
+          React.createElement('div',{style:{padding:'16px 20px'}},
+            React.createElement('div',{style:{display:'flex',alignItems:'flex-end',gap:'2px',height:'80px',marginBottom:'6px'}},
+              days.map(function(day){
+                var p2=maxV>0?day.v/maxV:0;
+                var isTop=top3.has(day.d);
+                var cor=isTop?'#ef4444':day.v>0?'#6366f1':(darkMode?'rgba(255,255,255,0.07)':'#f1f5f9');
+                return React.createElement('div',{key:day.d,title:'Dia '+day.d+(day.v?' — '+fmt(day.v):' — sem saída'),
+                  style:{flex:1,height:Math.max(4,p2*100)+'%',background:cor,borderRadius:'3px 3px 0 0',minHeight:'3px'}});
+              })
+            ),
+            React.createElement('div',{style:{display:'flex',gap:'2px',marginBottom:'12px'}},
+              days.map(function(day){
+                var show=day.d===1||day.d%5===0||day.d===diasNoMes;
+                return React.createElement('div',{key:day.d,style:{flex:1,textAlign:'center',fontSize:'0.48rem',color:C.textFaint,fontWeight:show?'700':'400'}},show?day.d:'');
+              })
+            ),
+            sorted.slice(0,3).filter(function(d){return d.v>0;}).length>0&&React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:'6px',alignItems:'center'}},
+              React.createElement('span',{style:{fontSize:'0.65rem',fontWeight:'700',color:C.textFaint}},'🔴 Dias mais pesados:'),
+              sorted.slice(0,3).filter(function(d){return d.v>0;}).map(function(day){
+                return React.createElement('span',{key:day.d,style:{fontSize:'0.65rem',fontWeight:'800',padding:'2px 8px',borderRadius:'20px',background:darkMode?'rgba(239,68,68,0.15)':'#fee2e2',color:'#991b1b'}},'Dia '+day.d+' — '+fmt(day.v));
+              })
+            )
+          )
         );
       })(),
 

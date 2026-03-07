@@ -3,7 +3,7 @@
    Estratégia: Network-first com fallback offline
    ============================================= */
 
-const CACHE_NAME = 'financas-v4';
+const CACHE_NAME = 'financas-v5';
 
 // Arquivos essenciais para funcionamento offline
 const STATIC_ASSETS = [
