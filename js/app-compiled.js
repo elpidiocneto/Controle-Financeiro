@@ -8542,7 +8542,48 @@ function App({
   }, /*#__PURE__*/React.createElement(FormImportarFatura, null)), modalAberto === 'gerenciarCartoes' && /*#__PURE__*/React.createElement(Modal, {
     titulo: '\u2699\uFE0F Gerenciar Cart\xF5es',
     onClose: () => setModalAberto(null)
-  }, /*#__PURE__*/React.createElement(FormGerenciarCartoes, null)))
+  }, /*#__PURE__*/React.createElement(FormGerenciarCartoes, null))
+  , modalAberto === 'quickAdd' && /*#__PURE__*/React.createElement(Modal, {
+    titulo: '\u2795 Adicionar Despesa',
+    onClose: () => setModalAberto(null)
+  }, /*#__PURE__*/React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'12px',padding:'4px 0'}},
+    /*#__PURE__*/React.createElement('div', {
+      onClick: () => { setCartaoParaNovaCompra(null); setModalAberto('compraParcelada'); },
+      style:{display:'flex',alignItems:'center',gap:'16px',padding:'18px 20px',borderRadius:'14px',background:'linear-gradient(135deg,#ede9fe,#ddd6fe)',border:'1.5px solid #c4b5fd',cursor:'pointer',transition:'opacity .15s'},
+      onMouseEnter: e => e.currentTarget.style.opacity='0.85',
+      onMouseLeave: e => e.currentTarget.style.opacity='1'
+    },
+      /*#__PURE__*/React.createElement('div',{style:{fontSize:'2rem',lineHeight:1}},'\uD83D\uDCB3'),
+      /*#__PURE__*/React.createElement('div',null,
+        /*#__PURE__*/React.createElement('div',{style:{fontWeight:'800',fontSize:'1rem',color:'#5b21b6'}},'Compra no Cart\u00e3o'),
+        /*#__PURE__*/React.createElement('div',{style:{fontSize:'0.78rem',color:'#7c3aed',marginTop:'3px'}},'Parcelada ou \u00e0 vista no cr\u00e9dito')
+      )
+    ),
+    /*#__PURE__*/React.createElement('div', {
+      onClick: () => setModalAberto('novoGastoVariavel'),
+      style:{display:'flex',alignItems:'center',gap:'16px',padding:'18px 20px',borderRadius:'14px',background:'linear-gradient(135deg,#fff7ed,#fed7aa)',border:'1.5px solid #fdba74',cursor:'pointer',transition:'opacity .15s'},
+      onMouseEnter: e => e.currentTarget.style.opacity='0.85',
+      onMouseLeave: e => e.currentTarget.style.opacity='1'
+    },
+      /*#__PURE__*/React.createElement('div',{style:{fontSize:'2rem',lineHeight:1}},'\uD83D\uDED2'),
+      /*#__PURE__*/React.createElement('div',null,
+        /*#__PURE__*/React.createElement('div',{style:{fontWeight:'800',fontSize:'1rem',color:'#c2410c'}},'Gasto Vari\u00e1vel'),
+        /*#__PURE__*/React.createElement('div',{style:{fontSize:'0.78rem',color:'#ea580c',marginTop:'3px'}},'Mercado, farm\u00e1cia, transporte...')
+      )
+    ),
+    /*#__PURE__*/React.createElement('div', {
+      onClick: () => setModalAberto('novoGastoExtra'),
+      style:{display:'flex',alignItems:'center',gap:'16px',padding:'18px 20px',borderRadius:'14px',background:'linear-gradient(135deg,#ecfdf5,#a7f3d0)',border:'1.5px solid #6ee7b7',cursor:'pointer',transition:'opacity .15s'},
+      onMouseEnter: e => e.currentTarget.style.opacity='0.85',
+      onMouseLeave: e => e.currentTarget.style.opacity='1'
+    },
+      /*#__PURE__*/React.createElement('div',{style:{fontSize:'2rem',lineHeight:1}},'\u26A1'),
+      /*#__PURE__*/React.createElement('div',null,
+        /*#__PURE__*/React.createElement('div',{style:{fontWeight:'800',fontSize:'1rem',color:'#065f46'}},'Gasto Extra'),
+        /*#__PURE__*/React.createElement('div',{style:{fontSize:'0.78rem',color:'#059669',marginTop:'3px'}},'Viagem, presente, emerg\u00eancia...')
+      )
+    )
+  )))
   , inputDialog && /*#__PURE__*/React.createElement(InputDialog, {
       titulo: inputDialog.titulo,
       label: inputDialog.label,
@@ -8551,8 +8592,8 @@ function App({
       onCancel: () => setInputDialog(null)
     })
   , /*#__PURE__*/React.createElement('button', {
-      onClick: () => { setCartaoParaNovaCompra(null); setModalAberto('compraParcelada'); },
-      title: 'Nova Compra no Cart\u00e3o',
+      onClick: () => setModalAberto('quickAdd'),
+      title: 'Adicionar Despesa',
       onMouseEnter: e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(102,126,234,0.7)'; },
       onMouseLeave: e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(102,126,234,0.5)'; },
       style: {
