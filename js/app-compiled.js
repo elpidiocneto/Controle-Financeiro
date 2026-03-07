@@ -1631,15 +1631,24 @@ function App({
       }
     });
     // 3) Gastos fixos com vencimento nos próximos 5 dias
+    //    Filtra por mes/ano atual e deduplica por descricao (evita parcelas múltiplas)
     const diaHoje = hoje.getDate();
-    gastosFixos.filter(function(g) { return g.vencimento; }).forEach(function(g) {
-      const diff = g.vencimento - diaHoje;
-      if (diff >= 0 && diff <= 5) {
-        setTimeout(function() {
-          showToast(g.descricao + ' vence em ' + diff + ' dia(s) (dia ' + g.vencimento + ')', 'warning', 5000);
-        }, 2000);
-      }
-    });
+    const _jaAlertado = {};
+    gastosFixos
+      .filter(function(g) {
+        return g.vencimento &&
+          (!g.mes || g.mes === mesAtual) &&
+          (!g.ano || g.ano === anoAtual);
+      })
+      .forEach(function(g) {
+        const diff = g.vencimento - diaHoje;
+        if (diff >= 0 && diff <= 5 && !_jaAlertado[g.descricao]) {
+          _jaAlertado[g.descricao] = true;
+          setTimeout(function() {
+            showToast(g.descricao + ' vence em ' + diff + ' dia(s) (dia ' + g.vencimento + ')', 'warning', 5000);
+          }, 2000);
+        }
+      });
   }, [mesAtual, anoAtual]);
   // ────────────────────────────────────────────────────────────────────────
 
@@ -1715,6 +1724,40 @@ function App({
     if (novas.length > 0) {
       setReceitas(function(prev) { return [...prev, ...novas]; });
       if (window.showToast) showToast(novas.length + ' receita(s) recorrente(s) adicionada(s) automaticamente!', 'info');
+    }
+  }, [mesAtual, anoAtual]);
+
+  // ── Recorrência Automática — Gastos Variáveis ────────────────────────────
+  useEffect(function() {
+    var recorrentes = gastosVariaveis.filter(function(g) { return g.recorrente; });
+    if (recorrentes.length === 0) return;
+    // Verificar quais já existem no mês atual
+    var jaExiste = {};
+    gastosVariaveis.forEach(function(g) {
+      if (g.mes === mesAtual && g.ano === anoAtual) {
+        jaExiste[g.categoria + '|' + (g.descricao || '')] = true;
+      }
+    });
+    var novas = [];
+    recorrentes.forEach(function(g) {
+      var chave = g.categoria + '|' + (g.descricao || '');
+      if (!jaExiste[chave]) {
+        novas.push({
+          id: Date.now() + Math.random(),
+          categoria: g.categoria,
+          descricao: g.descricao || '',
+          valor: g.valor,
+          mes: mesAtual,
+          ano: anoAtual,
+          recorrente: true,
+          data: new Date().toLocaleDateString('pt-BR'),
+          dataCompleta: new Date().toISOString().split('T')[0]
+        });
+      }
+    });
+    if (novas.length > 0) {
+      setGastosVariaveis(function(prev) { return [...prev, ...novas]; });
+      if (window.showToast) showToast(novas.length + ' gasto(s) variável(is) recorrente(s) adicionado(s)!', 'info');
     }
   }, [mesAtual, anoAtual]);
   // ────────────────────────────────────────────────────────────────────────
