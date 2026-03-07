@@ -990,6 +990,14 @@ function App({
   });
   const [telaAtiva, setTelaAtiva] = useState('dashboard');
   const [sidebarExpandida, setSidebarExpandida] = useState(true);
+  // Ordenação nas tabelas
+  const [sortGF,  setSortGF]  = useState('venc-asc');
+  const [sortGV,  setSortGV]  = useState('data-desc');
+  const [sortGE,  setSortGE]  = useState('data-desc');
+  const [sortRec, setSortRec] = useState('data-desc');
+  // Busca global
+  const [buscaGlobal, setBuscaGlobal] = useState('');
+  const [buscaOpen,   setBuscaOpen]   = useState(false);
   const [modalAberto, setModalAberto] = useState(null);
   const [itemEditando, setItemEditando] = useState(null);
   const [tipoEditando, setTipoEditando] = useState(null);
@@ -1595,7 +1603,21 @@ function App({
         showToast('Orçamento de ' + mesAtual.toUpperCase() + ' estourado em ' + pct + '%!', 'warning', 7000);
       }, 800);
     }
-    // 2) Metas financeiras próximas do prazo (< 30 dias)
+    // 2) Alertas por tipo de orçamento: 80% (info) e 90% (warning)
+    const alertasOrcamento = [
+      { label: 'Gastos Variáveis', atual: totais.variaveis, limite: orcamentoMensal.variaveis || 0 },
+      { label: 'Contas Fixas',     atual: totais.fixos,     limite: orcamentoMensal.fixos     || 0 },
+    ];
+    alertasOrcamento.forEach(function({ label, atual, limite }) {
+      if (limite <= 0) return;
+      const pct = Math.round(atual / limite * 100);
+      if (pct >= 90 && pct < 100) {
+        setTimeout(function() { showToast('🔴 ' + label + ': ' + pct + '% do orçamento usado!', 'warning', 6000); }, 1400);
+      } else if (pct >= 80 && pct < 90) {
+        setTimeout(function() { showToast('🟡 ' + label + ': ' + pct + '% do orçamento usado', 'info', 5000); }, 1400);
+      }
+    });
+    // 3) Metas financeiras próximas do prazo (< 30 dias)
     const hoje = new Date();
     metasFinanceiras.filter(function(m) { return !m.concluida && m.dataMeta; }).forEach(function(m) {
       const diff = Math.ceil((new Date(m.dataMeta) - hoje) / 86400000);
@@ -4997,7 +5019,9 @@ function App({
       if (!porDia[dia]) porDia[dia] = [];
       porDia[dia].push(g);
     });
-    const diasOrdenados = Object.keys(porDia).sort((a,b) => parseInt(a)-parseInt(b));
+    const diasOrdenados = sortGF === 'venc-desc'
+      ? Object.keys(porDia).sort((a,b) => parseInt(b)-parseInt(a))
+      : Object.keys(porDia).sort((a,b) => parseInt(a)-parseInt(b));
     const hoje = estamosNoMesAtual ? dataAtual.getDate() : -1;
 
     const _isMobGF = window.innerWidth <= 768;
@@ -5071,6 +5095,14 @@ function App({
               /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoFixo'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'580px', overflowY:'auto'}},
+              /*#__PURE__*/React.createElement('div', {style:{display:'flex',gap:'6px',marginBottom:'8px',alignItems:'center',flexWrap:'wrap',padding:'0 2px'}},
+                /*#__PURE__*/React.createElement('span', {style:{fontSize:'0.7rem',color:C.textFaint}}, 'Ordenar:'),
+                /*#__PURE__*/React.createElement('button', {
+                  onClick:()=>setSortGF(s=>s==='venc-asc'?'venc-desc':'venc-asc'),
+                  style:{padding:'3px 10px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.7rem',fontWeight:'700',
+                    background:'#6d28d9',color:'#fff'}
+                }, sortGF==='venc-asc'?'📅 Vencimento ↑':'📅 Vencimento ↓')
+              ),
               ...diasOrdenados.map(dia => {
                 const gastosDia = porDia[dia];
                 const totalDia = gastosDia.reduce((s,g)=>s+g.valor,0);
@@ -5387,7 +5419,10 @@ function App({
       if (!porData[key]) porData[key] = [];
       porData[key].push(g);
     });
-    const datasOrdenadas = Object.keys(porData).sort((a,b)=>a==='Sem data'?1:b==='Sem data'?-1:b.localeCompare(a));
+    const datasOrdenadas = Object.keys(porData).sort((a,b) => {
+      if(a==='Sem data') return 1; if(b==='Sem data') return -1;
+      return sortGV==='data-asc' ? a.localeCompare(b) : b.localeCompare(a);
+    });
     const hoje = estamosNoMesAtual ? dataAtual : null;
 
     const _isMobGV = window.innerWidth <= 768;
@@ -5447,6 +5482,14 @@ function App({
               /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
+              /*#__PURE__*/React.createElement('div', {style:{display:'flex',gap:'6px',marginBottom:'8px',alignItems:'center',flexWrap:'wrap',padding:'8px 20px 0'}},
+                /*#__PURE__*/React.createElement('span', {style:{fontSize:'0.7rem',color:C.textFaint}}, 'Ordenar:'),
+                /*#__PURE__*/React.createElement('button', {
+                  onClick:()=>setSortGV(s=>s==='data-desc'?'data-asc':'data-desc'),
+                  style:{padding:'3px 10px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.7rem',fontWeight:'700',
+                    background:'#c2410c',color:'#fff'}
+                }, sortGV==='data-asc'?'📅 Data ↑':'📅 Data ↓')
+              ),
               ...datasOrdenadas.map(dataKey => {
                 const gastosDia = porData[dataKey];
                 const totalDia = gastosDia.reduce((s,g)=>s+g.valor,0);
@@ -5510,7 +5553,12 @@ function App({
     const gastosFiltrados = categoriaFiltro==='TODAS' ? gastosDoMes : gastosDoMes.filter(g => g.categoria===categoriaFiltro);
     const totalFiltrado = gastosFiltrados.reduce((s,g) => s+g.valor, 0);
     const categorias = ['TODAS', ...Object.keys(totaisPorCat).sort((a,b)=>totaisPorCat[b]-totaisPorCat[a])];
-    const sortedGastos = [...gastosFiltrados].sort((a,b) => (b.data||'').localeCompare(a.data||''));
+    const sortedGastos = [...gastosFiltrados].sort((a,b) => {
+      if (sortGE === 'valor-desc') return b.valor - a.valor;
+      if (sortGE === 'valor-asc')  return a.valor - b.valor;
+      if (sortGE === 'data-asc')   return (a.data||'').localeCompare(b.data||'');
+      return (b.data||'').localeCompare(a.data||'');
+    });
 
     const _isMobGE = window.innerWidth <= 768;
     return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns: _isMobGE ? '1fr' : '200px 1fr', gap:'16px', alignItems:'start'}},
@@ -5568,6 +5616,21 @@ function App({
               /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoExtra'), style:{padding:'9px 22px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#d97706,#b45309)', color:'#fff', fontSize:'0.8rem', fontWeight:'700', cursor:'pointer'}}, "\u2795 Adicionar")
             )
           : /*#__PURE__*/React.createElement("div", {style:{maxHeight:'560px', overflowY:'auto'}},
+              /*#__PURE__*/React.createElement('div', {style:{display:'flex',gap:'6px',marginBottom:'4px',alignItems:'center',flexWrap:'wrap',padding:'8px 20px 0'}},
+                /*#__PURE__*/React.createElement('span', {style:{fontSize:'0.7rem',color:C.textFaint}}, 'Ordenar:'),
+                /*#__PURE__*/React.createElement('button', {
+                  onClick:()=>setSortGE(s=>s.startsWith('data')?(s==='data-desc'?'data-asc':'data-desc'):'data-desc'),
+                  style:{padding:'3px 10px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.7rem',fontWeight:'700',
+                    background:sortGE.startsWith('data')?'#b45309':(darkMode?'#1e293b':'#f3f4f6'),
+                    color:sortGE.startsWith('data')?'#fff':C.textFaint}
+                }, sortGE==='data-asc'?'📅 Data ↑':'📅 Data ↓'),
+                /*#__PURE__*/React.createElement('button', {
+                  onClick:()=>setSortGE(s=>s.startsWith('valor')?(s==='valor-desc'?'valor-asc':'valor-desc'):'valor-desc'),
+                  style:{padding:'3px 10px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.7rem',fontWeight:'700',
+                    background:sortGE.startsWith('valor')?'#b45309':(darkMode?'#1e293b':'#f3f4f6'),
+                    color:sortGE.startsWith('valor')?'#fff':C.textFaint}
+                }, sortGE==='valor-asc'?'💰 Valor ↑':'💰 Valor ↓')
+              ),
               ...sortedGastos.map((gasto,idx)=>
                 /*#__PURE__*/React.createElement("div", {
                   key:gasto.id,
@@ -5709,7 +5772,27 @@ function App({
         ),
 
         receitasDoMes.length > 0 && /*#__PURE__*/React.createElement("div", {style:{maxHeight:'500px', overflowY:'auto'}},
-          ...receitasDoMes.sort((a,b) => (b.data||'').localeCompare(a.data||'')).map((receita, idx) =>
+          /*#__PURE__*/React.createElement('div', {style:{display:'flex',gap:'6px',marginBottom:'4px',alignItems:'center',flexWrap:'wrap',padding:'8px 20px 0'}},
+            /*#__PURE__*/React.createElement('span', {style:{fontSize:'0.7rem',color:C.textFaint}}, 'Ordenar:'),
+            /*#__PURE__*/React.createElement('button', {
+              onClick:()=>setSortRec(s=>s.startsWith('data')?(s==='data-desc'?'data-asc':'data-desc'):'data-desc'),
+              style:{padding:'3px 10px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.7rem',fontWeight:'700',
+                background:sortRec.startsWith('data')?'#10b981':(darkMode?'#1e293b':'#f3f4f6'),
+                color:sortRec.startsWith('data')?'#fff':C.textFaint}
+            }, sortRec==='data-asc'?'📅 Data ↑':'📅 Data ↓'),
+            /*#__PURE__*/React.createElement('button', {
+              onClick:()=>setSortRec(s=>s.startsWith('valor')?(s==='valor-desc'?'valor-asc':'valor-desc'):'valor-desc'),
+              style:{padding:'3px 10px',borderRadius:'20px',border:'none',cursor:'pointer',fontSize:'0.7rem',fontWeight:'700',
+                background:sortRec.startsWith('valor')?'#10b981':(darkMode?'#1e293b':'#f3f4f6'),
+                color:sortRec.startsWith('valor')?'#fff':C.textFaint}
+            }, sortRec==='valor-asc'?'💰 Valor ↑':'💰 Valor ↓')
+          ),
+          ...[...receitasDoMes].sort((a,b) => {
+            if (sortRec === 'valor-desc') return b.valor - a.valor;
+            if (sortRec === 'valor-asc')  return a.valor - b.valor;
+            if (sortRec === 'data-asc')   return (a.data||'').localeCompare(b.data||'');
+            return (b.data||'').localeCompare(a.data||'');
+          }).map((receita, idx) =>
             /*#__PURE__*/React.createElement("div", {
               key: receita.id,
               style:{display:'flex', alignItems:'center', gap:'14px', padding:'13px 22px', borderBottom: idx < receitasDoMes.length-1 ? '1px solid #f9fafb' : 'none', transition:'background .15s'},
@@ -8055,6 +8138,27 @@ function App({
   };
 
 
+  // ── Busca Global ─────────────────────────────────────────────────────────
+  const _bg = buscaGlobal.trim().toLowerCase();
+  const resultadosBusca = _bg.length < 2 ? [] : [
+    ...gastosFixos
+      .filter(g => g.descricao?.toLowerCase().includes(_bg) || g.categoria?.toLowerCase().includes(_bg))
+      .slice(0,4).map(g=>({...g,_tela:'fixos',_label:'Conta Fixa',_cor:'#7c3aed'})),
+    ...gastosVariaveis
+      .filter(g => g.mes===mesAtual && g.ano===anoAtual &&
+        (g.descricao?.toLowerCase().includes(_bg) || g.categoria?.toLowerCase().includes(_bg)))
+      .slice(0,4).map(g=>({...g,_tela:'variaveis',_label:'Gasto Vari\xE1vel',_cor:'#ea580c'})),
+    ...gastosExtras
+      .filter(g => g.mes===mesAtual && g.ano===anoAtual &&
+        (g.descricao?.toLowerCase().includes(_bg) || g.categoria?.toLowerCase().includes(_bg)))
+      .slice(0,4).map(g=>({...g,_tela:'extras',_label:'Gasto Extra',_cor:'#16a34a'})),
+    ...receitas
+      .filter(g => g.mes===mesAtual && g.ano===anoAtual &&
+        (g.descricao?.toLowerCase().includes(_bg) || g.categoria?.toLowerCase().includes(_bg)))
+      .slice(0,4).map(g=>({...g,_tela:'receitas',_label:'Receita',_cor:'#0284c7'})),
+  ];
+  // ────────────────────────────────────────────────────────────────────────
+
   return /*#__PURE__*/React.createElement("div", {
     className: "min-h-screen",
     style: {
@@ -8096,7 +8200,37 @@ function App({
       alignItems: 'center',
       gap: window.innerWidth <= 768 ? '4px' : '8px'
     }
-  }, /*#__PURE__*/React.createElement('button', {
+  }, buscaOpen
+    ? /*#__PURE__*/React.createElement('input', {
+        autoFocus: true,
+        value: buscaGlobal,
+        onChange: e => setBuscaGlobal(e.target.value),
+        onBlur: () => { setTimeout(() => { if (!buscaGlobal) setBuscaOpen(false); }, 200); },
+        onKeyDown: e => { if(e.key==='Escape'){setBuscaGlobal('');setBuscaOpen(false);} },
+        placeholder: 'Buscar transa\xE7\xE3o...',
+        style:{
+          width: window.innerWidth<=768 ? '140px' : '200px',
+          padding:'4px 10px', borderRadius:'20px',
+          border:'1px solid rgba(255,255,255,0.3)',
+          background:'rgba(255,255,255,0.12)', color:'#fff',
+          fontSize:'0.8rem', outline:'none',
+          '::placeholder': {color:'rgba(255,255,255,0.5)'}
+        }
+      })
+    : /*#__PURE__*/React.createElement('button', {
+        onClick: () => setBuscaOpen(true),
+        title: 'Buscar',
+        style:{
+          width: window.innerWidth<=768 ? '28px' : '32px',
+          height: window.innerWidth<=768 ? '28px' : '32px',
+          minHeight:'unset', borderRadius:'50%',
+          border:'1px solid rgba(255,255,255,0.25)',
+          background:'rgba(255,255,255,0.12)', color:'#fff',
+          fontSize:'0.9rem', cursor:'pointer',
+          display:'flex', alignItems:'center', justifyContent:'center', padding:'0',
+        }
+      }, '\uD83D\uDD0D'),
+    /*#__PURE__*/React.createElement('button', {
     onClick: () => setDarkMode(!darkMode),
     title: darkMode ? 'Modo claro' : 'Modo escuro',
     style: {
@@ -8121,7 +8255,43 @@ function App({
       ['cartoes', 'gastosFixos', 'gastosVariaveis', 'gastosExtras', 'receitas', 'orcamentos', 'metasMensais', 'metasFinanceiras', 'planejados', 'dividas', 'categorias', 'farol', '_currentUserId'].forEach(k => localStorage.removeItem(k));
       await firebase.auth().signOut();
     }
-  })))), /*#__PURE__*/React.createElement(Sidebar, {
+  })))
+  , resultadosBusca.length > 0 && /*#__PURE__*/React.createElement('div', {
+    style:{
+      position:'absolute', top:'100%', left:0, right:0, zIndex:200,
+      background: darkMode?'#1e293b':'#fff',
+      borderTop:'1px solid rgba(0,0,0,0.08)',
+      boxShadow:'0 8px 32px rgba(0,0,0,0.2)',
+      maxHeight:'320px', overflowY:'auto',
+    }
+  },
+    /*#__PURE__*/React.createElement('div',{style:{padding:'6px 16px 4px',fontSize:'0.7rem',color:C.textFaint,fontWeight:'700',borderBottom:'1px solid '+(darkMode?'#334155':'#f3f4f6')}},
+      resultadosBusca.length + ' resultado' + (resultadosBusca.length!==1?'s':'')),
+    ...resultadosBusca.map((r,i) =>
+      /*#__PURE__*/React.createElement('div',{
+        key:i,
+        onClick:()=>{ setTelaAtiva(r._tela); setBuscaGlobal(''); setBuscaOpen(false); },
+        style:{
+          display:'flex', alignItems:'center', gap:'10px',
+          padding:'9px 16px', cursor:'pointer',
+          borderBottom:'1px solid '+(darkMode?'#334155':'#f9fafb'),
+          background:'transparent',
+          transition:'background 0.15s',
+        },
+        onMouseEnter:e=>{e.currentTarget.style.background=darkMode?'#334155':'#f8fafc'},
+        onMouseLeave:e=>{e.currentTarget.style.background='transparent'},
+      },
+        /*#__PURE__*/React.createElement('span',{style:{
+          padding:'2px 8px', borderRadius:'10px', fontSize:'0.65rem', fontWeight:'800',
+          background:r._cor+'22', color:r._cor, whiteSpace:'nowrap', flexShrink:0,
+        }}, r._label),
+        /*#__PURE__*/React.createElement('span',{style:{flex:1,fontSize:'0.82rem',color:C.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},
+          r.descricao || r.categoria || '\u2014'),
+        /*#__PURE__*/React.createElement('span',{style:{fontSize:'0.82rem',fontWeight:'700',color:C.text,whiteSpace:'nowrap'}},
+          'R$ '+(r.valor||0).toFixed(2))
+      )
+    )
+  )), /*#__PURE__*/React.createElement(Sidebar, {
     telaAtiva: telaAtiva,
     setTelaAtiva: setTelaAtiva,
     mesAtual: mesAtual,
