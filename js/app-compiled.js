@@ -5123,9 +5123,9 @@ function App({
                         style:{width:'88px', padding:'5px 8px', border:'2px solid '+C.border, borderRadius:'8px', fontSize:'0.82rem', fontWeight:'700', textAlign:'right', outline:'none'}
                       }),
                       /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px'}},
-                        /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('fixo');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
-                        /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoFixo(gasto), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
-                        /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoFixo(gasto.id), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('fixo');setModalAberto('editar');}, style:{width:_isMobGF?'36px':'28px', height:_isMobGF?'36px':'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\u270F\uFE0F"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoFixo(gasto), style:{width:_isMobGF?'36px':'28px', height:_isMobGF?'36px':'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\uD83D\uDCCB"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoFixo(gasto.id), style:{width:_isMobGF?'36px':'28px', height:_isMobGF?'36px':'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\uD83D\uDDD1\uFE0F")
                       )
                     )
                   )
@@ -5481,9 +5481,9 @@ function App({
                       ),
                       /*#__PURE__*/React.createElement("div", {style:{fontWeight:'800', fontSize:'0.9rem', color:'#c2410c', flexShrink:0, marginRight:'8px'}}, "R$ "+gasto.valor.toFixed(2)),
                       /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px'}},
-                        /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('variavel');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
-                        /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoVariavel(gasto), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
-                        /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoVariavel(gasto.id), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('variavel');setModalAberto('editar');}, style:{width:_isMobGV?'36px':'28px', height:_isMobGV?'36px':'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\u270F\uFE0F"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoVariavel(gasto), style:{width:_isMobGV?'36px':'28px', height:_isMobGV?'36px':'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\uD83D\uDCCB"),
+                        /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoVariavel(gasto.id), style:{width:_isMobGV?'36px':'28px', height:_isMobGV?'36px':'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\uD83D\uDDD1\uFE0F")
                       )
                     )
                   )
@@ -5583,9 +5583,9 @@ function App({
                   ),
                   /*#__PURE__*/React.createElement("div", {style:{fontWeight:'800', fontSize:'0.92rem', color:'#b45309', flexShrink:0, marginRight:'8px'}}, "R$ "+gasto.valor.toFixed(2)),
                   /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px', flexShrink:0}},
-                    /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('extra');setModalAberto('editar');}, style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
-                    /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoExtra(gasto), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
-                    /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoExtra(gasto.id), style:{width:'28px', height:'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>{setItemEditando(gasto);setTipoEditando('extra');setModalAberto('editar');}, style:{width:_isMobGE?'36px':'28px', height:_isMobGE?'36px':'28px', border:'none', borderRadius:'7px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\u270F\uFE0F"),
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarGastoExtra(gasto), style:{width:_isMobGE?'36px':'28px', height:_isMobGE?'36px':'28px', border:'none', borderRadius:'7px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\uD83D\uDCCB"),
+                    /*#__PURE__*/React.createElement("button", {onClick:()=>deletarGastoExtra(gasto.id), style:{width:_isMobGE?'36px':'28px', height:_isMobGE?'36px':'28px', border:'none', borderRadius:'7px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.72rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\uD83D\uDDD1\uFE0F")
                   )
                 )
               )
@@ -5725,9 +5725,9 @@ function App({
               ),
               /*#__PURE__*/React.createElement("div", {style:{fontWeight:'900', fontSize:'0.95rem', color:'#059669', flexShrink:0, marginRight:'8px'}}, "R$ " + receita.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})),
               /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'5px', flexShrink:0}},
-                /*#__PURE__*/React.createElement("button", {onClick:()=>{ setItemEditando(receita); setTipoEditando('receita'); setModalAberto('editar'); }, title:"Editar", style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\u270F\uFE0F"),
-                /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarReceita(receita), title:"Duplicar", style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDCCB"),
-                /*#__PURE__*/React.createElement("button", {onClick:()=>deletarReceita(receita.id), title:"Excluir", style:{width:'30px', height:'30px', border:'none', borderRadius:'8px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center'}}, "\uD83D\uDDD1\uFE0F")
+                /*#__PURE__*/React.createElement("button", {onClick:()=>{ setItemEditando(receita); setTipoEditando('receita'); setModalAberto('editar'); }, title:"Editar", style:{width:_isMobRec?'36px':'30px', height:_isMobRec?'36px':'30px', border:'none', borderRadius:'8px', background:'#eff6ff', color:'#3b82f6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\u270F\uFE0F"),
+                /*#__PURE__*/React.createElement("button", {onClick:()=>duplicarReceita(receita), title:"Duplicar", style:{width:_isMobRec?'36px':'30px', height:_isMobRec?'36px':'30px', border:'none', borderRadius:'8px', background:'#faf5ff', color:'#8b5cf6', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\uD83D\uDCCB"),
+                /*#__PURE__*/React.createElement("button", {onClick:()=>deletarReceita(receita.id), title:"Excluir", style:{width:_isMobRec?'36px':'30px', height:_isMobRec?'36px':'30px', border:'none', borderRadius:'8px', background:'#fff1f2', color:'#f43f5e', cursor:'pointer', fontSize:'0.78rem', display:'flex', alignItems:'center', justifyContent:'center', padding:'0', flexShrink:0}}, "\uD83D\uDDD1\uFE0F")
               )
             )
           )
@@ -7575,7 +7575,7 @@ function App({
           React.createElement('h3', {style:{margin:0,fontSize:'0.85rem',fontWeight:'800',color:'#1e1b4b'}}, '📅 Resumo Anual ' + anoAtual),
           React.createElement('p', {style:{margin:'4px 0 0',fontSize:'0.7rem',color:C.textFaint}}, 'Clique em Exportar Excel para ver os detalhes completos em 6 abas')
         ),
-        React.createElement('div', {style:{overflowX:'auto'}},
+        React.createElement('div', {style:{overflowX:'auto', WebkitOverflowScrolling:'touch'}},
           React.createElement('table', {style:{width:'100%',borderCollapse:'collapse',fontSize:'0.78rem'}},
             React.createElement('thead', null,
               React.createElement('tr', {style:{background:'#f8fafc'}},

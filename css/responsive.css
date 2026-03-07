@@ -13,10 +13,11 @@
         width: 100% !important;
         max-width: 100% !important;
         height: auto !important;
-        max-height: 92vh !important;
+        max-height: 92dvh !important; /* dvh = dynamic viewport — encolhe com teclado virtual */
         border-radius: 20px 20px 0 0 !important;
         padding: 1.25rem 1rem 2rem !important;
         margin: 0 !important;
+        scroll-padding-bottom: 3rem; /* input focado scrollado para cima do teclado */
         /* handle visual */
         background-image: linear-gradient(to bottom, rgba(0,0,0,0.04) 0%, transparent 4px) !important;
     }
@@ -37,10 +38,9 @@
         font-size: 1.125rem !important;
     }
 
-    /* Botões touch-friendly */
+    /* Botões touch-friendly — só min-height, sem padding forçado */
     button {
         min-height: 44px !important;
-        padding: 0.75rem 1rem !important;
     }
 
     /* Grid sempre 1 coluna no mobile */
@@ -61,7 +61,18 @@
     .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
     .text-xl { font-size: 1.5rem !important; }
     .text-2xl { font-size: 1.25rem !important; }
-    button { padding: 0.5rem 1rem !important; font-size: 0.875rem !important; }
+    /* Botões de ação pequenos (✏️ 📋 🗑️) — 36×36px, sem padding forçado */
+    button[style*="border-radius: 7px"],
+    button[style*="border-radius: 8px"][style*="width: 36px"] {
+        min-width: 36px !important;
+        min-height: 36px !important;
+        padding: 0 !important;
+    }
+
+    /* Tabelas em cards — garantir scroll horizontal */
+    table {
+        min-width: 280px;
+    }
     .hidden-mobile { display: none !important; }
     .overflow-x-auto { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
