@@ -3199,8 +3199,10 @@ function App({
       parcelas,
       mesInicio
     } = dados;
+    if (!parcelas || parcelas <= 0 || !valorTotal || !descricao || !cartao || !mesInicio) return;
     const valorParcela = valorTotal / parcelas;
     const indiceMesInicio = MESES.indexOf(mesInicio);
+    if (indiceMesInicio === -1) return;
     const mesesCompra = [];
     for (let i = 0; i < parcelas; i++) {
       const indiceMes = (indiceMesInicio + i) % 12;
