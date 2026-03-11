@@ -4576,14 +4576,28 @@ function App({
     const parseCSV = (texto) => {
       const ls = texto.split('\n').filter(l => l.trim());
       if (ls.length < 2) return [];
-      const sep = ls[0].includes(';') ? ';' : ',';
-      const headers = ls[0].split(sep).map(h => h.replace(/"/g,'').trim().toLowerCase());
-      const iDesc = headers.findIndex(h => /desc|titulo|title|histor|lancamento|memo|estabele|name|nome/.test(h));
-      const iValor = headers.findIndex(h => /valor|amount|quantia|montante/.test(h));
-      const iData = headers.findIndex(h => /data|date/.test(h));
+      // 1. Detecta separador nas primeiras 10 linhas (não só na primeira)
+      const sample = ls.slice(0, Math.min(10, ls.length)).join('\n');
+      const sep = (sample.split(';').length > sample.split(',').length) ? ';' : ',';
+      // 2. Pula linhas de metadados (ex: "Conta ;9634975") e encontra o header real
+      //    O header real deve ter colunas com "data" e "valor"
+      const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      let headerIdx = 0;
+      for (let i = 0; i < Math.min(10, ls.length); i++) {
+        const cols = ls[i].split(sep).map(c => norm(c.replace(/"/g,'').trim()));
+        if (cols.some(c => /\bdata\b|\bdate\b/.test(c)) && cols.some(c => /\bvalor\b|\bamount\b/.test(c))) {
+          headerIdx = i; break;
+        }
+      }
+      const headers = ls[headerIdx].split(sep).map(h => norm(h.replace(/"/g,'').trim()));
+      // 3. Índices das colunas — prefere 'descricao' sobre 'historico'
+      const iData  = headers.findIndex(h => /\bdata\b|\bdate\b/.test(h));
+      const iValor = headers.findIndex(h => /\bvalor\b|\bamount\b|\bquantia\b|\bmontante\b/.test(h));
+      const iDesc  = (() => { const d = headers.findIndex(h => /descri/.test(h)); return d >= 0 ? d : headers.findIndex(h => /desc|titulo|title|histor|memo|estabele|name|nome/.test(h)); })();
+      const iHist  = headers.findIndex(h => /histor/.test(h));
       const isNubank = headers.includes('title') && headers.includes('amount');
       const result = [];
-      for (let i = 1; i < ls.length; i++) {
+      for (let i = headerIdx + 1; i < ls.length; i++) {
         const cols = ls[i].split(sep).map(c => c.replace(/"/g,'').trim());
         if (cols.length < 2) continue;
         let desc = '', valorStr = '', data = '';
@@ -4591,17 +4605,24 @@ function App({
           desc = cols[headers.indexOf('title')] || '';
           valorStr = cols[headers.indexOf('amount')] || '0';
           data = cols[headers.indexOf('date')] || '';
-        } else if (iDesc >= 0 && iValor >= 0) {
-          desc = cols[iDesc] || '';
+        } else if (iValor >= 0 && iDesc >= 0) {
+          const mainDesc = cols[iDesc] || '';
+          const hist = (iHist >= 0 && iHist !== iDesc) ? (cols[iHist] || '') : '';
+          desc = hist ? hist + ' — ' + mainDesc : mainDesc;
+          valorStr = cols[iValor] || '0';
+          data = iData >= 0 ? (cols[iData] || '') : '';
+        } else if (iValor >= 0) {
+          desc = cols[0] || '';
           valorStr = cols[iValor] || '0';
           data = iData >= 0 ? (cols[iData] || '') : '';
         } else {
-          const textIdx = cols.findIndex(c => c.length > 5 && isNaN(parseFloat(c.replace(',','.'))));
-          const numIdx = cols.findIndex((c,j) => j !== textIdx && !isNaN(parseFloat(c.replace(',','.'))));
+          const textIdx = cols.findIndex(c => c.length > 5 && isNaN(parseFloat(c.replace(/\./g,'').replace(',','.'))));
+          const numIdx  = cols.findIndex((c,j) => j !== textIdx && !isNaN(parseFloat(c.replace(/\./g,'').replace(',','.'))));
           desc = textIdx >= 0 ? cols[textIdx] : cols[0];
           valorStr = numIdx >= 0 ? cols[numIdx] : '0';
         }
-        const valor = parseFloat(valorStr.replace(',','.'));
+        // 4. Número brasileiro: "1.234,56" → remove ponto → troca vírgula → float
+        const valor = parseFloat(valorStr.replace(/\./g,'').replace(',','.'));
         if (!desc || isNaN(valor)) continue;
         result.push({ id: i.toString(), descricao: desc.toUpperCase(), valor: Math.abs(valor), valorOriginal: valor, data });
       }
