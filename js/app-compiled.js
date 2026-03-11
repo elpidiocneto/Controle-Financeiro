@@ -9151,7 +9151,7 @@ function App({
           fontSize:'0.9rem', cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center', padding:'0',
         }
-      }, '\uD83D\uDD0D'),
+      }, /*#__PURE__*/React.createElement('svg',{width:'15',height:'15',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:'2.5',strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('circle',{cx:'11',cy:'11',r:'8'}),React.createElement('line',{x1:'21',y1:'21',x2:'16.65',y2:'16.65'}))),
     /*#__PURE__*/React.createElement('button', {
     onClick: () => setDarkMode(!darkMode),
     title: darkMode ? 'Modo claro' : 'Modo escuro',
@@ -9171,7 +9171,10 @@ function App({
       padding: '0',
       transition: 'background 0.2s'
     }
-  }, darkMode ? '\u2600\uFE0F' : '\uD83C\uDF19'), /*#__PURE__*/React.createElement(UserMenu, {
+  }, darkMode
+    ? /*#__PURE__*/React.createElement('svg',{width:'15',height:'15',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:'2',strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('circle',{cx:'12',cy:'12',r:'5'}),React.createElement('line',{x1:'12',y1:'1',x2:'12',y2:'3'}),React.createElement('line',{x1:'12',y1:'21',x2:'12',y2:'23'}),React.createElement('line',{x1:'4.22',y1:'4.22',x2:'5.64',y2:'5.64'}),React.createElement('line',{x1:'18.36',y1:'18.36',x2:'19.78',y2:'19.78'}),React.createElement('line',{x1:'1',y1:'12',x2:'3',y2:'12'}),React.createElement('line',{x1:'21',y1:'12',x2:'23',y2:'12'}),React.createElement('line',{x1:'4.22',y1:'19.78',x2:'5.64',y2:'18.36'}),React.createElement('line',{x1:'18.36',y1:'5.64',x2:'19.78',y2:'4.22'}))
+    : /*#__PURE__*/React.createElement('svg',{width:'15',height:'15',viewBox:'0 0 24 24',fill:'currentColor'},React.createElement('path',{d:'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'}))
+  ), /*#__PURE__*/React.createElement(UserMenu, {
     user: user,
     onLogout: async () => {
       ['cartoes', 'gastosFixos', 'gastosVariaveis', 'gastosExtras', 'receitas', 'orcamentos', 'metasMensais', 'metasFinanceiras', 'planejados', 'dividas', 'categorias', 'farol', '_currentUserId'].forEach(k => localStorage.removeItem(k));
