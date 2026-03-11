@@ -170,8 +170,8 @@
 
 /* === VARIÁVEIS GLOBAIS === */
 :root {
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
+    --primary: #f97316;
+    --primary-dark: #ea580c;
     --accent: #10b981;
     --accent-dark: #059669;
     --bg-header: linear-gradient(135deg, #0f0c29 0%, #1a1a4e 50%, #0f3460 100%);
@@ -209,7 +209,7 @@ body {
     width: 72px;
     height: 72px;
     border-radius: 20px;
-    background: linear-gradient(135deg, #6366f1, #10b981);
+    background: linear-gradient(135deg, #f97316, #ea580c);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -291,9 +291,9 @@ body {
 }
 
 .mes-btn.ativo {
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    background: linear-gradient(135deg, #f97316, #ea580c);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+    box-shadow: 0 4px 12px rgba(249,115,22,0.35);
 }
 
 .mes-btn.tem-dados {

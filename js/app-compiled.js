@@ -26,7 +26,7 @@ function InputDialog({titulo, label, valorPadrao = '', onConfirm, onCancel}) {
       /*#__PURE__*/React.createElement("input", {type:'number',value:valor,onChange:e=>setValor(e.target.value),onKeyDown:handleKey,autoFocus:true,style:{width:'100%',padding:'0.6rem 0.75rem',border:'1.5px solid #d1d5db',borderRadius:'8px',fontSize:'1rem',outline:'none',boxSizing:'border-box'}}),
       /*#__PURE__*/React.createElement("div", {style:{display:'flex',gap:'0.75rem',marginTop:'1rem',justifyContent:'flex-end'}},
         /*#__PURE__*/React.createElement("button", {onClick:onCancel,style:{padding:'0.5rem 1.1rem',border:'1.5px solid #d1d5db',borderRadius:'8px',background:C.bg,cursor:'pointer',fontSize:'0.9rem',color:C.textMuted}}, "Cancelar"),
-        /*#__PURE__*/React.createElement("button", {onClick:handleConfirm,style:{padding:'0.5rem 1.25rem',border:'none',borderRadius:'8px',background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',cursor:'pointer',fontSize:'0.9rem',fontWeight:'700'}}, "Confirmar")
+        /*#__PURE__*/React.createElement("button", {onClick:handleConfirm,style:{padding:'0.5rem 1.25rem',border:'none',borderRadius:'8px',background:'linear-gradient(135deg,#f97316,#8b5cf6)',color:'#fff',cursor:'pointer',fontSize:'0.9rem',fontWeight:'700'}}, "Confirmar")
       )
     )
   );
@@ -62,7 +62,7 @@ function ToastContainer() {
     success: {bg: 'linear-gradient(135deg,#059669,#10b981)', icone: '✅'},
     error:   {bg: 'linear-gradient(135deg,#dc2626,#ef4444)', icone: '❌'},
     warning: {bg: 'linear-gradient(135deg,#d97706,#f59e0b)', icone: '⚠️'},
-    info:    {bg: 'linear-gradient(135deg,#4f46e5,#6366f1)', icone: 'ℹ️'}
+    info:    {bg: 'linear-gradient(135deg,#ea580c,#f97316)', icone: 'ℹ️'}
   };
 
   var _toastMob = window.innerWidth <= 768;
@@ -415,7 +415,7 @@ function AuthWrapper() {
         width: '600px',
         height: '600px',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%)',
         pointerEvents: 'none'
       }
     }), /*#__PURE__*/React.createElement("div", {
@@ -491,7 +491,7 @@ function AuthWrapper() {
       }
     }, mode === 'login' ? 'Entrar' : 'Criar Conta'))), authMode === 'register' && /*#__PURE__*/React.createElement("div", {
       style: {
-        background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(99,102,241,0.2))',
+        background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(249,115,22,0.2))',
         border: '1px solid rgba(16,185,129,0.3)',
         borderRadius: '12px',
         padding: '0.75rem 1rem',
@@ -610,7 +610,7 @@ function AuthWrapper() {
       style: {
         width: '100%',
         padding: '0.875rem',
-        background: 'linear-gradient(135deg, #6366f1, #10b981)',
+        background: 'linear-gradient(135deg, #f97316, #10b981)',
         border: 'none',
         borderRadius: '12px',
         color: '#fff',
@@ -618,7 +618,7 @@ function AuthWrapper() {
         fontWeight: '700',
         cursor: 'pointer',
         letterSpacing: '0.3px',
-        boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
+        boxShadow: '0 4px 20px rgba(249,115,22,0.4)',
         transition: 'transform 0.1s, box-shadow 0.2s'
       }
     }, authMode === 'login' ? '→ Entrar na conta' : '→ Criar minha conta grátis')), authMode === 'login' && /*#__PURE__*/React.createElement("div", {
@@ -673,7 +673,7 @@ function AuthWrapper() {
               else{await firebase.auth().signOut();setError('✅ Email já verificado! Tente fazer login normalmente.');}
             }catch(err){setError('❌ Email ou senha incorretos');}
             setReenviarModal(false);
-          },style:{padding:'0.5rem 1.25rem',border:'none',borderRadius:'8px',background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',cursor:'pointer',fontSize:'0.9rem',fontWeight:'700'}}, "Enviar")
+          },style:{padding:'0.5rem 1.25rem',border:'none',borderRadius:'8px',background:'linear-gradient(135deg,#f97316,#8b5cf6)',color:'#fff',cursor:'pointer',fontSize:'0.9rem',fontWeight:'700'}}, "Enviar")
         )
       )
     )
@@ -875,7 +875,7 @@ const UserMenu = ({
       width: _mob ? '26px' : '30px',
       height: _mob ? '26px' : '30px',
       borderRadius: '50%',
-      background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+      background: 'linear-gradient(135deg,#f97316,#8b5cf6)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -909,7 +909,7 @@ const UserMenu = ({
       borderRadius: '12px',
       minWidth: '220px',
       boxShadow: '0 12px 40px rgba(0,0,0,0.7)',
-      border: '1px solid rgba(99,102,241,0.4)',
+      border: '1px solid rgba(249,115,22,0.4)',
       overflow: 'hidden'
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -3438,19 +3438,19 @@ function App({
     }, "Categoria"), !mostrarNovaCategoria ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("select", {
       value: categoria,
       onChange: e => setCategoria(e.target.value),
-      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500"
+      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500"
     }, todasCategorias.map(cat => /*#__PURE__*/React.createElement("option", {
       key: cat,
       value: cat
     }, cat))), /*#__PURE__*/React.createElement("button", {
       type: "button",
       onClick: () => setMostrarNovaCategoria(true),
-      className: "mt-2 text-sm text-purple-600 hover:text-purple-700 font-semibold"
+      className: "mt-2 text-sm text-orange-600 hover:text-orange-700 font-semibold"
     }, "\u2795 Criar nova categoria")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("input", {
       type: "text",
       value: novaCategoria,
       onChange: e => setNovaCategoria(e.target.value),
-      className: "w-full px-4 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500",
+      className: "w-full px-4 py-2 border-2 border-orange-300 rounded-lg focus:border-orange-500",
       placeholder: "Ex: PETS, INVESTIMENTOS, ASSINATURAS...",
       autoFocus: true
     }), /*#__PURE__*/React.createElement("div", {
@@ -3467,12 +3467,12 @@ function App({
     }, "\uD83D\uDCA1 Ser\xE1 salvo automaticamente em MAI\xDASCULAS"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       className: "block text-sm font-semibold text-gray-700 mb-2"
     }, "Descri\xE7\xE3o ", temporario && /*#__PURE__*/React.createElement("span", {
-      className: "text-purple-600"
+      className: "text-orange-600"
     }, "(base)")), /*#__PURE__*/React.createElement("input", {
       type: "text",
       value: descricao,
       onChange: e => setDescricao(e.target.value),
-      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500",
+      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500",
       placeholder: temporario ? "Ex: IPVA 2026" : "Ex: Aluguel",
       required: true
     }), temporario && /*#__PURE__*/React.createElement("p", {
@@ -3480,13 +3480,13 @@ function App({
     }, "\uD83D\uDCA1 Sistema adicionar\xE1 \" - 1/3\", \" - 2/3\", etc.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       className: "block text-sm font-semibold text-gray-700 mb-2"
     }, "Valor ", temporario && /*#__PURE__*/React.createElement("span", {
-      className: "text-purple-600"
+      className: "text-orange-600"
     }, "(total)")), /*#__PURE__*/React.createElement("input", {
       type: "number",
       step: "0.01",
       value: valor,
       onChange: e => setValor(e.target.value),
-      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500",
+      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500",
       placeholder: "0.00",
       required: true
     }), temporario && valor && totalParcelas > 0 && /*#__PURE__*/React.createElement("p", {
@@ -3499,17 +3499,17 @@ function App({
       max: "31",
       value: vencimento,
       onChange: e => setVencimento(e.target.value),
-      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500",
+      className: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500",
       required: true
     })), /*#__PURE__*/React.createElement("div", {
-      className: "bg-purple-50 border-2 border-purple-200 rounded-lg p-4"
+      className: "bg-orange-50 border-2 border-orange-200 rounded-lg p-4"
     }, /*#__PURE__*/React.createElement("label", {
       className: "flex items-center gap-2 cursor-pointer"
     }, /*#__PURE__*/React.createElement("input", {
       type: "checkbox",
       checked: temporario,
       onChange: e => setTemporario(e.target.checked),
-      className: "w-5 h-5 text-purple-600 border-2 border-gray-300 rounded focus:ring-purple-500"
+      className: "w-5 h-5 text-orange-600 border-2 border-gray-300 rounded focus:ring-orange-500"
     }), /*#__PURE__*/React.createElement("span", {
       className: "text-sm font-semibold text-gray-700"
     }, "\u23F1\uFE0F Parcelar este gasto (criar parcelas automaticamente)")), /*#__PURE__*/React.createElement("p", {
@@ -3524,7 +3524,7 @@ function App({
       max: "60",
       value: totalParcelas,
       onChange: e => setTotalParcelas(e.target.value),
-      className: "w-full px-3 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 text-sm",
+      className: "w-full px-3 py-2 border-2 border-orange-300 rounded-lg focus:border-orange-500 text-sm",
       placeholder: "3",
       required: true
     })), /*#__PURE__*/React.createElement("div", {
@@ -3534,7 +3534,7 @@ function App({
     }, "M\xEAs de In\xEDcio"), /*#__PURE__*/React.createElement("select", {
       value: mesInicio,
       onChange: e => setMesInicio(e.target.value),
-      className: "w-full px-3 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 text-sm"
+      className: "w-full px-3 py-2 border-2 border-orange-300 rounded-lg focus:border-orange-500 text-sm"
     }, mesesList.map((mes, idx) => /*#__PURE__*/React.createElement("option", {
       key: mes,
       value: mes
@@ -3543,14 +3543,14 @@ function App({
     }, "Ano de In\xEDcio"), /*#__PURE__*/React.createElement("select", {
       value: anoInicio,
       onChange: e => setAnoInicio(parseInt(e.target.value)),
-      className: "w-full px-3 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 text-sm"
+      className: "w-full px-3 py-2 border-2 border-orange-300 rounded-lg focus:border-orange-500 text-sm"
     }, [2024, 2025, 2026, 2027, 2028, 2029, 2030].map(ano => /*#__PURE__*/React.createElement("option", {
       key: ano,
       value: ano
     }, ano))))), /*#__PURE__*/React.createElement("div", {
       className: "bg-white rounded p-3 text-xs space-y-1"
     }, /*#__PURE__*/React.createElement("div", {
-      className: "font-semibold text-purple-700"
+      className: "font-semibold text-orange-700"
     }, "\uD83D\uDCCB Resumo do Parcelamento:"), /*#__PURE__*/React.createElement("div", {
       className: "text-gray-600"
     }, "\u2022 Total: R$ ", valor || '0.00'), /*#__PURE__*/React.createElement("div", {
@@ -3561,7 +3561,7 @@ function App({
       className: "text-gray-600"
     }, "\u2022 Vencimento: todo dia ", vencimento)))), /*#__PURE__*/React.createElement("button", {
       type: "submit",
-      className: "w-full px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+      className: "w-full px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700"
     }, temporario ? `✅ Criar ${totalParcelas} Parcelas` : '✅ Adicionar Gasto Fixo'));
   };
   const FormNovoGastoVariavel = () => {
@@ -4355,7 +4355,7 @@ function App({
     return /*#__PURE__*/React.createElement("div", {
       className: "max-w-6xl mx-auto p-4 space-y-3"
     }, /*#__PURE__*/React.createElement("div", {
-      className: "bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl p-6 shadow-lg"
+      className: "bg-gradient-to-r from-orange-600 to-blue-600 text-white rounded-xl p-6 shadow-lg"
     }, /*#__PURE__*/React.createElement("div", {
       className: "flex justify-between items-center"
     }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
@@ -4394,11 +4394,11 @@ function App({
     }, "\u2705 Ativos Hoje"), /*#__PURE__*/React.createElement("div", {
       className: "text-2xl font-bold text-green-600"
     }, stats.ativos)), /*#__PURE__*/React.createElement("div", {
-      className: "bg-white rounded-xl p-6 shadow-lg border-2 border-purple-200"
+      className: "bg-white rounded-xl p-6 shadow-lg border-2 border-orange-200"
     }, /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-gray-600 mb-2"
     }, "\uD83C\uDD95 Novos (7 dias)"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-purple-600"
+      className: "text-2xl font-bold text-orange-600"
     }, stats.novos))), (() => {
       const pendentes = usuarios.filter(u => u.status === 'PENDENTE');
       if (pendentes.length === 0) return null;
@@ -4543,7 +4543,7 @@ function App({
     }, usuario.status === 'APROVADO' ? '✅ APROVADO' : usuario.status === 'PENDENTE' ? '⏳ PENDENTE' : usuario.status === 'REJEITADO' ? '❌ REJEITADO' : '✅ ATIVO')), /*#__PURE__*/React.createElement("td", {
       className: "px-4 py-2"
     }, /*#__PURE__*/React.createElement("span", {
-      className: `px-3 py-1 rounded-full text-xs font-semibold ${usuario.isAdmin ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`
+      className: `px-3 py-1 rounded-full text-xs font-semibold ${usuario.isAdmin ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'}`
     }, usuario.isAdmin ? 'ADMIN' : 'USUÁRIO')), /*#__PURE__*/React.createElement("td", {
       className: "px-4 py-2"
     }, usuario.uid !== user.uid && /*#__PURE__*/React.createElement("button", {
@@ -5094,8 +5094,8 @@ function App({
                     var pct=total>0?numAtual/total:1;
                     var restantes=Math.max(0,total-numAtual);
                     var ativa=mesIdx>=0;
-                    var cor=pct>=0.85?'#10b981':pct>=0.5?'#6366f1':'#f59e0b';
-                    return React.createElement('div',{key:p.id||i,style:{padding:'10px 12px',borderRadius:'10px',background:ativa?(darkMode?'rgba(99,102,241,0.08)':'#f5f3ff'):(darkMode?'rgba(255,255,255,0.03)':'#f8fafc'),border:'1px solid '+(ativa?'rgba(99,102,241,0.2)':C.border)}},
+                    var cor=pct>=0.85?'#10b981':pct>=0.5?'#f97316':'#f59e0b';
+                    return React.createElement('div',{key:p.id||i,style:{padding:'10px 12px',borderRadius:'10px',background:ativa?(darkMode?'rgba(249,115,22,0.08)':'#f5f3ff'):(darkMode?'rgba(255,255,255,0.03)':'#f8fafc'),border:'1px solid '+(ativa?'rgba(249,115,22,0.2)':C.border)}},
                       React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'6px'}},
                         React.createElement('div',{style:{flex:1,minWidth:0}},
                           React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'700',color:C.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},p.descricao),
@@ -5427,8 +5427,8 @@ function App({
         style:{border:'2.5px dashed #c7d2fe',borderRadius:'16px',padding:'40px 20px',textAlign:'center',cursor:'pointer',background:'#eef2ff',marginBottom:'16px'}
       },
         React.createElement('div',{style:{fontSize:'2.5rem',marginBottom:'10px'}},'\uD83D\uDCC4'),
-        React.createElement('div',{style:{fontSize:'0.95rem',fontWeight:'800',color:'#4f46e5',marginBottom:'6px'}},'Clique ou arraste seu arquivo .csv'),
-        React.createElement('div',{style:{fontSize:'0.75rem',color:'#818cf8'}},'Formatos .csv e .txt suportados')
+        React.createElement('div',{style:{fontSize:'0.95rem',fontWeight:'800',color:'#ea580c',marginBottom:'6px'}},'Clique ou arraste seu arquivo .csv'),
+        React.createElement('div',{style:{fontSize:'0.75rem',color:'#fb923c'}},'Formatos .csv e .txt suportados')
       ),
       React.createElement('input',{id:'csvFileInput',type:'file',accept:'.csv,.txt',style:{display:'none'},onChange:function(e){const f=e.target.files[0];if(f)handleArquivo(f);}}),
       erroArquivo ? React.createElement('div',{style:{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:'10px',padding:'10px 14px',color:'#dc2626',fontSize:'0.8rem',fontWeight:'600'}},erroArquivo) : null
@@ -5491,7 +5491,7 @@ function App({
       React.createElement('div',{style:{marginBottom:'14px'}},
         React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}},
           React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'800',color:C.textMuted}},'\u2705 Selecionar Itens'),
-          React.createElement('label',{style:{display:'flex',alignItems:'center',gap:'6px',fontSize:'0.75rem',fontWeight:'700',color:'#4f46e5',cursor:'pointer'}},
+          React.createElement('label',{style:{display:'flex',alignItems:'center',gap:'6px',fontSize:'0.75rem',fontWeight:'700',color:'#ea580c',cursor:'pointer'}},
             React.createElement('input',{type:'checkbox',checked:selecionados.size===rows.length,onChange:function(e){if(e.target.checked){const a=[];for(let i=0;i<rows.length;i++)a.push(i);setSelecionados(new Set(a));}else{setSelecionados(new Set());}}}),
             'Selecionar todos ('+selecionados.size+'/'+rows.length+')'
           )
@@ -5511,7 +5511,7 @@ function App({
       erroArquivo ? React.createElement('div',{style:{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:'10px',padding:'10px 14px',color:'#dc2626',fontSize:'0.8rem',fontWeight:'600',marginBottom:'12px'}},erroArquivo) : null,
       React.createElement('div',{style:{display:'flex',gap:'10px'}},
         React.createElement('button',{onClick:function(){setEtapa(1);setErroArquivo('');},style:{padding:'10px 16px',border:'2px solid '+C.border,borderRadius:'10px',background:C.bg,color:C.textMuted,fontSize:'0.8rem',fontWeight:'700',cursor:'pointer'}},'\u2190 Voltar'),
-        React.createElement('button',{onClick:importar,disabled:totalSel===0,style:{flex:1,padding:'11px',border:'none',borderRadius:'10px',background:totalSel>0?'linear-gradient(135deg,#6366f1,#4f46e5)':'#e5e7eb',color:totalSel>0?'#fff':'#9ca3af',fontSize:'0.85rem',fontWeight:'800',cursor:totalSel>0?'pointer':'not-allowed'}},
+        React.createElement('button',{onClick:importar,disabled:totalSel===0,style:{flex:1,padding:'11px',border:'none',borderRadius:'10px',background:totalSel>0?'linear-gradient(135deg,#f97316,#ea580c)':'#e5e7eb',color:totalSel>0?'#fff':'#9ca3af',fontSize:'0.85rem',fontWeight:'800',cursor:totalSel>0?'pointer':'not-allowed'}},
           '\uD83D\uDCE5 Importar '+totalSel+' item'+(totalSel!==1?'ens':'')+' selecionado'+(totalSel!==1?'s':'')
         )
       )
@@ -5627,7 +5627,7 @@ function App({
 
         /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(234,88,12,0.35)'}}, "\u2795 Novo Gasto Vari\xE1vel"),
         /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid '+C.border, borderRadius:'12px', background:C.bg, color:C.textMuted, fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('importarCSV'), style:{width:'100%', padding:'10px', border:'2px solid #6366f1', borderRadius:'12px', background:'#eef2ff', color:'#4f46e5', fontSize:'0.78rem', fontWeight:'700', cursor:'pointer', marginTop:'6px'}}, "\uD83D\uDCE5 Importar CSV")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('importarCSV'), style:{width:'100%', padding:'10px', border:'2px solid #f97316', borderRadius:'12px', background:'#eef2ff', color:'#ea580c', fontSize:'0.78rem', fontWeight:'700', cursor:'pointer', marginTop:'6px'}}, "\uD83D\uDCE5 Importar CSV")
       ),
 
       /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
@@ -6135,8 +6135,8 @@ function App({
             datasets: [{
               label: 'Saldo (R$)',
               data: saldos,
-              borderColor: '#6366f1',
-              backgroundColor: 'rgba(99,102,241,0.1)',
+              borderColor: '#f97316',
+              backgroundColor: 'rgba(249,115,22,0.1)',
               fill: true, tension: 0.4,
               pointBackgroundColor: saldos.map(function(v){ return v >= 0 ? '#10b981' : '#ef4444'; }),
               pointRadius: 5
@@ -6152,7 +6152,7 @@ function App({
           type: 'doughnut',
           data: {
             labels: ['Cartões', 'Fixos', 'Variáveis', 'Extras'],
-            datasets: [{ data: [tAtual.cartoes, tAtual.fixos, tAtual.variaveis, tAtual.extras], backgroundColor: ['#6366f1','#f59e0b','#10b981','#ef4444'], borderWidth: 2, hoverOffset: 6 }]
+            datasets: [{ data: [tAtual.cartoes, tAtual.fixos, tAtual.variaveis, tAtual.extras], backgroundColor: ['#f97316','#f59e0b','#10b981','#ef4444'], borderWidth: 2, hoverOffset: 6 }]
           },
           options: { responsive: true, plugins: { legend: { position: 'right' }, tooltip: { callbacks: { label: function(ctx){ return ctx.label + ': R$ ' + ctx.parsed.toLocaleString('pt-BR',{minimumFractionDigits:2}); } } } } }
         });
@@ -6166,21 +6166,21 @@ function App({
     return React.createElement('div', { className: 'space-y-4' },
       React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' } },
         React.createElement('h3', { style: { fontSize: '1rem', fontWeight: '800', color: '#1e1b4b', margin: 0 } }, '📈 Histórico ' + anoAtual),
-        React.createElement('span', { style: { fontSize: '0.72rem', background: '#eef2ff', color: '#6366f1', padding: '3px 10px', borderRadius: '20px', fontWeight: '700' } }, mesAtual.toUpperCase())
+        React.createElement('span', { style: { fontSize: '0.72rem', background: '#eef2ff', color: '#f97316', padding: '3px 10px', borderRadius: '20px', fontWeight: '700' } }, mesAtual.toUpperCase())
       ),
       // Card 1: Barras
       React.createElement('div', { style: { background: C.bg, borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' } },
-        React.createElement('div', { style: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px', color: '#6366f1', marginBottom: '14px', textTransform: 'uppercase' } }, '📊 Receitas vs Despesas — ' + anoAtual),
+        React.createElement('div', { style: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px', color: '#f97316', marginBottom: '14px', textTransform: 'uppercase' } }, '📊 Receitas vs Despesas — ' + anoAtual),
         React.createElement('canvas', { ref: ref1, style: { maxHeight: '220px' } })
       ),
       // Cards 2 e 3 lado a lado
       React.createElement('div', { style: { display: 'grid', gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1.5fr 1fr', gap: '16px' } },
         React.createElement('div', { style: { background: C.bg, borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' } },
-          React.createElement('div', { style: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px', color: '#6366f1', marginBottom: '14px', textTransform: 'uppercase' } }, '📈 Evolução do Saldo'),
+          React.createElement('div', { style: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px', color: '#f97316', marginBottom: '14px', textTransform: 'uppercase' } }, '📈 Evolução do Saldo'),
           React.createElement('canvas', { ref: ref2, style: { maxHeight: '200px' } })
         ),
         React.createElement('div', { style: { background: C.bg, borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' } },
-          React.createElement('div', { style: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px', color: '#6366f1', marginBottom: '14px', textTransform: 'uppercase' } }, '🍩 Composição ' + mesAtual.toUpperCase()),
+          React.createElement('div', { style: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px', color: '#f97316', marginBottom: '14px', textTransform: 'uppercase' } }, '🍩 Composição ' + mesAtual.toUpperCase()),
           React.createElement('canvas', { ref: ref3, style: { maxHeight: '200px' } })
         )
       )
@@ -6514,7 +6514,7 @@ function App({
   style: {display:'flex', gap:'8px', marginBottom:'16px'}
 }, /*#__PURE__*/React.createElement("button", {
   onClick: ()=>setTelaAtiva('planejamento-orcamento'),
-  style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background:'#6366f1', color:'#fff', transition:'all 0.15s'}
+  style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background:'#f97316', color:'#fff', transition:'all 0.15s'}
 }, "📊 Orçamento"), /*#__PURE__*/React.createElement("button", {
   onClick: ()=>setTelaAtiva('planejamento-premes'),
   style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background:C.bgTable, color:C.textMuted, transition:'all 0.15s'}
@@ -6608,9 +6608,9 @@ function App({
     onClick: () => setModalAberto('orcamento'),
     style: {
       width:'100%', padding:'14px', border:'none', borderRadius:'12px',
-      background:'linear-gradient(135deg, #6366f1, #8b5cf6)', 
+      background:'linear-gradient(135deg, #f97316, #8b5cf6)', 
       color:'#fff', fontSize:'0.85rem', fontWeight:'700',
-      cursor:'pointer', boxShadow:'0 4px 12px rgba(99,102,241,0.3)',
+      cursor:'pointer', boxShadow:'0 4px 12px rgba(249,115,22,0.3)',
       transition:'all 0.2s'
     }
   }, '⚙️ ' + (orcadoTotal > 0 ? 'Ajustar Orçamento' : 'Definir Orçamento'))
@@ -6742,7 +6742,7 @@ function App({
       ? /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'10px'}},
           // Cartões %
           /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
-            /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#6366f1', flexShrink:0}}),
+            /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#f97316', flexShrink:0}}),
             /*#__PURE__*/React.createElement("div", {style:{flex:1}},
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Cartões'),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:C.text}},
@@ -6808,7 +6808,7 @@ function App({
   var arrV=Object.entries(catV).sort(function(a,b){return b[1]-a[1];});
   var totV=arrV.reduce(function(s,c){return s+c[1];},0);
   if(arrV.length===0)return null;
-  var coresV=['#6366f1','#8b5cf6','#0ea5e9','#10b981','#f59e0b','#f97316','#ef4444','#ec4899','#06b6d4','#84cc16','#a78bfa','#14b8a6'];
+  var coresV=['#f97316','#8b5cf6','#0ea5e9','#10b981','#f59e0b','#f97316','#ef4444','#ec4899','#06b6d4','#84cc16','#a78bfa','#14b8a6'];
   return React.createElement('div',{style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,overflow:'hidden',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}},
     React.createElement('div',{style:{padding:'14px 20px',borderBottom:'1px solid '+C.borderLight,background:C.bgMuted,display:'flex',justifyContent:'space-between',alignItems:'center'}},
       React.createElement('div',{style:{fontSize:'0.65rem',fontWeight:'800',letterSpacing:'1.1px',textTransform:'uppercase',color:C.textMuted}},'🏷️ Variáveis & Extras por Categoria — '+mesAtual.toUpperCase()),
@@ -6847,10 +6847,10 @@ function App({
       style: {display:'flex', gap:'8px', marginBottom:'4px'}
     }, /*#__PURE__*/React.createElement("button", {
       onClick: ()=>setTelaAtiva('planejamento-orcamento'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: !subAba||subAba===null?'#6366f1':'#f3f4f6', color: !subAba||subAba===null?'#fff':'#6b7280', transition:'all 0.15s'}
+      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: !subAba||subAba===null?'#f97316':'#f3f4f6', color: !subAba||subAba===null?'#fff':'#6b7280', transition:'all 0.15s'}
     }, "📊 Orçamento"), /*#__PURE__*/React.createElement("button", {
       onClick: ()=>setTelaAtiva('planejamento-premes'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='premes'?'#6366f1':'#f3f4f6', color: subAba==='premes'?'#fff':'#6b7280', transition:'all 0.15s'}
+      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='premes'?'#f97316':'#f3f4f6', color: subAba==='premes'?'#fff':'#6b7280', transition:'all 0.15s'}
     }, "📝 Pré-Mês")),
     /*#__PURE__*/React.createElement("div", {
       className: "flex justify-end"
@@ -6951,7 +6951,7 @@ function App({
     }, "R$ ", totalPlanejado.toFixed(2))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-gray-600 mb-2"
     }, "Real (Gasto no M\xEAs)"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold text-purple-600"
+      className: "text-xl font-bold text-orange-600"
     }, "R$ ", totais.total.toFixed(2)))), /*#__PURE__*/React.createElement("div", {
       className: `mt-4 p-4 rounded-lg ${totais.total <= totalPlanejado ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`
     }, /*#__PURE__*/React.createElement("div", {
@@ -6966,7 +6966,7 @@ function App({
   style: {display:'flex', gap:'8px', marginBottom:'16px'}
 }, /*#__PURE__*/React.createElement("button", {
   onClick: ()=>setTelaAtiva('planejamento-metas'),
-  style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background:'#6366f1', color:'#fff', transition:'all 0.15s'}
+  style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background:'#f97316', color:'#fff', transition:'all 0.15s'}
 }, "🎯 Metas"), /*#__PURE__*/React.createElement("button", {
   onClick: ()=>setTelaAtiva('planejamento-dividas'),
   style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background:C.bgTable, color:C.textMuted, transition:'all 0.15s'}
@@ -6992,7 +6992,7 @@ function App({
           : 'linear-gradient(135deg, #78350f, #92400e)',
       borderRadius:'16px',
       padding:'20px',
-      border: percentualMetasGeral >= 75 ? '1px solid rgba(16,185,129,0.3)' : percentualMetasGeral >= 40 ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(245,158,11,0.3)',
+      border: percentualMetasGeral >= 75 ? '1px solid rgba(16,185,129,0.3)' : percentualMetasGeral >= 40 ? '1px solid rgba(249,115,22,0.3)' : '1px solid rgba(245,158,11,0.3)',
       boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
       color:'#fff'
     }
@@ -7040,7 +7040,7 @@ function App({
     /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'12px'}},
       /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center'}},
         /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.78rem', color:C.textMuted}}, 'Metas Ativas'),
-        /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.2rem', fontWeight:'900', color:'#6366f1'}}, 
+        /*#__PURE__*/React.createElement("span", {style:{fontSize:'1.2rem', fontWeight:'900', color:'#f97316'}}, 
           metasFinanceiras.filter(m => !m.concluida).length
         )
       ),
@@ -7064,9 +7064,9 @@ function App({
     onClick: () => setModalAberto('novaMeta'),
     style: {
       width:'100%', padding:'14px', border:'none', borderRadius:'12px',
-      background:'linear-gradient(135deg, #6366f1, #8b5cf6)', 
+      background:'linear-gradient(135deg, #f97316, #8b5cf6)', 
       color:'#fff', fontSize:'0.85rem', fontWeight:'700',
-      cursor:'pointer', boxShadow:'0 4px 12px rgba(99,102,241,0.3)',
+      cursor:'pointer', boxShadow:'0 4px 12px rgba(249,115,22,0.3)',
       transition:'all 0.2s'
     }
   }, '➕ Nova Meta')
@@ -7120,7 +7120,7 @@ function App({
                 )
               ),
               /*#__PURE__*/React.createElement("div", {style:{textAlign:'right'}},
-                /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.1rem', fontWeight:'900', color:'#6366f1'}},
+                /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.1rem', fontWeight:'900', color:'#f97316'}},
                   progresso.toFixed(0) + '%'
                 ),
                 /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.65rem', color:C.textFaint, marginTop:'2px'}},
@@ -7134,7 +7134,7 @@ function App({
                 style:{
                   height:'100%',
                   width: Math.min(100, progresso) + '%',
-                  background: progresso >= 75 ? '#10b981' : progresso >= 40 ? '#6366f1' : '#f59e0b',
+                  background: progresso >= 75 ? '#10b981' : progresso >= 40 ? '#f97316' : '#f59e0b',
                   borderRadius:'3px',
                   transition:'width 0.6s ease'
                 }
@@ -7188,7 +7188,7 @@ function App({
       ),
       // Médio prazo
       /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
-        /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#6366f1', flexShrink:0}}),
+        /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#f97316', flexShrink:0}}),
         /*#__PURE__*/React.createElement("div", {style:{flex:1}},
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Médio Prazo'),
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:C.text}},
@@ -7255,10 +7255,10 @@ function App({
       style: {display:'flex', gap:'8px', marginBottom:'4px'}
     }, /*#__PURE__*/React.createElement("button", {
       onClick: ()=>setTelaAtiva('planejamento-metas'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: !subAba||subAba===null?'#6366f1':'#f3f4f6', color: !subAba||subAba===null?'#fff':'#6b7280', transition:'all 0.15s'}
+      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: !subAba||subAba===null?'#f97316':'#f3f4f6', color: !subAba||subAba===null?'#fff':'#6b7280', transition:'all 0.15s'}
     }, "🎯 Metas"), /*#__PURE__*/React.createElement("button", {
       onClick: ()=>setTelaAtiva('planejamento-dividas'),
-      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='dividas'?'#6366f1':'#f3f4f6', color: subAba==='dividas'?'#fff':'#6b7280', transition:'all 0.15s'}
+      style: {padding:'6px 16px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:'700', background: subAba==='dividas'?'#f97316':'#f3f4f6', color: subAba==='dividas'?'#fff':'#6b7280', transition:'all 0.15s'}
     }, "💳 Dívidas")),
     /*#__PURE__*/React.createElement("div", {
       className: "flex justify-between items-center"
@@ -7299,7 +7299,7 @@ function App({
     }, /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-gray-600"
     }, "Parcelas M\xEDnimas"), /*#__PURE__*/React.createElement("div", {
-      className: "text-2xl font-bold text-purple-600"
+      className: "text-2xl font-bold text-orange-600"
     }, "R$ ", dividas.reduce((sum, d) => sum + d.parcelaMinima, 0).toFixed(2), "/m\xEAs")), /*#__PURE__*/React.createElement("div", {
       className: "bg-white rounded-xl shadow-lg p-6"
     }, /*#__PURE__*/React.createElement("div", {
@@ -7342,14 +7342,14 @@ function App({
     }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       className: "text-xs text-gray-600 mb-1"
     }, "Parcela M\xEDnima"), /*#__PURE__*/React.createElement("div", {
-      className: "text-xl font-bold text-purple-600"
+      className: "text-xl font-bold text-orange-600"
     }, "R$ ", divida.parcelaMinima.toFixed(2)), /*#__PURE__*/React.createElement("div", {
       className: "text-xs text-gray-500 mt-2"
     }, divida.parcelaMinima > 0 ? `~${Math.ceil(divida.saldoDevedor / divida.parcelaMinima)} meses (só mínimo)` : 'Definir parcela'))))))), estrategias && estrategias.disponivel > 0 && /*#__PURE__*/React.createElement("div", {
       style: {
-        background: 'linear-gradient(135deg, #6366f1 0%, #10b981 100%)',
+        background: 'linear-gradient(135deg, #f97316 0%, #10b981 100%)',
         borderRadius: '16px',
-        boxShadow: '0 8px 24px rgba(99,102,241,0.3)',
+        boxShadow: '0 8px 24px rgba(249,115,22,0.3)',
         padding: '1.5rem',
         color: '#fff'
       }
@@ -7450,9 +7450,9 @@ function App({
           style:{
             flex:'1', minWidth:'120px', padding:'9px 14px', borderRadius:'10px', border:'none',
             fontSize:'0.78rem', fontWeight:'700', cursor:'pointer', transition:'all 0.2s',
-            background: subAba === tab.key ? 'linear-gradient(135deg,#6366f1,#4f46e5)' : 'transparent',
+            background: subAba === tab.key ? 'linear-gradient(135deg,#f97316,#ea580c)' : 'transparent',
             color: subAba === tab.key ? '#fff' : '#64748b',
-            boxShadow: subAba === tab.key ? '0 4px 12px rgba(99,102,241,0.3)' : 'none'
+            boxShadow: subAba === tab.key ? '0 4px 12px rgba(249,115,22,0.3)' : 'none'
           }
         }, tab.icon + ' ' + tab.label)
       )
@@ -7471,7 +7471,7 @@ function App({
           React.createElement('div', {style:{fontSize:'0.75rem',opacity:0.8}}, saldo.positivo ? 'Sobra mensal disponível' : 'Saldo negativo — cuidado!')
         ),
         React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
-          React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#6366f1',marginBottom:'14px'}}, '🛒 Dados da Compra'),
+          React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f97316',marginBottom:'14px'}}, '🛒 Dados da Compra'),
           React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
             React.createElement('div', null,
               React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, 'Nome do produto'),
@@ -7516,7 +7516,7 @@ function App({
                 const pctRenda = saldo.receitas > 0 ? (parcela / saldo.receitas * 100) : 0;
                 setSimCompra({...simCompra, resultado:{totalPago,parcela,jurosTotal,novoSaldo,pctRenda,viavel:novoSaldo>=0}});
               },
-              style:{background:'linear-gradient(135deg,#6366f1,#4f46e5)',color:'#fff',border:'none',borderRadius:'10px',padding:'11px',fontSize:'0.82rem',fontWeight:'700',cursor:'pointer',width:'100%'}
+              style:{background:'linear-gradient(135deg,#f97316,#ea580c)',color:'#fff',border:'none',borderRadius:'10px',padding:'11px',fontSize:'0.82rem',fontWeight:'700',cursor:'pointer',width:'100%'}
             }, '📊 Simular')
           )
         )
@@ -7525,7 +7525,7 @@ function App({
       /* Coluna Central: resultado */
       React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
         simCompra.resultado ? React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'20px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
-          React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#6366f1',marginBottom:'16px'}}, '📊 Resultado da Simulação'),
+          React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f97316',marginBottom:'16px'}}, '📊 Resultado da Simulação'),
           React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'12px'}},
             React.createElement('div', {style:{background: simCompra.resultado.viavel ? '#f0fdf4' : '#fef2f2', borderRadius:'12px', padding:'14px', border: simCompra.resultado.viavel ? '1px solid #86efac' : '1px solid #fca5a5'}},
               React.createElement('div', {style:{fontSize:'1.1rem',fontWeight:'800',color: simCompra.resultado.viavel ? '#166534' : '#991b1b',marginBottom:'4px'}}, simCompra.resultado.viavel ? '✅ Compra Viável' : '❌ Compra Inviável'),
@@ -7590,26 +7590,26 @@ function App({
           )
         ),
         React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
-          React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#6366f1',marginBottom:'14px'}}, '🎛️ Ajustar Cenário'),
+          React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f97316',marginBottom:'14px'}}, '🎛️ Ajustar Cenário'),
           React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
             React.createElement('div', null,
               React.createElement('div', {style:{display:'flex',justifyContent:'space-between',marginBottom:'6px'}},
                 React.createElement('label', {style:{fontSize:'0.75rem',fontWeight:'600',color:'#64748b'}}, '💰 Ajuste de Renda'),
                 React.createElement('span', {style:{fontSize:'0.82rem',fontWeight:'800',color: simulacao.rendaAjuste >= 0 ? '#16a34a' : '#dc2626'}}, (simulacao.rendaAjuste >= 0 ? '+' : '')+simulacao.rendaAjuste+'%')
               ),
-              React.createElement('input', {type:'range', min:'-50', max:'100', value:simulacao.rendaAjuste, onChange:e=>setSimulacao({...simulacao,rendaAjuste:parseInt(e.target.value)}), style:{width:'100%',accentColor:'#6366f1'}})
+              React.createElement('input', {type:'range', min:'-50', max:'100', value:simulacao.rendaAjuste, onChange:e=>setSimulacao({...simulacao,rendaAjuste:parseInt(e.target.value)}), style:{width:'100%',accentColor:'#f97316'}})
             ),
             React.createElement('div', null,
               React.createElement('div', {style:{display:'flex',justifyContent:'space-between',marginBottom:'6px'}},
                 React.createElement('label', {style:{fontSize:'0.75rem',fontWeight:'600',color:'#64748b'}}, '💸 Ajuste de Despesas'),
                 React.createElement('span', {style:{fontSize:'0.82rem',fontWeight:'800',color: simulacao.gastosAjuste <= 0 ? '#16a34a' : '#dc2626'}}, (simulacao.gastosAjuste >= 0 ? '+' : '')+simulacao.gastosAjuste+'%')
               ),
-              React.createElement('input', {type:'range', min:'-50', max:'50', value:simulacao.gastosAjuste, onChange:e=>setSimulacao({...simulacao,gastosAjuste:parseInt(e.target.value)}), style:{width:'100%',accentColor:'#6366f1'}})
+              React.createElement('input', {type:'range', min:'-50', max:'50', value:simulacao.gastosAjuste, onChange:e=>setSimulacao({...simulacao,gastosAjuste:parseInt(e.target.value)}), style:{width:'100%',accentColor:'#f97316'}})
             ),
             React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'6px'}},
               React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20}), style:{padding:'7px 4px',borderRadius:'8px',border:'1px solid #86efac',background:'#f0fdf4',color:'#166534',fontSize:'0.68rem',fontWeight:'700',cursor:'pointer'}}, '+20% Renda'),
               React.createElement('button', {onClick:()=>setSimulacao({...simulacao,gastosAjuste:-20}), style:{padding:'7px 4px',borderRadius:'8px',border:'1px solid #86efac',background:'#f0fdf4',color:'#166534',fontSize:'0.68rem',fontWeight:'700',cursor:'pointer'}}, '-20% Desp.'),
-              React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:-20}), style:{padding:'7px 4px',borderRadius:'8px',border:'1px solid #6366f1',background:'#eef2ff',color:'#4338ca',fontSize:'0.68rem',fontWeight:'700',cursor:'pointer'}}, 'Combo')
+              React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:-20}), style:{padding:'7px 4px',borderRadius:'8px',border:'1px solid #f97316',background:'#eef2ff',color:'#c2410c',fontSize:'0.68rem',fontWeight:'700',cursor:'pointer'}}, 'Combo')
             ),
             React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:0,gastosAjuste:0}), style:{padding:'8px',borderRadius:'8px',border:'1px solid #e2e8f0',background:'#f8fafc',color:'#64748b',fontSize:'0.75rem',cursor:'pointer',width:'100%'}}, '↩️ Resetar')
           )
@@ -7626,7 +7626,7 @@ function App({
           const meta20   = rendaSim * 0.20;
           return React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
             React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'20px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
-              React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#6366f1',marginBottom:'16px'}}, '🎲 Cenário Simulado'),
+              React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f97316',marginBottom:'16px'}}, '🎲 Cenário Simulado'),
               React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
                 [
                   {label:'💰 Receita Simulada',  value:'R$ '+rendaSim.toFixed(2),  color:'#16a34a'},
@@ -7727,7 +7727,7 @@ function App({
           React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
             [
               {label:'💰 Renda mensal gerada', value:'R$ '+simApos.resultado.rendaMensal.toFixed(2), color: simApos.resultado.rendaMensal >= simApos.rendaDesejada ? '#16a34a' : '#f59e0b'},
-              {label:'🎯 Renda desejada', value:'R$ '+simApos.rendaDesejada.toFixed(2), color:'#6366f1'},
+              {label:'🎯 Renda desejada', value:'R$ '+simApos.rendaDesejada.toFixed(2), color:'#f97316'},
               {label:'📊 % da meta atingida', value:simApos.resultado.pctMeta.toFixed(1)+'%', color: simApos.resultado.pctMeta >= 100 ? '#16a34a' : '#dc2626'},
               {label:'📅 Meses de acumulação', value:simApos.resultado.meses+' meses', color:'#64748b'},
             ].map((item,i) => React.createElement('div', {key:i, style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:'#f8fafc',borderRadius:'8px',border:'1px solid #e2e8f0',marginBottom:'8px'}},
@@ -7893,7 +7893,7 @@ function App({
           type:'number', min:'0.01', step:'0.01', autoFocus:true,
           value:depositarValor, onChange:function(e){setDepositarValor(e.target.value);},
           placeholder:'0,00',
-          style:{width:'100%',padding:'11px 14px',border:'2px solid #6366f1',borderRadius:'10px',fontSize:'1rem',fontWeight:'700',outline:'none',color:C.text,background:C.input,boxSizing:'border-box'}
+          style:{width:'100%',padding:'11px 14px',border:'2px solid #f97316',borderRadius:'10px',fontSize:'1rem',fontWeight:'700',outline:'none',color:C.text,background:C.input,boxSizing:'border-box'}
         })
       ),
       React.createElement('div', {style:{display:'flex',gap:'10px'}},
@@ -8005,7 +8005,7 @@ function App({
             fecharModalMeta();
             showToast('✅ Meta atualizada!', 'success', 3500);
           },
-          style:{flex:1,padding:'11px',border:'none',borderRadius:'10px',background:'linear-gradient(135deg,#6366f1,#4f46e5)',color:'#fff',fontWeight:'700',cursor:'pointer',fontSize:'0.85rem'}
+          style:{flex:1,padding:'11px',border:'none',borderRadius:'10px',background:'linear-gradient(135deg,#f97316,#ea580c)',color:'#fff',fontWeight:'700',cursor:'pointer',fontSize:'0.85rem'}
         }, '💾 Salvar')
       )
     )
@@ -8053,7 +8053,7 @@ function App({
           datasets: [
             { label:'Receitas', data:receitas6, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.08)', fill:true,  tension:0.4, pointRadius:4, pointBackgroundColor:'#10b981' },
             { label:'Gastos',   data:gastos6,   borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.08)',  fill:true,  tension:0.4, pointRadius:4, pointBackgroundColor:'#ef4444' },
-            { label:'Saldo',    data:saldo6,    borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.05)', fill:false, tension:0.4, pointRadius:4,
+            { label:'Saldo',    data:saldo6,    borderColor:'#f97316', backgroundColor:'rgba(249,115,22,0.05)', fill:false, tension:0.4, pointRadius:4,
               pointBackgroundColor: saldo6.map(function(v){ return v>=0?'#10b981':'#ef4444'; }) }
           ]
         },
@@ -8092,7 +8092,7 @@ function App({
         [
           {label:'Receitas '+mesAtual.toUpperCase(), valor:saldoMes.receitas, bg:'linear-gradient(135deg,#065f46,#10b981)', icon:'💰'},
           {label:'Despesas '+mesAtual.toUpperCase(), valor:saldoMes.despesas, bg:'linear-gradient(135deg,#7f1d1d,#ef4444)', icon:'💸'},
-          {label:'Saldo '+mesAtual.toUpperCase(),    valor:saldoMes.saldo,    bg: saldoMes.positivo?'linear-gradient(135deg,#1e3a8a,#6366f1)':'linear-gradient(135deg,#7f1d1d,#ef4444)', icon:'📈'},
+          {label:'Saldo '+mesAtual.toUpperCase(),    valor:saldoMes.saldo,    bg: saldoMes.positivo?'linear-gradient(135deg,#1e3a8a,#f97316)':'linear-gradient(135deg,#7f1d1d,#ef4444)', icon:'📈'},
           {label:'Taxa de Economia', valor:pctEcon+'%', bg:'linear-gradient(135deg,#4c1d95,#8b5cf6)', icon:'🎯', isStr:true}
         ].map(function(c,i){
           return React.createElement('div', {key:i, style:{background:c.bg,borderRadius:'16px',padding:'18px',color:'#fff',boxShadow:'0 4px 20px rgba(0,0,0,0.15)'}},
@@ -8248,7 +8248,7 @@ function App({
         var treeArr=Object.entries(treeCats).sort(function(a,b){return b[1]-a[1];});
         var treeTot=treeArr.reduce(function(s,e){return s+e[1];},0)||1;
         // paleta distinta por categoria
-        var paleta=['#6d28d9','#7c3aed','#8b5cf6','#a78bfa','#4f46e5','#4338ca','#5b21b6','#7e22ce','#9333ea','#a855f7','#c026d3','#db2777'];
+        var paleta=['#6d28d9','#7c3aed','#8b5cf6','#a78bfa','#ea580c','#c2410c','#5b21b6','#7e22ce','#9333ea','#a855f7','#c026d3','#db2777'];
 
         var viewTreemap = treeArr.length===0
           ? React.createElement('div',{style:{padding:'32px',textAlign:'center',color:C.textFaint}},'Sem gastos no período')
@@ -8336,11 +8336,11 @@ function App({
         var arr=Object.entries(catMap).sort(function(a,b){return b[1]-a[1];});
         var tot=arr.reduce(function(s,c){return s+c[1];},0);
         if(arr.length===0)return null;
-        var cores=['#6366f1','#8b5cf6','#a78bfa','#0ea5e9','#06b6d4','#10b981','#f59e0b','#f97316','#ef4444','#ec4899','#84cc16','#14b8a6'];
+        var cores=['#f97316','#8b5cf6','#a78bfa','#0ea5e9','#06b6d4','#10b981','#f59e0b','#f97316','#ef4444','#ec4899','#84cc16','#14b8a6'];
         return React.createElement('div',{style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,overflow:'hidden',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
           React.createElement('div',{style:{padding:'14px 20px',borderBottom:'1px solid '+C.borderLight,background:C.bgMuted,display:'flex',justifyContent:'space-between',alignItems:'center'}},
             React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'10px'}},
-              React.createElement('div',{style:{width:'28px',height:'28px',borderRadius:'8px',background:'linear-gradient(135deg,#6366f1,#8b5cf6)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}},'🏷️'),
+              React.createElement('div',{style:{width:'28px',height:'28px',borderRadius:'8px',background:'linear-gradient(135deg,#f97316,#8b5cf6)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}},'🏷️'),
               React.createElement('div',null,
                 React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'800',color:C.text}},'Gastos por Categoria'),
                 React.createElement('div',{style:{fontSize:'0.62rem',color:C.textFaint,marginTop:'1px'}},'Todos os tipos · '+mesAtual.toUpperCase()+' '+anoAtual)
@@ -8402,7 +8402,7 @@ function App({
               days.map(function(day){
                 var p2=maxV>0?day.v/maxV:0;
                 var isTop=top3.has(day.d);
-                var cor=isTop?'#ef4444':day.v>0?'#6366f1':(darkMode?'rgba(255,255,255,0.07)':'#f1f5f9');
+                var cor=isTop?'#ef4444':day.v>0?'#f97316':(darkMode?'rgba(255,255,255,0.07)':'#f1f5f9');
                 return React.createElement('div',{key:day.d,title:'Dia '+day.d+(day.v?' — '+fmt(day.v):' — sem saída'),
                   style:{flex:1,height:Math.max(4,p2*100)+'%',background:cor,borderRadius:'3px 3px 0 0',minHeight:'3px'}});
               })
@@ -8441,7 +8441,7 @@ function App({
             React.createElement('tbody', null,
               dadosAnuais.map(function(row, i){
                 return React.createElement('tr', {key:i, style:{borderTop:'1px solid #f1f5f9', background: row.mes === mesAtual.toUpperCase() ? '#eef2ff' : 'transparent'}},
-                  React.createElement('td', {style:{padding: _isMobRel ? '8px 10px' : '10px 16px',fontWeight:'700',color: row.mes===mesAtual.toUpperCase()?'#6366f1':'#374151'}}, row.mes),
+                  React.createElement('td', {style:{padding: _isMobRel ? '8px 10px' : '10px 16px',fontWeight:'700',color: row.mes===mesAtual.toUpperCase()?'#f97316':'#374151'}}, row.mes),
                   React.createElement('td', {style:{padding: _isMobRel ? '8px 10px' : '10px 16px',color:'#059669',fontWeight:'600',fontSize: _isMobRel ? '0.72rem' : '0.78rem'}}, fmt(row.receitas)),
                   React.createElement('td', {style:{padding: _isMobRel ? '8px 10px' : '10px 16px',color:'#dc2626',fontWeight:'600',fontSize: _isMobRel ? '0.72rem' : '0.78rem'}}, fmt(row.despesas)),
                   React.createElement('td', {style:{padding: _isMobRel ? '8px 10px' : '10px 16px',fontWeight:'700',color:row.saldo>=0?'#059669':'#dc2626',fontSize: _isMobRel ? '0.72rem' : '0.78rem'}}, fmt(row.saldo))
@@ -8490,7 +8490,7 @@ function App({
             var melhorou = linha.inverter ? (linha.atual < linha.anterior) : (linha.atual > linha.anterior);
             var corVar = diff===null ? C.textFaint : (melhorou ? '#10b981' : '#ef4444');
             var isLast = i===linhas.length-1;
-            return React.createElement('div', {key:i, style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 72px',padding:'10px 20px',borderTop:'1px solid '+C.borderLight,background:isLast?(darkMode?'rgba(99,102,241,0.08)':'#f5f3ff'):'transparent'}},
+            return React.createElement('div', {key:i, style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 72px',padding:'10px 20px',borderTop:'1px solid '+C.borderLight,background:isLast?(darkMode?'rgba(249,115,22,0.08)':'#f5f3ff'):'transparent'}},
               React.createElement('div',{style:{color:C.text,fontWeight:isLast?'800':'600',fontSize:'0.78rem'}},linha.label),
               React.createElement('div',{style:{textAlign:'right',color:C.textMuted,fontSize:'0.75rem'}},fmt(linha.anterior)),
               React.createElement('div',{style:{textAlign:'right',color:C.text,fontWeight:'700',fontSize:'0.78rem'}},fmt(linha.atual)),
@@ -8630,7 +8630,7 @@ function App({
           ),
           React.createElement('div', {
             onClick: () => setDarkMode(!darkMode),
-            style:{width:'52px', height:'28px', borderRadius:'14px', background:darkMode?'#6366f1':'#d1d5db', position:'relative', cursor:'pointer', transition:'background 0.2s'}
+            style:{width:'52px', height:'28px', borderRadius:'14px', background:darkMode?'#f97316':'#d1d5db', position:'relative', cursor:'pointer', transition:'background 0.2s'}
           },
             React.createElement('div', {
               style:{position:'absolute', top:'3px', left:darkMode?'25px':'3px', width:'22px', height:'22px', borderRadius:'50%', background:'#fff', boxShadow:'0 1px 4px rgba(0,0,0,0.3)', transition:'left 0.2s'}
@@ -8668,7 +8668,7 @@ function App({
           !mostrarEntrar ? React.createElement('div', {style:{display:'flex', gap:'10px', flexWrap:'wrap'}},
             React.createElement('button', {
               onClick: criarCasal,
-              style:{flex:1, padding:'11px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#6366f1,#4f46e5)', color:'#fff', fontWeight:'800', cursor:'pointer', fontSize:'0.82rem'}
+              style:{flex:1, padding:'11px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#f97316,#ea580c)', color:'#fff', fontWeight:'800', cursor:'pointer', fontSize:'0.82rem'}
             }, '+ Criar Casal'),
             React.createElement('button', {
               onClick: () => setMostrarEntrar(true),
@@ -8682,7 +8682,7 @@ function App({
             }),
             React.createElement('button', {
               onClick:()=>entrarNoCasal(codigoEntrada),
-              style:{padding:'10px 16px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#6366f1,#4f46e5)', color:'#fff', fontWeight:'800', cursor:'pointer', fontSize:'0.82rem'}
+              style:{padding:'10px 16px', border:'none', borderRadius:'10px', background:'linear-gradient(135deg,#f97316,#ea580c)', color:'#fff', fontWeight:'800', cursor:'pointer', fontSize:'0.82rem'}
             }, 'Entrar'),
             React.createElement('button', {
               onClick:()=>setMostrarEntrar(false),
@@ -8799,7 +8799,7 @@ function App({
                   }
                 });
               },
-              style:{width:'100%', padding:'11px', border:'none', borderRadius:'10px', background: notifStatus === 'denied' ? '#9ca3af' : 'linear-gradient(135deg,#6366f1,#4f46e5)', color:'#fff', fontWeight:'700', cursor: notifStatus === 'denied' ? 'not-allowed' : 'pointer', fontSize:'0.82rem'}
+              style:{width:'100%', padding:'11px', border:'none', borderRadius:'10px', background: notifStatus === 'denied' ? '#9ca3af' : 'linear-gradient(135deg,#f97316,#ea580c)', color:'#fff', fontWeight:'700', cursor: notifStatus === 'denied' ? 'not-allowed' : 'pointer', fontSize:'0.82rem'}
             }, notifStatus === 'denied' ? '🚫 Bloqueado — siga as instruções acima' : '🔔 Ativar Notificações do Dispositivo')
       ])
     );
@@ -9383,16 +9383,16 @@ function App({
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
     className: "text-lg font-bold text-gray-800 mb-3"
   }, "\uD83C\uDFE0 Gastos Fixos"), /*#__PURE__*/React.createElement("div", {
-    className: "bg-purple-50 rounded-lg p-4 mb-3"
+    className: "bg-orange-50 rounded-lg p-4 mb-3"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-sm font-semibold text-gray-700 mb-2"
   }, "Categorias Padr\xE3o:"), /*#__PURE__*/React.createElement("div", {
     className: "flex flex-wrap gap-2"
   }, ['MORADIA', 'ESTUDO', 'TRANSPORTE', 'SERVIÇOS', 'SAÚDE'].map(cat => /*#__PURE__*/React.createElement("span", {
     key: cat,
-    className: "px-3 py-1 bg-white border-2 border-purple-300 rounded-lg text-sm font-semibold text-gray-700"
+    className: "px-3 py-1 bg-white border-2 border-orange-300 rounded-lg text-sm font-semibold text-gray-700"
   }, cat)))), /*#__PURE__*/React.createElement("div", {
-    className: "bg-white rounded-lg border-2 border-purple-200 p-4"
+    className: "bg-white rounded-lg border-2 border-orange-200 p-4"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-sm font-semibold text-gray-700 mb-2"
   }, "Suas Categorias Personalizadas:"), categoriasPersonalizadas.gastosFixos.length === 0 ? /*#__PURE__*/React.createElement("p", {
@@ -9401,9 +9401,9 @@ function App({
     className: "flex flex-wrap gap-2"
   }, categoriasPersonalizadas.gastosFixos.map(cat => /*#__PURE__*/React.createElement("div", {
     key: cat,
-    className: "flex items-center gap-1 px-3 py-1 bg-purple-100 rounded-lg"
+    className: "flex items-center gap-1 px-3 py-1 bg-orange-100 rounded-lg"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "text-sm font-semibold text-purple-700"
+    className: "text-sm font-semibold text-orange-700"
   }, cat), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       if (confirm(`Excluir categoria "${cat}"?`)) {
@@ -9710,14 +9710,14 @@ function App({
   , /*#__PURE__*/React.createElement('button', {
       onClick: () => setModalAberto('quickAdd'),
       title: 'Adicionar Despesa',
-      onMouseEnter: e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(102,126,234,0.7)'; },
-      onMouseLeave: e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(102,126,234,0.5)'; },
+      onMouseEnter: e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(249,115,22,0.7)'; },
+      onMouseLeave: e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(249,115,22,0.5)'; },
       style: {
         position: 'fixed', bottom: window.innerWidth <= 768 ? '76px' : '28px', right: '28px', zIndex: 2000,
         width: '56px', height: '56px', borderRadius: '50%', border: 'none',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
         color: '#fff', fontSize: '28px', fontWeight: '300', lineHeight: 1,
-        cursor: 'pointer', boxShadow: '0 4px 20px rgba(102,126,234,0.5)',
+        cursor: 'pointer', boxShadow: '0 4px 20px rgba(249,115,22,0.5)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'transform 0.15s ease, box-shadow 0.15s ease'
       }
