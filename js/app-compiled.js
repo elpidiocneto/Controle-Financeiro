@@ -5369,10 +5369,10 @@ function App({
       if (/salao|barbearia|estetica|manicure|beleza|cabeler/.test(d)) return 'BELEZA';
       if (/uber|99app|99 pop|cabify|taxi|onibus|metro|passagem|brt|rodoviaria|conducao|estacion/.test(d)) return 'TRANSPORTE';
       if (/restaur|lanchonet|ifood|delivery|pizza|burguer|mcdonalds|subway|padaria|acougue|cafe|bistro|sushi|churrasco|alimenta|jim\.com|sauvass|refeicao|lanche/.test(d)) return 'ALIMENTAÇÃO';
-      if (/pet|veterina|racao|cobasi|petz|agropec/.test(d)) return 'PET';
+      if (/\bpet\b|petshop|pet shop|veterina|racao|cobasi|petz|agropec/.test(d)) return 'PET';
       if (/amazon|shopee|aliexpress|magalu|americanas|submarino|mercado livre|shein/.test(d)) return 'COMPRAS ONLINE';
-      if (/lwsa|sistemaq|assinatura|mensalidade|plano |servico|software|cobranca/.test(d)) return 'SERVIÇOS';
-      if (/netflix|spotify|cinema|teatro|lazer|clube|parque|show|amazon prime|disney|hbo|game|steam|playstation/.test(d)) return 'LAZER';
+      if (/lwsa|sistemaq|assinatura|mensalidade|plano |software|cobranca/.test(d)) return 'SERVIÇOS';
+      if (/netflix|spotify|cinema|teatro|lazer|clube|parque|show|amazon prime|disney|hbo|\bgames?\b|steam|playstation/.test(d)) return 'LAZER';
       if (/escola|faculdade|curso|universidade|educac|livro|apostila|material escolar/.test(d)) return 'EDUCAÇÃO';
       if (/condomin|iptu/.test(d)) return 'CONDOMÍNIO';
       if (/agua |luz |energia|gas encana|neoenergia|copel|cemig|sabesp/.test(d)) return 'ÁGUA/LUZ/GÁS';
