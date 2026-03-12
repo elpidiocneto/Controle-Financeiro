@@ -21,7 +21,7 @@ window.DashboardComponent = function Dashboard() {
   const fmt0 = v => 'R$ ' + (v||0).toLocaleString('pt-BR', { minimumFractionDigits:0, maximumFractionDigits:0 });
 
   const saldoPositivo  = saldo.positivo;
-  const saldoBg        = saldoPositivo ? 'linear-gradient(135deg,#064e3b,#065f46)' : 'linear-gradient(135deg,#7f1d1d,#991b1b)';
+  const saldoBg        = saldoPositivo ? '#065f46' : '#991b1b';
   const saldoBorder    = saldoPositivo ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)';
   const progressoPct   = metaMensal > 0 ? Math.min(100, totais.total / metaMensal * 100) : 0;
   const progressoCor   = progressoPct < 70 ? '#10b981' : progressoPct < 90 ? '#f59e0b' : '#ef4444';
@@ -41,8 +41,8 @@ window.DashboardComponent = function Dashboard() {
 
   // Categorias para donut
   const cats = [
-    { label:'Cartões',   valor:totais.cartoes,   cor:'#6366f1', icone:'💳' },
-    { label:'Fixos',     valor:totais.fixos,     cor:'#8b5cf6', icone:'🏠' },
+    { label:'Cartões',   valor:totais.cartoes,   cor:'#f97316', icone:'💳' },
+    { label:'Fixos',     valor:totais.fixos,     cor:'#fb923c', icone:'🏠' },
     { label:'Variáveis', valor:totais.variaveis, cor:'#10b981', icone:'📊' },
     { label:'Extras',    valor:totais.extras||0, cor:'#f59e0b', icone:'⚡' },
   ].filter(c => c.valor > 0);
@@ -240,7 +240,7 @@ window.DashboardComponent = function Dashboard() {
             return h('div', { key:i, style:{ padding:'11px 13px', background:pago?'#f0fdf4':'#fafafa', borderRadius:'12px', border:`1px solid ${pago?'#bbf7d0':'#e5e7eb'}` } },
               h('div', { style:{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom: lim>0?'8px':'0' } },
                 h('div', { style:{ display:'flex', alignItems:'center', gap:'8px' } },
-                  h('div', { style:{ width:'30px', height:'30px', borderRadius:'8px', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem', color:'#fff', fontWeight:'800', flexShrink:0 } },
+                  h('div', { style:{ width:'30px', height:'30px', borderRadius:'8px', background:'#f97316', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem', color:'#fff', fontWeight:'800', flexShrink:0 } },
                     c.nome.charAt(0).toUpperCase()
                   ),
                   h('div', null,
@@ -258,7 +258,7 @@ window.DashboardComponent = function Dashboard() {
                 )
               ),
               lim > 0 && h('div', null,
-                bar(usoPct, usoPct>80?'#ef4444':'#6366f1', 3),
+                bar(usoPct, usoPct>80?'#ef4444':'#f97316', 3),
                 h('div', { style:{ fontSize:'0.62rem', color:'#9ca3af', marginTop:'3px' } }, `${usoPct.toFixed(0)}% de ${fmt0(lim)}`)
               )
             );
@@ -278,7 +278,7 @@ window.DashboardComponent = function Dashboard() {
     { label:'⚡ Extras',     valor:totais.extras||0 },
   ].filter(i => i.valor > 0);
 
-  const cardResumo = h('div', { style: darkCard('linear-gradient(135deg,#1e1b4b,#312e81)', 'rgba(99,102,241,0.3)') },
+  const cardResumo = h('div', { style: darkCard('#f97316', 'rgba(249,115,22,0.3)') },
     h('div', { style:{ ...lblW, marginBottom:'12px' } }, `Resumo · ${mesNome} ${anoAtual}`),
     ...itensResumo.map((item,i) =>
       h('div', { key:i, style:{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom: i<itensResumo.length-1 ? '1px solid rgba(255,255,255,0.07)' : 'none' } },
