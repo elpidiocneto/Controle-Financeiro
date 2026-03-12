@@ -5337,6 +5337,26 @@ function App({
     const [bancoDetectado, setBancoDetectado] = React.useState('');
     const [erroArquivo, setErroArquivo] = React.useState('');
     const [dragging, setDragging] = React.useState(false);
+    const [catRows, setCatRows] = React.useState({});
+
+    const todasCatImport = ['MERCADO','ALIMENTAÇÃO','GASOLINA','TRANSPORTE','FARMÁCIA','SAÚDE','LAZER','MORADIA','EDUCAÇÃO','VESTUÁRIO','SERVIÇOS','OUTROS',
+      ...(categoriasPersonalizadas.gastosVariaveis||[])].filter(function(c,i,a){ return a.indexOf(c)===i; });
+
+    function detectarCategoria(desc) {
+      const d = desc.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      if (/posto|combusti|gasolina|petrob|shell|ipiran|br distrib|etanol|ale combusti/.test(d)) return 'GASOLINA';
+      if (/mercado|supermercado|hortifruti|feira|atacadao|assai|mix mateus|pantanal|atacarejo|verdureiro|frutaria|alimentos/.test(d)) return 'MERCADO';
+      if (/farmac|drogari|ultrafarma|pacheco|nissei|droga/.test(d)) return 'FARMÁCIA';
+      if (/hospital|clinica|medic|dentist|saude|laborat|exame|plano de saude|unimed|amil|hapvida/.test(d)) return 'SAÚDE';
+      if (/uber|99app|99 pop|cabify|taxi|onibus|metro|metrô|passagem|brt|rodoviaria|conducao|estacion/.test(d)) return 'TRANSPORTE';
+      if (/restaur|lanchonet|ifood|delivery|pizza|burguer|mcdonalds|subway|padaria|acougue|cafe|bistro|sushi|churrasco|alimenta|jim\.com|sauvass|refeicao|lanche/.test(d)) return 'ALIMENTAÇÃO';
+      if (/lwsa|sistemaq|assinatura|mensalidade|plano |servico|software|cobranca/.test(d)) return 'SERVIÇOS';
+      if (/netflix|spotify|cinema|teatro|lazer|clube|parque|show|amazon prime|disney|hbo|game|steam|playstation/.test(d)) return 'LAZER';
+      if (/escola|faculdade|curso|universidade|educac|livro|apostila|material escolar/.test(d)) return 'EDUCAÇÃO';
+      if (/aluguel|condomin|iptu|agua |luz |energia|gas encana|internet|telefone|tim |claro |vivo |oi |net |neoenergia|copel|cemig|sabesp/.test(d)) return 'MORADIA';
+      if (/roupa|vestuario|calcado|moda|zara|renner|c&a|riachuelo|hering|camiseta|calca|vestido/.test(d)) return 'VESTUÁRIO';
+      return 'OUTROS';
+    }
 
     function parsearData(str) {
       const fallback = { data: new Date().toLocaleDateString('pt-BR'), dataCompleta: new Date().toISOString().split('T')[0], mes: mesAtual, ano: anoAtual };
@@ -5423,9 +5443,9 @@ function App({
         if (result.length === 0) { setErroArquivo('Nenhum lan\u00e7amento encontrado. Verifique o formato do arquivo.'); return; }
         setLinhas(result);
         // Pré-seleciona débitos (valores negativos = saída de dinheiro)
-        const sel = {};
-        result.forEach(function(r){ sel[r.id] = r.valorOriginal < 0; });
-        setSelecionados(sel);
+        const sel = {}; const cats = {};
+        result.forEach(function(r){ sel[r.id] = r.valorOriginal < 0; cats[r.id] = detectarCategoria(r.descricao); });
+        setSelecionados(sel); setCatRows(cats);
         setEtapa(2);
       };
       reader.readAsArrayBuffer(file);
@@ -5437,7 +5457,7 @@ function App({
         const valorFinal = inverterValor ? Math.abs(r.valorOriginal) : r.valor;
         if (valorFinal <= 0) return;
         const di = parsearData(r.dataStr);
-        novos.push({ id: Date.now()+Math.random(), categoria: 'OUTROS', descricao: r.descricao, valor: valorFinal, mes: di.mes, ano: di.ano, data: di.data, dataCompleta: di.dataCompleta });
+        novos.push({ id: Date.now()+Math.random(), categoria: catRows[r.id]||'OUTROS', descricao: r.descricao, valor: valorFinal, mes: di.mes, ano: di.ano, data: di.data, dataCompleta: di.dataCompleta });
       });
       if (novos.length === 0) { setErroArquivo('Nenhum item v\u00e1lido selecionado.'); return; }
       setGastosVariaveis(function(prev){ return [...prev, ...novos]; });
@@ -5507,13 +5527,20 @@ function App({
           ? React.createElement('div',{style:{padding:'24px',textAlign:'center',color:C.textFaint,fontSize:'0.8rem'}},'Nenhum item a exibir')
           : linhasFiltradas.map(function(r){
               const di = parsearData(r.dataStr);
-              return React.createElement('label',{key:r.id,style:{display:'flex',alignItems:'center',gap:'10px',padding:'8px 12px',borderBottom:'1px solid '+C.borderLight,cursor:'pointer',background:selecionados[r.id]?'#fff7ed':'transparent'}},
-                React.createElement('input',{type:'checkbox',checked:!!selecionados[r.id],onChange:function(e){setSelecionados(function(prev){ return Object.assign({},prev,{[r.id]:e.target.checked}); })}}),
-                React.createElement('div',{style:{flex:1,minWidth:0}},
-                  React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'600',color:C.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},r.descricao),
-                  di.data!==r.dataStr && React.createElement('div',{style:{fontSize:'0.65rem',color:C.textFaint}},di.data)
+              const catAtual = catRows[r.id] || 'OUTROS';
+              return React.createElement('div',{key:r.id,style:{display:'flex',alignItems:'center',gap:'8px',padding:'8px 10px',borderBottom:'1px solid '+C.borderLight,background:selecionados[r.id]?'#fff7ed':'transparent'}},
+                React.createElement('input',{type:'checkbox',checked:!!selecionados[r.id],onChange:function(e){setSelecionados(function(prev){ return Object.assign({},prev,{[r.id]:e.target.checked}); }),undefined;},style:{flexShrink:0,cursor:'pointer'}}),
+                React.createElement('div',{style:{flex:1,minWidth:0,cursor:'pointer'},onClick:function(){ setSelecionados(function(prev){ return Object.assign({},prev,{[r.id]:!prev[r.id]}); }); }},
+                  React.createElement('div',{style:{fontSize:'0.75rem',fontWeight:'600',color:C.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},r.descricao),
+                  di.data!==r.dataStr && React.createElement('div',{style:{fontSize:'0.62rem',color:C.textFaint}},di.data)
                 ),
-                React.createElement('span',{style:{fontSize:'0.78rem',fontWeight:'700',color:'#dc2626',whiteSpace:'nowrap',flexShrink:0}},'R$ '+r.valor.toFixed(2))
+                React.createElement('select',{
+                  value: catAtual,
+                  onChange: function(e){ setCatRows(function(prev){ return Object.assign({},prev,{[r.id]:e.target.value}); }); },
+                  onClick: function(e){ e.stopPropagation(); },
+                  style:{fontSize:'0.65rem',fontWeight:'700',padding:'3px 4px',border:'1.5px solid #fdba74',borderRadius:'6px',background:'#fff7ed',color:'#c2410c',cursor:'pointer',flexShrink:0,maxWidth:'90px'}
+                }, todasCatImport.map(function(c){ return React.createElement('option',{key:c,value:c},c); })),
+                React.createElement('span',{style:{fontSize:'0.75rem',fontWeight:'700',color:'#dc2626',whiteSpace:'nowrap',flexShrink:0}},'R$\u00a0'+r.valor.toFixed(2))
               );
             })
       ),
