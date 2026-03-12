@@ -398,7 +398,7 @@ function AuthWrapper() {
     return /*#__PURE__*/React.createElement("div", {
       style: {
         minHeight: '100vh',
-        background: '#f97316',
+        background: 'linear-gradient(135deg, #0f0c29 0%, #1a1a4e 40%, #0f3460 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -486,7 +486,7 @@ function AuthWrapper() {
         fontSize: '0.875rem',
         fontWeight: '600',
         transition: 'all 0.2s',
-        background: authMode === mode ? 'rgba(255,255,255,0.15)' : 'transparent',
+        background: authMode === mode ? '#f97316' : 'transparent',
         color: authMode === mode ? '#fff' : 'rgba(255,255,255,0.45)'
       }
     }, mode === 'login' ? 'Entrar' : 'Criar Conta'))), authMode === 'register' && /*#__PURE__*/React.createElement("div", {
