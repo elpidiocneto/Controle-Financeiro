@@ -610,7 +610,7 @@ function AuthWrapper() {
       style: {
         width: '100%',
         padding: '0.875rem',
-        background: 'linear-gradient(135deg, #f97316, #10b981)',
+        background: '#f97316',
         border: 'none',
         borderRadius: '12px',
         color: '#fff',
