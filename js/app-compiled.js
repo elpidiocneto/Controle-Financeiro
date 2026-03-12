@@ -5648,7 +5648,7 @@ function App({
 
         /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('novoGastoVariavel'), style:{width:'100%', padding:'12px', border:'none', borderRadius:'12px', background:'linear-gradient(135deg,#ea580c,#c2410c)', color:'#fff', fontSize:'0.82rem', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 12px rgba(234,88,12,0.35)'}}, "\u2795 Novo Gasto Vari\xE1vel"),
         /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('gerenciarCategorias'), style:{width:'100%', padding:'10px', border:'2px solid '+C.border, borderRadius:'12px', background:C.bg, color:C.textMuted, fontSize:'0.78rem', fontWeight:'600', cursor:'pointer'}}, "\uD83C\uDFF7\uFE0F Gerenciar Categorias"),
-        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('importarCSV'), style:{width:'100%', padding:'10px', border:'2px solid #f97316', borderRadius:'12px', background:'#eef2ff', color:'#ea580c', fontSize:'0.78rem', fontWeight:'700', cursor:'pointer', marginTop:'6px'}}, "\uD83D\uDCE5 Importar CSV")
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setModalAberto('importarCSV'), style:{width:'100%', padding:'10px', border:'2px solid #f97316', borderRadius:'12px', background:'#fff7ed', color:'#ea580c', fontSize:'0.78rem', fontWeight:'700', cursor:'pointer', marginTop:'6px'}}, "\uD83D\uDCE5 Importar CSV")
       ),
 
       /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
