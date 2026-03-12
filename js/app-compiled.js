@@ -3564,6 +3564,17 @@ function App({
       className: "w-full px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700"
     }, temporario ? `✅ Criar ${totalParcelas} Parcelas` : '✅ Adicionar Gasto Fixo'));
   };
+  // ── Lista unificada de categorias de gastos ────────────────────────────────
+  const CATEGORIAS_GASTOS = [
+    'ALIMENTAÇÃO','MERCADO','GASOLINA','TRANSPORTE','FARMÁCIA','SAÚDE',
+    'ACADEMIA','BELEZA','VESTUÁRIO','TECNOLOGIA','ASSINATURA',
+    'LAZER','VIAGEM','FESTA','PRESENTE',
+    'MORADIA','CONDOMÍNIO','ÁGUA/LUZ/GÁS','INTERNET/TELEFONE',
+    'EDUCAÇÃO','PET','MANUTENÇÃO','REFORMA','SERVIÇOS',
+    'COMPRAS ONLINE','EMERGÊNCIA','OUTROS'
+  ];
+  // ──────────────────────────────────────────────────────────────────────────
+
   const FormNovoGastoVariavel = () => {
     const [categoria, setCategoria] = useState('MERCADO');
     const [novaCategoria, setNovaCategoria] = useState('');
@@ -3573,8 +3584,7 @@ function App({
     const [mostrarNoFarol, setMostrarNoFarol] = useState(false);
 
     // Categorias padrão + personalizadas
-    const categoriasVariaveisDefault = ['MERCADO', 'FARMÁCIA', 'ALIMENTAÇÃO', 'TRANSPORTE', 'GASOLINA', 'LAZER'];
-    const todasCategorias = [...categoriasVariaveisDefault, ...categoriasPersonalizadas.gastosVariaveis];
+    const todasCategorias = [...CATEGORIAS_GASTOS, ...(categoriasPersonalizadas.gastosVariaveis||[]).filter(c => !CATEGORIAS_GASTOS.includes(c))];
     const handleSubmit = e => {
       e.preventDefault();
       let categoriaFinal = categoria;
@@ -3697,8 +3707,7 @@ function App({
     const [mostrarNoFarol, setMostrarNoFarol] = useState(false);
 
     // Categorias padrão para gastos extras
-    const categoriasExtrasDefault = ['VIAGEM', 'PRESENTE', 'EMERGÊNCIA', 'MÉDICO', 'VETERINÁRIO', 'MANUTENÇÃO', 'REFORMA', 'FESTA'];
-    const todasCategorias = [...categoriasExtrasDefault, ...(categoriasPersonalizadas.gastosExtras || [])];
+    const todasCategorias = [...CATEGORIAS_GASTOS, ...(categoriasPersonalizadas.gastosExtras||[]).filter(c => !CATEGORIAS_GASTOS.includes(c))];
     const handleSubmit = e => {
       e.preventDefault();
       let categoriaFinal = categoria;
@@ -3991,6 +4000,7 @@ function App({
   const FormCompraParcelada = () => {
     const [descricao, setDescricao] = useState('');
     const [cartao, setCartao] = useState(cartaoParaNovaCompra || cartoes[0]?.nome || '');
+    const [categoria, setCategoria] = useState('OUTROS');
     const [valorTotal, setValorTotal] = useState('');
     const [parcelas, setParcelas] = useState('1');
     const [mesInicio, setMesInicio] = useState(mesAtual);
@@ -4001,6 +4011,7 @@ function App({
         adicionarCompraParcelada({
           descricao,
           cartao,
+          categoria,
           valorTotal: parseFloat(valorTotal),
           parcelas: parseInt(parcelas),
           mesInicio
@@ -4038,7 +4049,14 @@ function App({
     }, cartoes.map(c => /*#__PURE__*/React.createElement("option", {
       key: c.nome,
       value: c.nome
-    }, "\uD83D\uDCB3 ", c.nome)))), /*#__PURE__*/React.createElement("div", {
+    }, "\uD83D\uDCB3 ", c.nome)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+      className: "block text-sm font-semibold text-gray-700 mb-2"
+    }, "Categoria"), /*#__PURE__*/React.createElement("select", {
+      value: categoria,
+      onChange: e => setCategoria(e.target.value),
+      className: "w-full px-4 py-2 border border-gray-300 rounded-lg"
+    }, CATEGORIAS_GASTOS.map(c => /*#__PURE__*/React.createElement("option", {key:c,value:c}, c)))),
+    /*#__PURE__*/React.createElement("div", {
       className: "grid grid-cols-2 gap-4"
     }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       className: "block text-sm font-semibold text-gray-700 mb-2"
@@ -5339,8 +5357,7 @@ function App({
     const [dragging, setDragging] = React.useState(false);
     const [catRows, setCatRows] = React.useState({});
 
-    const todasCatImport = ['MERCADO','ALIMENTAÇÃO','GASOLINA','TRANSPORTE','FARMÁCIA','SAÚDE','LAZER','MORADIA','EDUCAÇÃO','VESTUÁRIO','SERVIÇOS','OUTROS',
-      ...(categoriasPersonalizadas.gastosVariaveis||[])].filter(function(c,i,a){ return a.indexOf(c)===i; });
+    const todasCatImport = [...CATEGORIAS_GASTOS, ...(categoriasPersonalizadas.gastosVariaveis||[]).filter(function(c){ return !CATEGORIAS_GASTOS.includes(c); })];
 
     function detectarCategoria(desc) {
       const d = desc.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -5348,13 +5365,23 @@ function App({
       if (/mercado|supermercado|hortifruti|feira|atacadao|assai|mix mateus|pantanal|atacarejo|verdureiro|frutaria|alimentos/.test(d)) return 'MERCADO';
       if (/farmac|drogari|ultrafarma|pacheco|nissei|droga/.test(d)) return 'FARMÁCIA';
       if (/hospital|clinica|medic|dentist|saude|laborat|exame|plano de saude|unimed|amil|hapvida/.test(d)) return 'SAÚDE';
-      if (/uber|99app|99 pop|cabify|taxi|onibus|metro|metrô|passagem|brt|rodoviaria|conducao|estacion/.test(d)) return 'TRANSPORTE';
+      if (/academia|gym|fitness|crossfit|smartfit/.test(d)) return 'ACADEMIA';
+      if (/salao|barbearia|estetica|manicure|beleza|cabeler/.test(d)) return 'BELEZA';
+      if (/uber|99app|99 pop|cabify|taxi|onibus|metro|passagem|brt|rodoviaria|conducao|estacion/.test(d)) return 'TRANSPORTE';
       if (/restaur|lanchonet|ifood|delivery|pizza|burguer|mcdonalds|subway|padaria|acougue|cafe|bistro|sushi|churrasco|alimenta|jim\.com|sauvass|refeicao|lanche/.test(d)) return 'ALIMENTAÇÃO';
+      if (/pet|veterina|racao|cobasi|petz|agropec/.test(d)) return 'PET';
+      if (/amazon|shopee|aliexpress|magalu|americanas|submarino|mercado livre|shein/.test(d)) return 'COMPRAS ONLINE';
       if (/lwsa|sistemaq|assinatura|mensalidade|plano |servico|software|cobranca/.test(d)) return 'SERVIÇOS';
       if (/netflix|spotify|cinema|teatro|lazer|clube|parque|show|amazon prime|disney|hbo|game|steam|playstation/.test(d)) return 'LAZER';
       if (/escola|faculdade|curso|universidade|educac|livro|apostila|material escolar/.test(d)) return 'EDUCAÇÃO';
-      if (/aluguel|condomin|iptu|agua |luz |energia|gas encana|internet|telefone|tim |claro |vivo |oi |net |neoenergia|copel|cemig|sabesp/.test(d)) return 'MORADIA';
+      if (/condomin|iptu/.test(d)) return 'CONDOMÍNIO';
+      if (/agua |luz |energia|gas encana|neoenergia|copel|cemig|sabesp/.test(d)) return 'ÁGUA/LUZ/GÁS';
+      if (/internet|telefone|tim |claro |vivo |oi |net /.test(d)) return 'INTERNET/TELEFONE';
+      if (/aluguel/.test(d)) return 'MORADIA';
       if (/roupa|vestuario|calcado|moda|zara|renner|c&a|riachuelo|hering|camiseta|calca|vestido/.test(d)) return 'VESTUÁRIO';
+      if (/celular|notebook|computador|tablet|iphone|samsung|apple|tecno|eletronico/.test(d)) return 'TECNOLOGIA';
+      if (/reform|obra|pintura|construc/.test(d)) return 'REFORMA';
+      if (/manutenc|conserto|reparo|tecnico/.test(d)) return 'MANUTENÇÃO';
       return 'OUTROS';
     }
 
