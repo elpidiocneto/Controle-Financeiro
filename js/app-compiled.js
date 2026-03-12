@@ -5330,66 +5330,13 @@ function App({
 
   const FormImportarCSV = () => {
     const [etapa, setEtapa] = React.useState(1);
-    const [csvLinhas, setCsvLinhas] = React.useState([]);
-    const [csvColunas, setCsvColunas] = React.useState([]);
-    const [temHeader, setTemHeader] = React.useState(true);
-    const [colValor, setColValor] = React.useState(0);
-    const [colDesc, setColDesc] = React.useState(1);
-    const [colData, setColData] = React.useState(-1);
-    const [colCat, setColCat] = React.useState(-1);
-    const [catPadrao, setCatPadrao] = React.useState('MERCADO');
+    const [linhas, setLinhas] = React.useState([]);
+    const [selecionados, setSelecionados] = React.useState({});
     const [inverterValor, setInverterValor] = React.useState(false);
-    const [selecionados, setSelecionados] = React.useState(new Set());
+    const [ignorarCreditos, setIgnorarCreditos] = React.useState(true);
+    const [bancoDetectado, setBancoDetectado] = React.useState('');
     const [erroArquivo, setErroArquivo] = React.useState('');
-
-    const categoriasVariaveisDefault = ['MERCADO', 'FARM\u00c1CIA', 'ALIMENTA\u00c7\u00c3O', 'TRANSPORTE', 'GASOLINA', 'LAZER'];
-    const todasCategorias = [...categoriasVariaveisDefault, ...categoriasPersonalizadas.gastosVariaveis];
-
-    function parseCSV(texto) {
-      const primeira = texto.split('\n')[0];
-      const sep = (primeira.split(';').length > primeira.split(',').length) ? ';' : ',';
-      const linhas = texto.split('\n')
-        .map(function(l) { return l.trim(); })
-        .filter(function(l) { return l.length > 0; })
-        .map(function(l) {
-          const cols = []; let cur = ''; let dentro = false;
-          for (let i = 0; i < l.length; i++) {
-            const ch = l[i];
-            if (ch === '"') { dentro = !dentro; }
-            else if (ch === sep && !dentro) { cols.push(cur.trim()); cur = ''; }
-            else { cur += ch; }
-          }
-          cols.push(cur.trim());
-          return cols;
-        });
-      return { linhas: linhas };
-    }
-
-    function handleArquivo(file) {
-      setErroArquivo('');
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const { linhas } = parseCSV(e.target.result);
-          if (linhas.length < 2) { setErroArquivo('Arquivo vazio ou inv\u00e1lido.'); return; }
-          setCsvLinhas(linhas);
-          setCsvColunas(linhas[0]);
-          let vIdx = 0, dIdx = 1, dtIdx = -1, cIdx = -1;
-          linhas[0].forEach(function(col, i) {
-            const c = col.toLowerCase().replace(/\s/g, '');
-            if (/valor|amount|quantia|montante/.test(c)) vIdx = i;
-            if (/desc|titulo|title|histor|lancamento|memo|estabele/.test(c)) dIdx = i;
-            if (/data|date/.test(c)) dtIdx = i;
-            if (/categ|tipo|type/.test(c)) cIdx = i;
-          });
-          setColValor(vIdx); setColDesc(dIdx); setColData(dtIdx); setColCat(cIdx);
-          const idxs = []; for (let i = 0; i < linhas.length - 1; i++) idxs.push(i);
-          setSelecionados(new Set(idxs));
-          setEtapa(2);
-        } catch(err) { setErroArquivo('Erro ao processar: ' + err.message); }
-      };
-      reader.readAsText(file, 'UTF-8');
-    }
+    const [dragging, setDragging] = React.useState(false);
 
     function parsearData(str) {
       const fallback = { data: new Date().toLocaleDateString('pt-BR'), dataCompleta: new Date().toISOString().split('T')[0], mes: mesAtual, ano: anoAtual };
@@ -5403,137 +5350,178 @@ function App({
       return { data: d.toLocaleDateString('pt-BR'), dataCompleta: d.toISOString().split('T')[0], mes: MESES[d.getMonth()], ano: d.getFullYear() };
     }
 
-    function getValor(row) {
-      const r = String(row[colValor] || '0').replace(/\./g, '').replace(',', '.').replace(/[^0-9.\-]/g, '');
-      let v = parseFloat(r); if (isNaN(v)) v = 0;
-      if (inverterValor) v = -v;
-      return v;
+    function processarArquivo(file) {
+      if (!file) return;
+      setErroArquivo('');
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const bytes = new Uint8Array(e.target.result);
+        let texto;
+        try { texto = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+        catch (_) { texto = new TextDecoder('iso-8859-1').decode(bytes); }
+
+        const ls = texto.split('\n').filter(function(l){ return l.trim(); });
+        if (ls.length < 2) { setErroArquivo('Arquivo vazio ou inv\u00e1lido.'); return; }
+
+        // 1. Detecta separador nas primeiras 10 linhas
+        const sample = ls.slice(0, Math.min(10, ls.length)).join('\n');
+        const sep = (sample.split(';').length > sample.split(',').length) ? ';' : ',';
+
+        // 2. Encontra o header real (linha com "data" e "valor")
+        const norm = function(s){ return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); };
+        let headerIdx = 0;
+        for (let i = 0; i < Math.min(10, ls.length); i++) {
+          const cols = ls[i].split(sep).map(function(c){ return norm(c.replace(/"/g,'').trim()); });
+          if (cols.some(function(c){ return /\bdata\b|\bdate\b/.test(c); }) &&
+              cols.some(function(c){ return /\bvalor\b|\bamount\b/.test(c); })) {
+            headerIdx = i; break;
+          }
+        }
+
+        const headers = ls[headerIdx].split(sep).map(function(h){ return norm(h.replace(/"/g,'').trim()); });
+        const iData  = headers.findIndex(function(h){ return /\bdata\b|\bdate\b/.test(h); });
+        const iValor = headers.findIndex(function(h){ return /\bvalor\b|\bamount\b|\bquantia\b|\bmontante\b/.test(h); });
+        const iDesc  = (function(){ var d=headers.findIndex(function(h){ return /descri/.test(h); }); return d>=0?d:headers.findIndex(function(h){ return /desc|titulo|title|histor|memo|estabele|name|nome/.test(h); }); })();
+        const iHist  = headers.findIndex(function(h){ return /histor/.test(h); });
+        const isNubank = headers.includes('title') && headers.includes('amount');
+
+        // 3. Detecta banco
+        let banco = '';
+        if (isNubank) banco = 'Nubank';
+        else if (headers.some(function(h){ return /historico|hist\u00f3rico/.test(h); })) banco = 'Banco Inter';
+        else if (headers.some(function(h){ return /agencia|ag\u00eancia/.test(h); })) banco = 'Ita\u00fa/Bradesco';
+        else if (headers.some(function(h){ return /lancamento|lan\u00e7amento/.test(h); })) banco = 'Banco BR';
+        setBancoDetectado(banco);
+
+        // 4. Lê as linhas de dados
+        const result = [];
+        for (let i = headerIdx + 1; i < ls.length; i++) {
+          const cols = ls[i].split(sep).map(function(c){ return c.replace(/"/g,'').trim(); });
+          if (cols.length < 2) continue;
+          let desc = '', valorStr = '', dataStr = '';
+          if (isNubank) {
+            desc     = cols[headers.indexOf('title')] || '';
+            valorStr = cols[headers.indexOf('amount')] || '0';
+            dataStr  = cols[headers.indexOf('date')] || '';
+          } else if (iValor >= 0 && iDesc >= 0) {
+            const mainDesc = cols[iDesc] || '';
+            const hist = (iHist >= 0 && iHist !== iDesc) ? (cols[iHist] || '') : '';
+            desc     = hist ? hist + ' \u2014 ' + mainDesc : mainDesc;
+            valorStr = cols[iValor] || '0';
+            dataStr  = iData >= 0 ? (cols[iData] || '') : '';
+          } else if (iValor >= 0) {
+            desc     = cols[0] || '';
+            valorStr = cols[iValor] || '0';
+            dataStr  = iData >= 0 ? (cols[iData] || '') : '';
+          } else { continue; }
+
+          const valorBruto = parseFloat(valorStr.replace(/\./g,'').replace(',','.'));
+          if (!desc || isNaN(valorBruto)) continue;
+          result.push({ id: String(i), descricao: desc.toUpperCase(), valor: Math.abs(valorBruto), valorOriginal: valorBruto, dataStr: dataStr });
+        }
+
+        if (result.length === 0) { setErroArquivo('Nenhum lan\u00e7amento encontrado. Verifique o formato do arquivo.'); return; }
+        setLinhas(result);
+        // Pré-seleciona débitos (valores negativos = saída de dinheiro)
+        const sel = {};
+        result.forEach(function(r){ sel[r.id] = r.valorOriginal < 0; });
+        setSelecionados(sel);
+        setEtapa(2);
+      };
+      reader.readAsArrayBuffer(file);
     }
 
     function importar() {
-      const rows = temHeader ? csvLinhas.slice(1) : csvLinhas;
       const novos = [];
-      rows.forEach(function(row, i) {
-        if (!selecionados.has(i)) return;
-        const v = getValor(row); if (v <= 0) return;
-        const desc = colDesc >= 0 ? String(row[colDesc]||'').replace(/"/g,'') : '';
-        const cat = (colCat >= 0 && row[colCat]) ? String(row[colCat]).toUpperCase().replace(/"/g,'') : catPadrao;
-        const di = colData >= 0 ? parsearData(row[colData]) : { data: new Date().toLocaleDateString('pt-BR'), dataCompleta: new Date().toISOString().split('T')[0], mes: mesAtual, ano: anoAtual };
-        novos.push({ id: Date.now()+Math.random(), categoria: cat, descricao: desc, valor: v, mes: di.mes, ano: di.ano, data: di.data, dataCompleta: di.dataCompleta });
+      linhas.filter(function(r){ return selecionados[r.id]; }).forEach(function(r) {
+        const valorFinal = inverterValor ? Math.abs(r.valorOriginal) : r.valor;
+        if (valorFinal <= 0) return;
+        const di = parsearData(r.dataStr);
+        novos.push({ id: Date.now()+Math.random(), categoria: 'OUTROS', descricao: r.descricao, valor: valorFinal, mes: di.mes, ano: di.ano, data: di.data, dataCompleta: di.dataCompleta });
       });
-      if (novos.length === 0) { setErroArquivo('Nenhum item v\u00e1lido. Verifique a coluna de valor e se os valores s\u00e3o positivos.'); return; }
-      setGastosVariaveis(function(prev) { return [...prev, ...novos]; });
+      if (novos.length === 0) { setErroArquivo('Nenhum item v\u00e1lido selecionado.'); return; }
+      setGastosVariaveis(function(prev){ return [...prev, ...novos]; });
       setModalAberto(null);
       if (window.showToast) showToast(novos.length + ' gasto(s) importado(s)!', 'success');
     }
 
-    const rows = temHeader ? csvLinhas.slice(1) : csvLinhas;
-    const sel = { width:'100%', padding:'7px 10px', border:'1.5px solid #e5e7eb', borderRadius:'8px', fontSize:'0.8rem', background:C.bgMuted, color:C.text };
-    const lbl = { fontSize:'0.72rem', fontWeight:'700', color:C.textMuted, marginBottom:'3px', display:'block' };
-    const rw  = { display:'flex', flexDirection:'column', marginBottom:'12px' };
-    const opcs = csvColunas.map(function(c,i){ return React.createElement('option',{key:i,value:i},c||'Coluna '+(i+1)); });
-    const opcsN= [React.createElement('option',{key:-1,value:-1},'\u2014 n\u00e3o usar \u2014')].concat(csvColunas.map(function(c,i){ return React.createElement('option',{key:i,value:i},c||'Coluna '+(i+1)); }));
-    const totalSel = rows.filter(function(row,i){ return selecionados.has(i) && getValor(row)>0; }).length;
-    const prev5 = rows.slice(0,5).map(function(row){
-      const v=getValor(row), di=colData>=0?parsearData(row[colData]):{data:'-',mes:mesAtual,ano:anoAtual};
-      return { data:di.data, cat:(colCat>=0&&row[colCat])?String(row[colCat]).toUpperCase().replace(/"/g,''):catPadrao, desc:colDesc>=0?String(row[colDesc]||'').replace(/"/g,''):'', valor:v };
-    });
+    const linhasFiltradas = ignorarCreditos ? linhas.filter(function(r){ return r.valorOriginal < 0; }) : linhas;
+    const qtdSel = Object.values(selecionados).filter(Boolean).length;
 
     if (etapa === 1) return React.createElement('div', {style:{padding:'8px 0'}},
-      React.createElement('div', {style:{fontSize:'0.8rem',color:C.textMuted,marginBottom:'20px',textAlign:'center'}}, 'Suportados: Nubank \u00b7 Ita\u00fa \u00b7 Bradesco \u00b7 Santander \u00b7 C6 \u00b7 Inter'),
+      React.createElement('div', {style:{fontSize:'0.8rem',color:C.textMuted,marginBottom:'20px',textAlign:'center'}}, 'Auto-detecta: Nubank \u00b7 Banco Inter \u00b7 Ita\u00fa \u00b7 Bradesco \u00b7 Santander \u00b7 C6 \u00b7 e mais'),
       React.createElement('div', {
         onClick: function(){ document.getElementById('csvFileInput').click(); },
-        onDragOver: function(e){ e.preventDefault(); },
-        onDrop: function(e){ e.preventDefault(); const f=e.dataTransfer.files[0]; if(f) handleArquivo(f); },
-        style:{border:'2.5px dashed #c7d2fe',borderRadius:'16px',padding:'40px 20px',textAlign:'center',cursor:'pointer',background:'#eef2ff',marginBottom:'16px'}
+        onDragOver: function(e){ e.preventDefault(); setDragging(true); },
+        onDragLeave: function(){ setDragging(false); },
+        onDrop: function(e){ e.preventDefault(); setDragging(false); const f=e.dataTransfer.files[0]; if(f) processarArquivo(f); },
+        style:{border:'2.5px dashed '+(dragging?'#f97316':'#fdba74'),borderRadius:'16px',padding:'40px 20px',textAlign:'center',cursor:'pointer',background:dragging?'#fff7ed':'#fffbeb',marginBottom:'16px',transition:'all .2s'}
       },
         React.createElement('div',{style:{fontSize:'2.5rem',marginBottom:'10px'}},'\uD83D\uDCC4'),
-        React.createElement('div',{style:{fontSize:'0.95rem',fontWeight:'800',color:'#ea580c',marginBottom:'6px'}},'Clique ou arraste seu arquivo .csv'),
-        React.createElement('div',{style:{fontSize:'0.75rem',color:'#fb923c'}},'Formatos .csv e .txt suportados')
+        React.createElement('div',{style:{fontSize:'0.95rem',fontWeight:'800',color:'#ea580c',marginBottom:'6px'}},'Clique ou arraste o extrato .csv'),
+        React.createElement('div',{style:{fontSize:'0.75rem',color:'#fb923c'}},'Colunas detectadas automaticamente \u2014 sem configura\u00e7\u00e3o manual')
       ),
-      React.createElement('input',{id:'csvFileInput',type:'file',accept:'.csv,.txt',style:{display:'none'},onChange:function(e){const f=e.target.files[0];if(f)handleArquivo(f);}}),
+      React.createElement('input',{id:'csvFileInput',type:'file',accept:'.csv,.txt,.ofx,.qfx',style:{display:'none'},onChange:function(e){ const f=e.target.files[0]; if(f) processarArquivo(f); }}),
       erroArquivo ? React.createElement('div',{style:{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:'10px',padding:'10px 14px',color:'#dc2626',fontSize:'0.8rem',fontWeight:'600'}},erroArquivo) : null
     );
 
     return React.createElement('div', {style:{padding:'0'}},
-      React.createElement('div',{style:{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:'10px',padding:'8px 14px',marginBottom:'14px',fontSize:'0.78rem',fontWeight:'700',color:'#15803d'}},
-        '\u2705 '+(csvLinhas.length-(temHeader?1:0))+' linhas \u00b7 '+csvColunas.length+' colunas detectadas'
-      ),
-      React.createElement('div',{style:{background:C.bgMuted,border:'1px solid '+C.border,borderRadius:'12px',padding:'14px',marginBottom:'14px'}},
-        React.createElement('div',{style:{fontSize:'0.82rem',fontWeight:'800',color:C.text,marginBottom:'12px'}},'\uD83D\uDDFA\uFE0F Mapeamento de Colunas'),
-        React.createElement('div',{style:rw},
-          React.createElement('label',{style:lbl},'Coluna do Valor *'),
-          React.createElement('select',{style:sel,value:colValor,onChange:function(e){setColValor(parseInt(e.target.value));}}, ...opcs)
-        ),
-        React.createElement('div',{style:rw},
-          React.createElement('label',{style:lbl},'Coluna da Descri\u00e7\u00e3o'),
-          React.createElement('select',{style:sel,value:colDesc,onChange:function(e){setColDesc(parseInt(e.target.value));}}, ...opcsN)
-        ),
-        React.createElement('div',{style:rw},
-          React.createElement('label',{style:lbl},'Coluna da Data'),
-          React.createElement('select',{style:sel,value:colData,onChange:function(e){setColData(parseInt(e.target.value));}}, ...opcsN)
-        ),
-        React.createElement('div',{style:rw},
-          React.createElement('label',{style:lbl},'Categoria Padr\u00e3o'),
-          React.createElement('select',{style:sel,value:catPadrao,onChange:function(e){setCatPadrao(e.target.value);}},
-            ...todasCategorias.map(function(c){return React.createElement('option',{key:c,value:c},c);})
-          )
-        ),
-        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'8px',marginTop:'4px'}},
-          React.createElement('input',{type:'checkbox',id:'csvInverter',checked:inverterValor,onChange:function(e){setInverterValor(e.target.checked);},style:{width:'16px',height:'16px',cursor:'pointer'}}),
-          React.createElement('label',{htmlFor:'csvInverter',style:{fontSize:'0.78rem',fontWeight:'600',color:'#374151',cursor:'pointer'}},'Valores est\u00e3o negativos (d\u00e9bitos do extrato)')
+      // Banner banco + contagem
+      React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'10px',background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:'10px',padding:'10px 14px',marginBottom:'14px'}},
+        React.createElement('span',{style:{fontSize:'1.1rem'}},'\u2705'),
+        React.createElement('div',null,
+          React.createElement('div',{style:{fontSize:'0.8rem',fontWeight:'800',color:'#15803d'}}, linhas.length+' lan\u00e7amentos detectados'+(bancoDetectado?' \u2014 '+bancoDetectado:'')),
+          React.createElement('div',{style:{fontSize:'0.7rem',color:'#166534'}}, 'd\u00e9bitos pr\u00e9-selecionados \u00b7 cr\u00e9ditos/Pix recebidos ocultados')
         )
       ),
-      prev5.length > 0 ? React.createElement('div',{style:{marginBottom:'14px'}},
-        React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'800',color:C.textMuted,marginBottom:'8px'}},'\uD83D\uDC41\uFE0F Preview (5 primeiros itens)'),
-        React.createElement('div',{style:{overflowX:'auto',borderRadius:'10px',border:'1px solid '+C.border}},
-          React.createElement('table',{style:{width:'100%',borderCollapse:'collapse',fontSize:'0.72rem'}},
-            React.createElement('thead',null,
-              React.createElement('tr',{style:{background:C.bgTable}},
-                React.createElement('th',{style:{padding:'6px 10px',textAlign:'left',color:C.textMuted,fontWeight:'700'}},'Data'),
-                React.createElement('th',{style:{padding:'6px 10px',textAlign:'left',color:C.textMuted,fontWeight:'700'}},'Categoria'),
-                React.createElement('th',{style:{padding:'6px 10px',textAlign:'left',color:C.textMuted,fontWeight:'700'}},'Descri\u00e7\u00e3o'),
-                React.createElement('th',{style:{padding:'6px 10px',textAlign:'right',color:C.textMuted,fontWeight:'700'}},'Valor')
-              )
-            ),
-            React.createElement('tbody',null,
-              ...prev5.map(function(item,i){
-                return React.createElement('tr',{key:i,style:{borderTop:'1px solid '+C.borderLight,background:item.valor>0?'#fff':'#fef2f2'}},
-                  React.createElement('td',{style:{padding:'5px 10px',color:'#374151'}},item.data),
-                  React.createElement('td',{style:{padding:'5px 10px',color:'#374151'}},item.cat),
-                  React.createElement('td',{style:{padding:'5px 10px',color:'#374151',maxWidth:'120px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},item.desc),
-                  React.createElement('td',{style:{padding:'5px 10px',textAlign:'right',fontWeight:'700',color:item.valor>0?'#dc2626':'#9ca3af'}},'R$ '+item.valor.toFixed(2))
-                );
-              })
-            )
-          )
-        )
-      ) : null,
-      React.createElement('div',{style:{marginBottom:'14px'}},
-        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}},
-          React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'800',color:C.textMuted}},'\u2705 Selecionar Itens'),
-          React.createElement('label',{style:{display:'flex',alignItems:'center',gap:'6px',fontSize:'0.75rem',fontWeight:'700',color:'#ea580c',cursor:'pointer'}},
-            React.createElement('input',{type:'checkbox',checked:selecionados.size===rows.length,onChange:function(e){if(e.target.checked){const a=[];for(let i=0;i<rows.length;i++)a.push(i);setSelecionados(new Set(a));}else{setSelecionados(new Set());}}}),
-            'Selecionar todos ('+selecionados.size+'/'+rows.length+')'
-          )
+      // Toggles
+      React.createElement('div',{style:{display:'flex',gap:'12px',marginBottom:'12px',flexWrap:'wrap'}},
+        React.createElement('label',{style:{display:'flex',alignItems:'center',gap:'6px',fontSize:'0.78rem',fontWeight:'600',color:C.textMuted,cursor:'pointer'}},
+          React.createElement('input',{type:'checkbox',checked:ignorarCreditos,onChange:function(e){setIgnorarCreditos(e.target.checked);}}),
+          'Ocultar cr\u00e9ditos/Pix recebidos'
         ),
-        React.createElement('div',{style:{maxHeight:'200px',overflowY:'auto',border:'1px solid '+C.border,borderRadius:'10px',background:C.bg}},
-          ...rows.map(function(row,i){
-            const v=getValor(row), valido=v>0;
-            const desc=colDesc>=0?String(row[colDesc]||'').replace(/"/g,''):String(row[0]||'');
-            return React.createElement('label',{key:i,style:{display:'flex',alignItems:'center',gap:'10px',padding:'7px 12px',borderBottom:'1px solid '+C.borderLight,cursor:'pointer',background:selecionados.has(i)?'#fefce8':'#fff',opacity:valido?1:0.45}},
-              React.createElement('input',{type:'checkbox',checked:selecionados.has(i),onChange:function(e){setSelecionados(function(prev){const next=new Set(prev);if(e.target.checked)next.add(i);else next.delete(i);return next;});}}),
-              React.createElement('span',{style:{flex:1,fontSize:'0.75rem',color:'#374151',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},desc||'Linha '+(i+1)),
-              React.createElement('span',{style:{fontSize:'0.75rem',fontWeight:'700',color:valido?'#dc2626':'#9ca3af',whiteSpace:'nowrap'}},valido?'R$ '+v.toFixed(2):'\u2014')
-            );
-          })
+        React.createElement('label',{style:{display:'flex',alignItems:'center',gap:'6px',fontSize:'0.78rem',fontWeight:'600',color:C.textMuted,cursor:'pointer'}},
+          React.createElement('input',{type:'checkbox',checked:inverterValor,onChange:function(e){setInverterValor(e.target.checked);}}),
+          'Valores positivos s\u00e3o d\u00e9bitos'
         )
       ),
-      erroArquivo ? React.createElement('div',{style:{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:'10px',padding:'10px 14px',color:'#dc2626',fontSize:'0.8rem',fontWeight:'600',marginBottom:'12px'}},erroArquivo) : null,
+      // Lista selecionável
+      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}},
+        React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'800',color:C.textMuted}},qtdSel+' selecionados de '+linhasFiltradas.length+' exibidos'),
+        React.createElement('label',{style:{display:'flex',alignItems:'center',gap:'5px',fontSize:'0.75rem',fontWeight:'700',color:'#ea580c',cursor:'pointer'}},
+          React.createElement('input',{type:'checkbox',
+            checked: linhasFiltradas.length>0 && linhasFiltradas.every(function(r){ return selecionados[r.id]; }),
+            onChange:function(e){
+              setSelecionados(function(prev){
+                const next = Object.assign({},prev);
+                linhasFiltradas.forEach(function(r){ next[r.id]=e.target.checked; });
+                return next;
+              });
+            }
+          }),
+          'Todos'
+        )
+      ),
+      React.createElement('div',{style:{maxHeight:'240px',overflowY:'auto',border:'1px solid '+C.border,borderRadius:'10px',background:C.bg,marginBottom:'12px'}},
+        linhasFiltradas.length===0
+          ? React.createElement('div',{style:{padding:'24px',textAlign:'center',color:C.textFaint,fontSize:'0.8rem'}},'Nenhum item a exibir')
+          : linhasFiltradas.map(function(r){
+              const di = parsearData(r.dataStr);
+              return React.createElement('label',{key:r.id,style:{display:'flex',alignItems:'center',gap:'10px',padding:'8px 12px',borderBottom:'1px solid '+C.borderLight,cursor:'pointer',background:selecionados[r.id]?'#fff7ed':'transparent'}},
+                React.createElement('input',{type:'checkbox',checked:!!selecionados[r.id],onChange:function(e){setSelecionados(function(prev){ return Object.assign({},prev,{[r.id]:e.target.checked}); })}}),
+                React.createElement('div',{style:{flex:1,minWidth:0}},
+                  React.createElement('div',{style:{fontSize:'0.78rem',fontWeight:'600',color:C.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},r.descricao),
+                  di.data!==r.dataStr && React.createElement('div',{style:{fontSize:'0.65rem',color:C.textFaint}},di.data)
+                ),
+                React.createElement('span',{style:{fontSize:'0.78rem',fontWeight:'700',color:'#dc2626',whiteSpace:'nowrap',flexShrink:0}},'R$ '+r.valor.toFixed(2))
+              );
+            })
+      ),
+      erroArquivo ? React.createElement('div',{style:{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:'10px',padding:'10px 14px',color:'#dc2626',fontSize:'0.8rem',fontWeight:'600',marginBottom:'10px'}},erroArquivo) : null,
       React.createElement('div',{style:{display:'flex',gap:'10px'}},
         React.createElement('button',{onClick:function(){setEtapa(1);setErroArquivo('');},style:{padding:'10px 16px',border:'2px solid '+C.border,borderRadius:'10px',background:C.bg,color:C.textMuted,fontSize:'0.8rem',fontWeight:'700',cursor:'pointer'}},'\u2190 Voltar'),
-        React.createElement('button',{onClick:importar,disabled:totalSel===0,style:{flex:1,padding:'11px',border:'none',borderRadius:'10px',background:totalSel>0?'#f97316':'#e5e7eb',color:totalSel>0?'#fff':'#9ca3af',fontSize:'0.85rem',fontWeight:'800',cursor:totalSel>0?'pointer':'not-allowed'}},
-          '\uD83D\uDCE5 Importar '+totalSel+' item'+(totalSel!==1?'ens':'')+' selecionado'+(totalSel!==1?'s':'')
+        React.createElement('button',{onClick:importar,disabled:qtdSel===0,style:{flex:1,padding:'11px',border:'none',borderRadius:'10px',background:qtdSel>0?'#f97316':'#e5e7eb',color:qtdSel>0?'#fff':'#9ca3af',fontSize:'0.85rem',fontWeight:'800',cursor:qtdSel>0?'pointer':'not-allowed'}},
+          '\uD83D\uDCE5 Importar '+qtdSel+' gasto'+(qtdSel!==1?'s':'')
         )
       )
     );
