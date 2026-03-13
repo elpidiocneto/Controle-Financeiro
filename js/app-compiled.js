@@ -1321,8 +1321,15 @@ function App({
   }, [anoAtual]);
   useEffect(() => {
     localStorage.setItem('darkMode', darkMode.toString());
-    document.body.style.background = darkMode ? '#0f172a' : '';
-    document.body.style.colorScheme = darkMode ? 'dark' : 'light';
+    if (darkMode) {
+      document.body.classList.add('dark');
+      document.body.style.background = '';
+      document.body.style.colorScheme = '';
+    } else {
+      document.body.classList.remove('dark');
+      document.body.style.background = '';
+      document.body.style.colorScheme = '';
+    }
   }, [darkMode]);
   useEffect(() => {
     localStorage.setItem('gastosFixos', JSON.stringify(gastosFixos));

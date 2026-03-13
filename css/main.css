@@ -177,14 +177,207 @@
     --bg-header: linear-gradient(135deg, #0f0c29 0%, #1a1a4e 50%, #0f3460 100%);
     --bg-page: #f0f2f8;
     --bg-card: #ffffff;
+    --bg-muted: #f8fafc;
     --text-primary: #1e293b;
     --text-secondary: #64748b;
+    --text-faint: #9ca3af;
     --border: #e2e8f0;
+    --border-light: #f1f5f9;
+    --input-bg: #ffffff;
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
     --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
     --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
     --radius: 14px;
     --radius-sm: 8px;
+}
+
+/* === MODO ESCURO === */
+html.dark,
+body.dark {
+    --bg-page: #0a0f1e;
+    --bg-card: #151f32;
+    --bg-muted: #1a2744;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-faint: #475569;
+    --border: #1e3a5f;
+    --border-light: #112240;
+    --input-bg: #0d1b2e;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.35);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+body.dark {
+    color: var(--text-primary);
+    background: var(--bg-page) !important;
+    color-scheme: dark;
+}
+
+/* Cards e containers genéricos */
+body.dark .card-pro,
+body.dark .bg-white,
+body.dark [class*="bg-white"] {
+    background: var(--bg-card) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+}
+
+body.dark .bg-gray-50,
+body.dark [class*="bg-gray-50"] { background: var(--bg-muted) !important; }
+body.dark .bg-gray-100,
+body.dark [class*="bg-gray-100"] { background: var(--border-light) !important; }
+
+/* Textos */
+body.dark h1, body.dark h2, body.dark h3, body.dark h4 {
+    color: var(--text-primary) !important;
+}
+body.dark p, body.dark span, body.dark label, body.dark div {
+    color: inherit;
+}
+body.dark .text-gray-500,
+body.dark .text-gray-600 { color: var(--text-secondary) !important; }
+body.dark .text-gray-700,
+body.dark .text-gray-800,
+body.dark .text-gray-900 { color: var(--text-primary) !important; }
+
+/* Inputs e selects */
+body.dark input,
+body.dark select,
+body.dark textarea {
+    background: var(--input-bg) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+    color-scheme: dark;
+}
+body.dark input::placeholder,
+body.dark textarea::placeholder {
+    color: var(--text-faint) !important;
+}
+body.dark input:focus,
+body.dark select:focus,
+body.dark textarea:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.15) !important;
+}
+
+/* Modal */
+body.dark .modal-content {
+    background: var(--bg-card) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+}
+body.dark .modal-overlay {
+    background: rgba(0,0,0,0.75) !important;
+}
+
+/* Seletor de meses */
+body.dark #meses-container {
+    background: var(--bg-card) !important;
+    border-color: var(--border) !important;
+}
+body.dark .mes-btn {
+    color: var(--text-secondary) !important;
+}
+body.dark .mes-btn:hover {
+    background: var(--bg-muted) !important;
+    color: var(--text-primary) !important;
+}
+body.dark .mes-btn.ativo {
+    color: #fff !important;
+}
+body.dark .mes-btn.tem-dados {
+    color: var(--text-primary) !important;
+}
+
+/* Tabelas */
+body.dark thead th {
+    background: var(--bg-muted) !important;
+    color: var(--text-secondary) !important;
+    border-color: var(--border) !important;
+}
+body.dark tbody tr {
+    border-color: var(--border) !important;
+}
+body.dark tbody tr:hover {
+    background: var(--bg-muted) !important;
+}
+body.dark tbody td {
+    color: var(--text-primary) !important;
+}
+
+/* Scrollbar */
+body.dark #meses-container {
+    scrollbar-color: var(--border) var(--bg-muted);
+}
+body.dark ::-webkit-scrollbar-track {
+    background: var(--bg-muted);
+}
+body.dark ::-webkit-scrollbar-thumb {
+    background: var(--border);
+}
+body.dark ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-faint);
+}
+
+/* Sidebar dark */
+body.dark .sidebar-nav-item:hover {
+    background: rgba(249,115,22,0.12) !important;
+}
+
+/* Conteúdo principal */
+body.dark .main-content-area {
+    background: var(--bg-page) !important;
+}
+
+/* Borda de separação genérica */
+body.dark [class*="border-gray"],
+body.dark [class*="divide-gray"] {
+    border-color: var(--border) !important;
+}
+
+/* Badges e pills */
+body.dark .rounded-full[class*="bg-gray"],
+body.dark .rounded-full[class*="bg-slate"] {
+    background: var(--bg-muted) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* Editable inline */
+body.dark .editable-inline:hover {
+    border-color: var(--primary);
+    background: rgba(249,115,22,0.08);
+}
+
+/* Skeleton loading */
+body.dark .skeleton {
+    background: linear-gradient(90deg, var(--bg-muted) 25%, var(--border) 50%, var(--bg-muted) 75%);
+    background-size: 200% 100%;
+}
+
+/* Trial banner */
+body.dark .trial-banner {
+    background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(249,115,22,0.08));
+    border-color: rgba(245,158,11,0.2);
+}
+
+/* Progress bar */
+body.dark .progress-bar-outer {
+    background: var(--border);
+}
+
+/* Submenu */
+body.dark .submenu {
+    background: var(--bg-card);
+    border-color: var(--primary);
+}
+body.dark .submenu-item {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+body.dark .submenu-item:hover {
+    background: rgba(249,115,22,0.12);
+    color: var(--primary);
 }
 
 /* === CORPO DA PÁGINA === */

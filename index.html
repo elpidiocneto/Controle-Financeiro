@@ -33,6 +33,17 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
+<script>
+    // Aplica dark mode imediatamente para evitar flash de tela branca
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.documentElement.classList.add('dark');
+      document.body && document.body.classList.add('dark');
+      // Garante que body receba a classe assim que existir
+      document.addEventListener('DOMContentLoaded', function() {
+        document.body.classList.add('dark');
+      });
+    }
+  </script>
 <body>
     <div id="root"></div>
     
