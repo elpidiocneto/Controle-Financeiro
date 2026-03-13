@@ -1332,9 +1332,16 @@
           return sum + (valoresAno[mes] || 0);
         }, 0);
         
-        // Adicionar parcelas do mês
+        // Adicionar parcelas do mês (filtrando por ano correto)
         const parcelasDoMes = comprasParceladas
-          .filter(compra => compra.meses && compra.meses.includes(mes))
+          .filter(compra => {
+            if (!compra.meses || !compra.meses.includes(mes)) return false;
+            const parcelaIndex = compra.meses.indexOf(mes);
+            const indiceMesInicio = MESES.indexOf(compra.mesInicio);
+            const anoBase = compra.anoInicio || compra.ano || anoAtual;
+            const anoParc = anoBase + Math.floor((indiceMesInicio + parcelaIndex) / 12);
+            return anoParc === anoAtual;
+          })
           .reduce((sum, compra) => sum + (compra.valorParcela || 0), 0);
         
         const totalCartoes = totalCartoesBase + parcelasDoMes;
@@ -1700,7 +1707,7 @@
             const cartaoAtualizado = {
               ...c,
               ...dadosAtualizados,
-              ano: parseInt(dadosAtualizados.ano) || c.ano || 2026,
+              ano: parseInt(dadosAtualizados.ano) || c.ano || anoAtual,
               valor: parseFloat(dadosAtualizados.valor) || c.valor,
               limite: parseFloat(dadosAtualizados.limite) || c.limite || 0, // IMPORTANTE!
               diaFechamento: parseInt(dadosAtualizados.diaFechamento) || c.diaFechamento
@@ -1712,8 +1719,7 @@
           }
         });
         
-        setCartoes([]);
-        setTimeout(() => setCartoes(novosCartoes), 10);
+        setCartoes(novosCartoes);
         setModalAberto(null);
         alert('✅ Cartão atualizado com sucesso!');
         
@@ -1773,16 +1779,15 @@
             novosGastos.push({
               ...g,
               ...dadosAtualizados,
-              ano: parseInt(dadosAtualizados.ano) || g.ano || 2026,
+              ano: parseInt(dadosAtualizados.ano) || g.ano || anoAtual,
               valor: parseFloat(dadosAtualizados.valor) || g.valor
             });
           } else {
             novosGastos.push(g);
           }
         });
-        
-        setGastosFixos([]);
-        setTimeout(() => setGastosFixos(novosGastos), 10);
+
+        setGastosFixos(novosGastos);
         
         // Salvar no Firestore
         if (db && user) {
@@ -1840,16 +1845,15 @@
             novosGastos.push({
               ...g,
               ...dadosAtualizados,
-              ano: parseInt(dadosAtualizados.ano) || g.ano || 2026,
+              ano: parseInt(dadosAtualizados.ano) || g.ano || anoAtual,
               valor: parseFloat(dadosAtualizados.valor) || g.valor
             });
           } else {
             novosGastos.push(g);
           }
         });
-        
-        setGastosVariaveis([]);
-        setTimeout(() => setGastosVariaveis(novosGastos), 10);
+
+        setGastosVariaveis(novosGastos);
         
         // Salvar no Firestore
         if (db && user) {
@@ -1908,16 +1912,15 @@
             novosGastos.push({
               ...g,
               ...dadosAtualizados,
-              ano: parseInt(dadosAtualizados.ano) || g.ano || 2026,
+              ano: parseInt(dadosAtualizados.ano) || g.ano || anoAtual,
               valor: parseFloat(dadosAtualizados.valor) || g.valor
             });
           } else {
             novosGastos.push(g);
           }
         });
-        
-        setGastosExtras([]);
-        setTimeout(() => setGastosExtras(novosGastos), 10);
+
+        setGastosExtras(novosGastos);
         
         // Salvar no Firestore
         if (db && user) {
@@ -2194,20 +2197,21 @@
         console.log('📊 CONTAGEM POR ANO:', anos);
         
         // Verificar mês atual
-        const janeiroAtual = {
-          receitas: receitas.filter(r => r.mes === 'Janeiro' && r.ano === 2026).length,
-          variaveis: gastosVariaveis.filter(g => g.mes === 'Janeiro' && g.ano === 2026).length
+        const nomeMesAtual = MESES_NOMES ? MESES_NOMES[MESES.indexOf(mesAtual)] : mesAtual;
+        const mesAtualDiag = {
+          receitas: receitas.filter(r => r.mes === mesAtual && r.ano === anoAtual).length,
+          variaveis: gastosVariaveis.filter(g => g.mes === mesAtual && g.ano === anoAtual).length
         };
-        
+
         alert(`📊 DIAGNÓSTICO COMPLETO\n\n` +
           `📈 TOTAL DE LANÇAMENTOS:\n` +
           `  Receitas: ${totais.receitas}\n` +
           `  Cartões: ${totais.cartoes}\n` +
           `  Fixos: ${totais.fixos}\n` +
           `  Variáveis: ${totais.variaveis}\n\n` +
-          `📅 EM JANEIRO/2026:\n` +
-          `  Receitas: ${janeiroAtual.receitas}\n` +
-          `  Variáveis: ${janeiroAtual.variaveis}\n\n` +
+          `📅 EM ${mesAtual.toUpperCase()}/${anoAtual}:\n` +
+          `  Receitas: ${mesAtualDiag.receitas}\n` +
+          `  Variáveis: ${mesAtualDiag.variaveis}\n\n` +
           `📊 DISTRIBUIÇÃO POR ANO:\n` +
           `RECEITAS: ${Object.entries(anos.receitas).map(([ano, qtd]) => `${ano}=${qtd}`).join(', ')}\n` +
           `CARTÕES: ${Object.entries(anos.cartoes).map(([ano, qtd]) => `${ano}=${qtd}`).join(', ')}\n` +
@@ -2536,10 +2540,12 @@
       const pagarParcial = (item, mes, valor) => {
         const chave = `${item}-${mes}-${anoAtual}`;
         const atual = farol[chave];
+        // Se já tinha valor parcial, acumula; se era 'PAGO' ou indefinido, inicia do zero
         const jaFoiPago = typeof atual === 'number' ? atual : 0;
+        const novoValor = jaFoiPago + parseFloat(valor);
         setFarol(prev => ({
           ...prev,
-          [chave]: jaFoiPago + parseFloat(valor)
+          [chave]: novoValor
         }));
       };
       
@@ -2797,15 +2803,15 @@
       const adicionarCompraParcelada = (dados) => {
         const { descricao, cartao, valorTotal, parcelas, mesInicio } = dados;
         const valorParcela = valorTotal / parcelas;
-        
+
         const indiceMesInicio = MESES.indexOf(mesInicio);
         const mesesCompra = [];
-        
+
         for (let i = 0; i < parcelas; i++) {
           const indiceMes = (indiceMesInicio + i) % 12;
           mesesCompra.push(MESES[indiceMes]);
         }
-        
+
         const novaCompra = {
           id: Date.now().toString(),
           descricao,
@@ -2816,9 +2822,10 @@
           valorParcela,
           parcelaPaga: 0, // COMEÇA EM ZERO!
           mesInicio,
+          anoInicio: anoAtual, // ANO DE INÍCIO DA COMPRA
           meses: mesesCompra
         };
-        
+
         console.log('💾 Salvando compra parcelada:', novaCompra);
         setComprasParceladas([...comprasParceladas, novaCompra]);
       };
@@ -2831,7 +2838,15 @@
 
       const calcularParcelasCartao = (nomeCartao, mes) => {
         return comprasParceladas
-          .filter(c => c.cartao === nomeCartao && c.meses && c.meses.includes(mes))
+          .filter(c => {
+            if (c.cartao !== nomeCartao || !c.meses || !c.meses.includes(mes)) return false;
+            // Calcular em qual ano essa parcela cai
+            const parcelaIndex = c.meses.indexOf(mes);
+            const indiceMesInicio = MESES.indexOf(c.mesInicio);
+            const anoBase = c.anoInicio || c.ano || anoAtual;
+            const anoParc = anoBase + Math.floor((indiceMesInicio + parcelaIndex) / 12);
+            return anoParc === anoAtual;
+          })
           .map(c => ({
             ...c,
             parcelaAtual: c.meses.indexOf(mes) + 1
