@@ -9875,7 +9875,7 @@ function App({
       }
     },
       /*#__PURE__*/React.createElement('div', {style:{textAlign:'center', marginBottom:'22px'}},
-        /*#__PURE__*/React.createElement('img', {src: window.LOGO_B64, alt: 'Estratégia Finanças', style:{height:'56px', width:'auto', marginBottom:'8px', objectFit:'contain'}}),
+        /*#__PURE__*/React.createElement('img', {src: window.AGUIA_B64, alt: 'Estratégia Finanças', style:{height:'64px', width:'auto', marginBottom:'8px', objectFit:'contain'}}),
         /*#__PURE__*/React.createElement('div', {style:{fontSize:'1.15rem', fontWeight:'800', color: darkMode?'#f1f5f9':'#1e293b', marginBottom:'5px'}}, 'Bem-vindo ao Estratégia Finanças!'),
         /*#__PURE__*/React.createElement('div', {style:{fontSize:'0.79rem', color: darkMode?'#94a3b8':'#64748b', lineHeight:'1.5'}}, 'Configure em 4 passos simples e comece a controlar seu dinheiro com clareza 🎯')
       ),
