@@ -1013,6 +1013,7 @@ function App({
     return userId ? !localStorage.getItem('onboardingVisto_' + userId) : false;
   });
   const [stepOnboarding, setStepOnboarding] = useState(0);
+  const _alertasExibidos = React.useRef(false);
   const dispensarOnboarding = () => {
     const userId = localStorage.getItem('_currentUserId');
     if (userId) localStorage.setItem('onboardingVisto_' + userId, '1');
@@ -1611,7 +1612,10 @@ function App({
 
   // ── Alertas Proativos ────────────────────────────────────────────────────
   useEffect(function() {
+    if (_alertasExibidos.current) return;  // já exibiu nessa sessão → ignora
     if (!window.showToast) return;
+    if (gastosFixos.length === 0 && receitas.length === 0) return; // dados ainda não carregaram
+    _alertasExibidos.current = true;
     // 1) Orçamento estourado
     const limiteTotal = (orcamentoMensal.cartoes || 0) + (orcamentoMensal.fixos || 0) + (orcamentoMensal.variaveis || 0);
     if (limiteTotal > 0 && totais.total > limiteTotal) {
@@ -1663,7 +1667,7 @@ function App({
           }, 2000);
         }
       });
-  }, [mesAtual, anoAtual]);
+  }, [mesAtual, anoAtual, gastosFixos, receitas]);
   // ────────────────────────────────────────────────────────────────────────
 
   // ── Notificações Push (executa 1x no mount) ──────────────────────────────
