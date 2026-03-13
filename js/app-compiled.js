@@ -1014,6 +1014,14 @@ function App({
   });
   const [stepOnboarding, setStepOnboarding] = useState(0);
   const _alertasExibidos = React.useRef(false);
+
+  // Fecha modal e limpa edição ao trocar de tela
+  useEffect(function() {
+    setModalAberto(null);
+    setItemEditando(null);
+    setTipoEditando(null);
+    setInputDialog(null);
+  }, [telaAtiva]);
   const dispensarOnboarding = () => {
     const userId = localStorage.getItem('_currentUserId');
     if (userId) localStorage.setItem('onboardingVisto_' + userId, '1');
@@ -1612,10 +1620,12 @@ function App({
 
   // ── Alertas Proativos ────────────────────────────────────────────────────
   useEffect(function() {
-    if (_alertasExibidos.current) return;  // já exibiu nessa sessão → ignora
     if (!window.showToast) return;
     if (gastosFixos.length === 0 && receitas.length === 0) return; // dados ainda não carregaram
-    _alertasExibidos.current = true;
+    // Exibe alertas 1x por mês/ano por sessão de browser (sessionStorage reseta ao fechar aba)
+    const _chave = 'alertas_' + mesAtual + '_' + anoAtual;
+    if (sessionStorage.getItem(_chave)) return;
+    sessionStorage.setItem(_chave, '1');
     // 1) Orçamento estourado
     const limiteTotal = (orcamentoMensal.cartoes || 0) + (orcamentoMensal.fixos || 0) + (orcamentoMensal.variaveis || 0);
     if (limiteTotal > 0 && totais.total > limiteTotal) {
@@ -2082,8 +2092,7 @@ function App({
         novosCartoes.push(c);
       }
     });
-    setCartoes([]);
-    setTimeout(() => setCartoes(novosCartoes), 10);
+    setCartoes(novosCartoes);
     setModalAberto(null);
     if(window.showToast) showToast('Cartão atualizado!','success'); else alert('✅ Cartão atualizado com sucesso!');
 
@@ -2146,8 +2155,7 @@ function App({
         novosGastos.push(g);
       }
     });
-    setGastosFixos([]);
-    setTimeout(() => setGastosFixos(novosGastos), 10);
+    setGastosFixos(novosGastos);
 
     // Salvar no Firestore
     if (db && user) {
@@ -2208,8 +2216,7 @@ function App({
         novosGastos.push(g);
       }
     });
-    setGastosVariaveis([]);
-    setTimeout(() => setGastosVariaveis(novosGastos), 10);
+    setGastosVariaveis(novosGastos);
 
     // Salvar no Firestore
     if (db && user) {
@@ -2272,8 +2279,7 @@ function App({
         novosGastos.push(g);
       }
     });
-    setGastosExtras([]);
-    setTimeout(() => setGastosExtras(novosGastos), 10);
+    setGastosExtras(novosGastos);
 
     // Salvar no Firestore
     if (db && user) {
@@ -2690,10 +2696,7 @@ function App({
     console.log('📋 NOVA lista de receitas:', novasReceitas);
 
     // Forçar atualização
-    setReceitas([]);
-    setTimeout(() => {
-      setReceitas(novasReceitas);
-    }, 10);
+    setReceitas(novasReceitas);
 
     // 🔥 SALVAR IMEDIATAMENTE NO FIRESTORE
     if (db && user) {
@@ -4957,10 +4960,10 @@ function App({
       pctLimite = limite > 0 ? Math.min(100, usado/limite*100) : 0;
     }
 
-    // Sincroniza o input local quando trocar de cartão ou de mês
+    // Sincroniza o input local apenas quando trocar de cartão (não de mês)
     React.useEffect(() => {
       setValorFaturaEdit(valorBase > 0 ? String(valorBase) : '');
-    }, [cartaoSelId, mesAtual]);
+    }, [cartaoSelId]);
 
     const _isMob = window.innerWidth <= 768;
     return /*#__PURE__*/React.createElement("div", {style:{display:'grid', gridTemplateColumns: _isMob ? '1fr' : '280px 1fr', gap:'16px', alignItems:'start'}},
