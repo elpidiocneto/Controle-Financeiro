@@ -9420,9 +9420,7 @@ function App({
     });
   }, [telaAtiva === 'dashboard', mesAtual, anoAtual]), telaAtiva === 'admin' && /*#__PURE__*/React.createElement(TelaAdmin, {
     isUserAdmin: isUserAdmin
-  }), telaAtiva.startsWith('planejamento') && /*#__PURE__*/React.createElement(TelaPlanejamento, null), telaAtiva === 'receitas' && /*#__PURE__*/React.createElement(TelaReceitas, null), telaAtiva === 'cartoes' && /*#__PURE__*/React.createElement(TelaCartoes, {
-    key: JSON.stringify(farol)
-  }), telaAtiva === 'fixos' && /*#__PURE__*/React.createElement(TelaGastosFixos, null), telaAtiva === 'variaveis' && /*#__PURE__*/React.createElement(TelaGastosVariaveis, null), telaAtiva === 'extras' && /*#__PURE__*/React.createElement(TelaGastosExtras, null), telaAtiva === 'configuracoes' && /*#__PURE__*/React.createElement(TelaConfiguracoes, null), telaAtiva === 'farol' && /*#__PURE__*/React.createElement(TelaFarol, null), telaAtiva === 'relatorios' && /*#__PURE__*/React.createElement(TelaRelatorios, null)), modalAberto === 'editar' && itemEditando && /*#__PURE__*/React.createElement(Modal, {
+  }), telaAtiva.startsWith('planejamento') && /*#__PURE__*/React.createElement(TelaPlanejamento, null), telaAtiva === 'receitas' && /*#__PURE__*/React.createElement(TelaReceitas, null), telaAtiva === 'cartoes' && /*#__PURE__*/React.createElement(TelaCartoes, null), telaAtiva === 'fixos' && /*#__PURE__*/React.createElement(TelaGastosFixos, null), telaAtiva === 'variaveis' && /*#__PURE__*/React.createElement(TelaGastosVariaveis, null), telaAtiva === 'extras' && /*#__PURE__*/React.createElement(TelaGastosExtras, null), telaAtiva === 'configuracoes' && /*#__PURE__*/React.createElement(TelaConfiguracoes, null), telaAtiva === 'farol' && /*#__PURE__*/React.createElement(TelaFarol, null), telaAtiva === 'relatorios' && /*#__PURE__*/React.createElement(TelaRelatorios, null)), modalAberto === 'editar' && itemEditando && /*#__PURE__*/React.createElement(Modal, {
     titulo: `✏️ Editar ${tipoEditando === 'receita' ? 'Receita' : tipoEditando === 'cartao' ? 'Cartão de Crédito' : tipoEditando === 'fixo' ? 'Conta Fixa' : 'Gasto Variável'}`,
     onClose: () => {
       setModalAberto(null);
