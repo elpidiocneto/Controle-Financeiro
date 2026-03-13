@@ -9300,15 +9300,32 @@ function App({
     className: "sticky-desktop top-[57px] md:top-[57px] z-10"
   }, /*#__PURE__*/React.createElement("div", {
     className: "max-w-7xl mx-auto px-2 md:px-4",
+    style: { padding: '0', display: 'flex', alignItems: 'center' }
+  },
+  /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '0'
+      display: 'flex', alignItems: 'center', gap: '2px',
+      flexShrink: 0, padding: '0 8px 0 2px',
+      borderRight: '1px solid rgba(0,0,0,0.1)', marginRight: '4px'
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  },
+    /*#__PURE__*/React.createElement("button", {
+      onClick: () => setAnoAtual(anoAtual - 1),
+      title: 'Ano anterior',
+      style: { border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8', fontSize: '0.75rem', padding: '4px 5px', borderRadius: '4px', lineHeight: 1 }
+    }, '◀'),
+    /*#__PURE__*/React.createElement("span", {
+      style: { fontSize: '0.82rem', fontWeight: '700', color: '#374151', minWidth: '36px', textAlign: 'center', userSelect: 'none' }
+    }, anoAtual),
+    /*#__PURE__*/React.createElement("button", {
+      onClick: () => setAnoAtual(anoAtual + 1),
+      title: 'Próximo ano',
+      style: { border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8', fontSize: '0.75rem', padding: '4px 5px', borderRadius: '4px', lineHeight: 1 }
+    }, '▶')
+  ),
+  /*#__PURE__*/React.createElement("div", {
     style: {
-      display: 'flex',
-      gap: '4px',
-      overflowX: 'auto',
-      scrollbarWidth: 'none'
+      display: 'flex', gap: '4px', overflowX: 'auto', scrollbarWidth: 'none', flex: 1
     }
   }, MESES.map(mes => /*#__PURE__*/React.createElement("button", {
     key: mes,
