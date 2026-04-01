@@ -13,6 +13,8 @@ window.DashboardComponent = function Dashboard() {
   const pagamentos  = ctx.pagamentos  || { percentual:0, qtdPago:0, qtdTotal:0, pago:0, pendente:0, total:0 };
   const getStatusFarol = ctx.getStatusFarol || (() => 'PENDENTE');
   const calcularParcelasCartao = ctx.calcularParcelasCartao || (() => []);
+  const darkMode    = ctx.darkMode    || false;
+  const C           = ctx.C           || { bg:'#ffffff', bgMuted:'#f9fafb', bgTable:'#f3f4f6', text:'#111827', textMuted:'#6b7280', textFaint:'#9ca3af', border:'#e5e7eb', borderLight:'#f3f4f6' };
 
   const MESES = { jan:'Janeiro', fev:'Fevereiro', mar:'Março', abr:'Abril', mai:'Maio', jun:'Junho', jul:'Julho', ago:'Agosto', set:'Setembro', out:'Outubro', nov:'Novembro', dez:'Dezembro' };
   const mesNome = MESES[mesAtual] || mesAtual;
@@ -61,22 +63,22 @@ window.DashboardComponent = function Dashboard() {
     h('circle', { cx, cy, r, fill:'none', stroke:'#f3f4f6', strokeWidth:14 }),
     ...slices.map((s,i) => h('circle', { key:i, cx, cy, r, fill:'none', stroke:s.cor, strokeWidth:14,
       strokeDasharray:`${s.dash} ${s.gap}`, strokeDashoffset:-s.offset+circum*0.25 })),
-    h('text', { x:cx, y:cy-6, textAnchor:'middle', fontSize:'10', fill:'#6b7280', fontWeight:'600' }, 'Total'),
-    h('text', { x:cx, y:cy+10, textAnchor:'middle', fontSize:'11', fill:'#111827', fontWeight:'800' },
+    h('text', { x:cx, y:cy-6, textAnchor:'middle', fontSize:'10', fill:C.textMuted, fontWeight:'600' }, 'Total'),
+    h('text', { x:cx, y:cy+10, textAnchor:'middle', fontSize:'11', fill:C.text, fontWeight:'800' },
       fmt0(totalCats).replace('R$ ','R$'))
   );
 
   // ─── Estilos base ───────────────────────────────────────
-  const card  = (ex={}) => ({ background:'#fff', borderRadius:'16px', padding:'20px', border:'1px solid #e5e7eb', boxShadow:'0 2px 12px rgba(0,0,0,0.05)', ...ex });
+  const card  = (ex={}) => ({ background:C.bg, borderRadius:'16px', padding:'20px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', ...ex });
   const darkCard = (bg,bd) => ({ background:bg, borderRadius:'16px', padding:'20px', border:`1px solid ${bd}`, boxShadow:'0 4px 20px rgba(0,0,0,0.25)' });
-  const lbl  = { fontSize:'0.65rem', fontWeight:'800', letterSpacing:'1.1px', textTransform:'uppercase', color:'#6b7280', marginBottom:'4px' };
+  const lbl  = { fontSize:'0.65rem', fontWeight:'800', letterSpacing:'1.1px', textTransform:'uppercase', color:C.textMuted, marginBottom:'4px' };
   const lblW = { ...lbl, color:'rgba(255,255,255,0.5)' };
-  const sub  = { fontSize:'0.7rem', color:'#9ca3af', marginTop:'4px' };
+  const sub  = { fontSize:'0.7rem', color:C.textFaint, marginTop:'4px' };
   const secH = (t, badge) => h('div', { style:{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px' } },
-    h('h3', { style:{ fontSize:'0.82rem', fontWeight:'800', color:'#111827' } }, t),
-    badge && h('span', { style:{ fontSize:'0.68rem', fontWeight:'700', padding:'2px 8px', borderRadius:'20px', background:'#fef3c7', color:'#92400e' } }, badge)
+    h('h3', { style:{ fontSize:'0.82rem', fontWeight:'800', color:C.text } }, t),
+    badge && h('span', { style:{ fontSize:'0.68rem', fontWeight:'700', padding:'2px 8px', borderRadius:'20px', background: darkMode ? '#422006' : '#fef3c7', color: darkMode ? '#fcd34d' : '#92400e' } }, badge)
   );
-  const bar = (pct, cor, ht=6) => h('div', { style:{ height:`${ht}px`, background:'#f3f4f6', borderRadius:`${ht/2}px`, overflow:'hidden' } },
+  const bar = (pct, cor, ht=6) => h('div', { style:{ height:`${ht}px`, background:C.bgTable, borderRadius:`${ht/2}px`, overflow:'hidden' } },
     h('div', { style:{ height:'100%', width:pct+'%', background:cor, borderRadius:`${ht/2}px`, transition:'width 0.6s ease' } })
   );
 
@@ -111,7 +113,7 @@ window.DashboardComponent = function Dashboard() {
     metaMensal > 0
       ? h('div', null,
           h('div', { style:{ display:'flex', justifyContent:'space-between', marginBottom:'6px' } },
-            h('span', { style:{ fontSize:'0.76rem', color:'#6b7280' } }, fmt0(totais.total) + ' gastos'),
+            h('span', { style:{ fontSize:'0.76rem', color:C.textMuted } }, fmt0(totais.total) + ' gastos'),
             h('span', { style:{ fontSize:'0.76rem', fontWeight:'800', color:progressoCor } }, progressoPct.toFixed(0)+'%')
           ),
           bar(progressoPct, progressoCor, 8),
@@ -163,12 +165,12 @@ window.DashboardComponent = function Dashboard() {
               h('div', { style:{ display:'flex', justifyContent:'space-between', marginBottom:'3px' } },
                 h('div', { style:{ display:'flex', alignItems:'center', gap:'6px' } },
                   h('div', { style:{ width:'8px', height:'8px', borderRadius:'50%', background:c.cor } }),
-                  h('span', { style:{ fontSize:'0.74rem', color:'#374151', fontWeight:'600' } }, c.icone+' '+c.label)
+                  h('span', { style:{ fontSize:'0.74rem', color:C.text, fontWeight:'600' } }, c.icone+' '+c.label)
                 ),
-                h('span', { style:{ fontSize:'0.74rem', color:'#111827', fontWeight:'800' } }, fmt0(c.valor))
+                h('span', { style:{ fontSize:'0.74rem', color:C.text, fontWeight:'800' } }, fmt0(c.valor))
               ),
               bar(c.valor/totalCats*100, c.cor, 4),
-              h('div', { style:{ fontSize:'0.64rem', color:'#9ca3af', marginTop:'2px' } }, (c.valor/totalCats*100).toFixed(0)+'%')
+              h('div', { style:{ fontSize:'0.64rem', color:C.textFaint, marginTop:'2px' } }, (c.valor/totalCats*100).toFixed(0)+'%')
             ))
           )
         )
@@ -198,17 +200,17 @@ window.DashboardComponent = function Dashboard() {
               h('div', { style:{ display:'flex', alignItems:'center', gap:'10px' } },
                 h('span', { style:{ fontSize:'1rem' } }, vencido ? '🔴' : urgente ? '🟠' : c.icone),
                 h('div', null,
-                  h('div', { style:{ fontSize:'0.78rem', fontWeight:'700', color:'#111827' } }, c.nome),
-                  h('div', { style:{ fontSize:'0.67rem', color:'#9ca3af' } }, c.tipo)
+                  h('div', { style:{ fontSize:'0.78rem', fontWeight:'700', color:C.text } }, c.nome),
+                  h('div', { style:{ fontSize:'0.67rem', color:C.textFaint } }, c.tipo)
                 )
               ),
-              h('div', { style:{ fontSize:'0.72rem', fontWeight:'800', color:corUrg, background: vencido?'#fef2f2':urgente?'#fffbeb':'#f3f4f6', padding:'3px 9px', borderRadius:'8px' } },
+              h('div', { style:{ fontSize:'0.72rem', fontWeight:'800', color:corUrg, background: vencido?(darkMode?'#450a0a':'#fef2f2'):urgente?(darkMode?'#422006':'#fffbeb'):C.bgTable, padding:'3px 9px', borderRadius:'8px' } },
                 labelDia
               )
             );
           })
         )
-      : h('div', { style:{ textAlign:'center', padding:'24px 0', color:'#6b7280' } },
+      : h('div', { style:{ textAlign:'center', padding:'24px 0', color:C.textMuted } },
           h('div', { style:{ fontSize:'2.5rem', marginBottom:'8px' } }, '✅'),
           h('div', { style:{ fontSize:'0.85rem' } }, 'Tudo em dia!')
         )
@@ -237,33 +239,33 @@ window.DashboardComponent = function Dashboard() {
             const diasP = diaVenc && diaHoje > 0 ? diaVenc - diaHoje : null;
             const venceEm = diasP === null ? null : diasP < 0 ? 'Vencido' : diasP === 0 ? 'Vence hoje' : diasP === 1 ? 'Vence amanhã' : `Vence em ${diasP}d`;
             const corVenc = diasP !== null && diasP < 0 ? '#ef4444' : diasP !== null && diasP <= 3 ? '#f59e0b' : '#9ca3af';
-            return h('div', { key:i, style:{ padding:'11px 13px', background:pago?'#f0fdf4':'#fafafa', borderRadius:'12px', border:`1px solid ${pago?'#bbf7d0':'#e5e7eb'}` } },
+            return h('div', { key:i, style:{ padding:'11px 13px', background:pago?(darkMode?'#052e16':'#f0fdf4'):C.bgMuted, borderRadius:'12px', border:`1px solid ${pago?'#bbf7d0':C.border}` } },
               h('div', { style:{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom: lim>0?'8px':'0' } },
                 h('div', { style:{ display:'flex', alignItems:'center', gap:'8px' } },
                   h('div', { style:{ width:'30px', height:'30px', borderRadius:'8px', background:'#f97316', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem', color:'#fff', fontWeight:'800', flexShrink:0 } },
                     c.nome.charAt(0).toUpperCase()
                   ),
                   h('div', null,
-                    h('div', { style:{ fontSize:'0.8rem', fontWeight:'700', color:'#111827' } }, c.nome),
+                    h('div', { style:{ fontSize:'0.8rem', fontWeight:'700', color:C.text } }, c.nome),
                     h('div', { style:{ fontSize:'0.64rem', color: pago ? '#10b981' : corVenc, fontWeight:'600', marginTop:'1px' } },
                       pago ? '✓ Pago' : (venceEm || (diaVenc ? `Vence dia ${diaVenc}` : ''))
                     )
                   )
                 ),
                 h('div', { style:{ textAlign:'right' } },
-                  h('div', { style:{ fontSize:'0.9rem', fontWeight:'900', color:pago?'#10b981':'#111827' } }, fmt0(val)),
-                  totalParc > 0 && h('div', { style:{ fontSize:'0.62rem', color:'#9ca3af', marginTop:'1px' } },
+                  h('div', { style:{ fontSize:'0.9rem', fontWeight:'900', color:pago?'#10b981':C.text } }, fmt0(val)),
+                  totalParc > 0 && h('div', { style:{ fontSize:'0.62rem', color:C.textFaint, marginTop:'1px' } },
                     parcelas.length+' compra'+(parcelas.length!==1?'s':'')
                   )
                 )
               ),
               lim > 0 && h('div', null,
                 bar(usoPct, usoPct>80?'#ef4444':'#f97316', 3),
-                h('div', { style:{ fontSize:'0.62rem', color:'#9ca3af', marginTop:'3px' } }, `${usoPct.toFixed(0)}% de ${fmt0(lim)}`)
+                h('div', { style:{ fontSize:'0.62rem', color:C.textFaint, marginTop:'3px' } }, `${usoPct.toFixed(0)}% de ${fmt0(lim)}`)
               )
             );
           }),
-          cartoes.length > 4 && h('div', { style:{ textAlign:'center', fontSize:'0.72rem', color:'#9ca3af', marginTop:'4px' } }, `+${cartoes.length-4} cartões`)
+          cartoes.length > 4 && h('div', { style:{ textAlign:'center', fontSize:'0.72rem', color:C.textFaint, marginTop:'4px' } }, `+${cartoes.length-4} cartões`)
         )
       : h('div', { style:{ textAlign:'center', padding:'20px 0', color:'#d1d5db' } },
           h('div', { style:{ fontSize:'2rem', marginBottom:'8px' } }, '💳'),

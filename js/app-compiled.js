@@ -4056,6 +4056,7 @@ function App({
       totais, saldo, cartoes, gastosFixos: gastosFixosMes, receitas,
       mesAtual, anoAtual, metaMensal, pagamentos,
       getStatusFarol, calcularParcelasCartao,
+      darkMode, C,
     };
     const primeiroNome = user
       ? (user.displayName || user.email?.split('@')[0] || 'Usu\u00E1rio').split(' ')[0]
@@ -4614,7 +4615,7 @@ function App({
         style:{border:'2px dashed '+(dragging?'#0284c7':'#cbd5e1'),borderRadius:'12px',padding:'48px 20px',textAlign:'center',cursor:'pointer',background:dragging?'#eff6ff':'#f8fafc',transition:'all 0.2s'}
       },
         /*#__PURE__*/React.createElement("div",{style:{fontSize:'2.5rem',marginBottom:'10px'}},'\uD83D\uDCC1'),
-        /*#__PURE__*/React.createElement("div",{style:{fontSize:'0.95rem',fontWeight:'700',color:'#374151',marginBottom:'6px'}},'Arraste o arquivo ou clique para selecionar'),
+        /*#__PURE__*/React.createElement("div",{style:{fontSize:'0.95rem',fontWeight:'700',color:C.text,marginBottom:'6px'}},'Arraste o arquivo ou clique para selecionar'),
         /*#__PURE__*/React.createElement("div",{style:{fontSize:'0.75rem',color:'#9ca3af'}},'Aceita CSV, OFX, QFX \u2014 Nubank, Ita\xFA, Bradesco, C6, Inter e mais')
       ),
       /*#__PURE__*/React.createElement("input",{id:'ifatura-input',type:'file',accept:'.csv,.txt,.ofx,.qfx',style:{display:'none'},onChange:e=>processarArquivo(e.target.files[0])})
@@ -4623,7 +4624,7 @@ function App({
     return /*#__PURE__*/React.createElement("div", {style:{width:'100%', boxSizing:'border-box'}},
       /*#__PURE__*/React.createElement("div", {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}},
         /*#__PURE__*/React.createElement("div", null,
-          /*#__PURE__*/React.createElement("span",{style:{fontWeight:'700',color:'#374151'}}, linhasFiltradas.length+' lan\xE7amentos encontrados'),
+          /*#__PURE__*/React.createElement("span",{style:{fontWeight:'700',color:C.text}}, linhasFiltradas.length+' lan\xE7amentos encontrados'),
           /*#__PURE__*/React.createElement("span",{style:{fontSize:'0.75rem',color:'#64748b',marginLeft:'8px'}},'('+qtdSel+' selecionados)')
         ),
         /*#__PURE__*/React.createElement("label",{style:{display:'flex',alignItems:'center',gap:'6px',fontSize:'0.78rem',color:'#64748b',cursor:'pointer'}},
@@ -4631,13 +4632,13 @@ function App({
           'Ocultar cr\xE9ditos/estornos'
         )
       ),
-      /*#__PURE__*/React.createElement("div", {style:{maxHeight:'300px',overflowY:'auto',border:'1px solid #e2e8f0',borderRadius:'10px',marginBottom:'14px'}},
+      /*#__PURE__*/React.createElement("div", {style:{maxHeight:'300px',overflowY:'auto',border:'1px solid '+C.border,borderRadius:'10px',marginBottom:'14px'}},
         linhasFiltradas.length === 0
           ? /*#__PURE__*/React.createElement("div",{style:{padding:'20px',textAlign:'center',color:'#9ca3af'}},'Nenhum lan\xE7amento a exibir')
           : linhasFiltradas.map(r => /*#__PURE__*/React.createElement("div", {key:r.id,style:{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderBottom:'1px solid #f1f5f9',background:selecionados[r.id]?'#f0f9ff':'#fff'}},
               /*#__PURE__*/React.createElement("input",{type:'checkbox',checked:!!selecionados[r.id],onChange:e=>setSelecionados(prev=>({...prev,[r.id]:e.target.checked})),style:{flexShrink:0}}),
               /*#__PURE__*/React.createElement("div",{style:{flex:1,minWidth:0}},
-                /*#__PURE__*/React.createElement("div",{style:{fontSize:'0.8rem',fontWeight:'600',color:'#374151',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},r.descricao),
+                /*#__PURE__*/React.createElement("div",{style:{fontSize:'0.8rem',fontWeight:'600',color:C.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},r.descricao),
                 r.data && /*#__PURE__*/React.createElement("div",{style:{fontSize:'0.65rem',color:'#9ca3af'}},r.data)
               ),
               /*#__PURE__*/React.createElement("span",{style:{fontSize:'0.82rem',fontWeight:'700',color:'#0284c7',flexShrink:0}},'R$ '+r.valor.toFixed(2)),
@@ -4645,12 +4646,12 @@ function App({
                 value:parcImport[r.id]||1,
                 onChange:e=>setParcImport(prev=>({...prev,[r.id]:parseInt(e.target.value)})),
                 disabled:!selecionados[r.id],
-                style:{padding:'3px 6px',border:'1px solid #e2e8f0',borderRadius:'6px',fontSize:'0.75rem',background:'#fff',cursor:'pointer'}
+                style:{padding:'3px 6px',border:'1px solid '+C.border,borderRadius:'6px',fontSize:'0.75rem',background:'#fff',cursor:'pointer'}
               }, [1,2,3,4,5,6,7,8,9,10,11,12,18,24,36,48].map(n=>/*#__PURE__*/React.createElement("option",{key:n,value:n},n===1?'1x (\xE0 vista)':n+'x')))
             ))
       ),
       /*#__PURE__*/React.createElement("div",{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
-        /*#__PURE__*/React.createElement("button",{onClick:()=>setEtapa(1),style:{padding:'8px 16px',border:'1px solid #e2e8f0',borderRadius:'8px',background:'#fff',color:'#64748b',cursor:'pointer',fontSize:'0.82rem'}},'\u2190 Voltar'),
+        /*#__PURE__*/React.createElement("button",{onClick:()=>setEtapa(1),style:{padding:'8px 16px',border:'1px solid '+C.border,borderRadius:'8px',background:'#fff',color:'#64748b',cursor:'pointer',fontSize:'0.82rem'}},'\u2190 Voltar'),
         /*#__PURE__*/React.createElement("button",{
           onClick:confirmarImport,disabled:qtdSel===0,
           style:{padding:'8px 20px',border:'none',borderRadius:'8px',background:qtdSel===0?'#cbd5e1':'#0284c7',color:'#fff',cursor:qtdSel===0?'not-allowed':'pointer',fontSize:'0.82rem',fontWeight:'700'}
@@ -4683,11 +4684,11 @@ function App({
             const pctG = lim > 0 ? Math.min(100, usadoLiq/lim*100) : 0;
             return /*#__PURE__*/React.createElement("div", {
               key: c.id,
-              style:{background:'#f8fafc', borderRadius:'12px', border:'1px solid #e2e8f0', padding:'14px 18px'}
+              style:{background:C.bgMuted, borderRadius:'12px', border:'1px solid '+C.border, padding:'14px 18px'}
             },
               /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: lim > 0 ? '10px' : '0'}},
                 /*#__PURE__*/React.createElement("div", null,
-                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'800', color:'#111827'}}, c.nome),
+                  /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.95rem', fontWeight:'800', color:C.text}}, c.nome),
                   /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.7rem', color:'#9ca3af', marginTop:'2px'}}, 'Fecha dia '+(c.diaFechamento||c.vencimento-7)+' \xB7 Vence dia '+c.vencimento)
                 ),
                 /*#__PURE__*/React.createElement("div", {style:{display:'flex', gap:'6px'}},
@@ -4946,7 +4947,7 @@ function App({
                   : /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'6px'}},
                       ...parcelas.map((p, i) => {
                         const badge = (!p.totalParcelas || p.totalParcelas <= 1) ? '\xC0 vista' : 'Parcela '+(p.parcelaAtual||1)+' de '+p.totalParcelas;
-                        return /*#__PURE__*/React.createElement("div", {key:i, style:{display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', background:'#f8fafc', borderRadius:'10px', border:'1px solid '+C.border}},
+                        return /*#__PURE__*/React.createElement("div", {key:i, style:{display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', background:C.bgMuted, borderRadius:'10px', border:'1px solid '+C.border}},
                           /*#__PURE__*/React.createElement("div", {style:{flex:1, minWidth:0}},
                             /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'700', color:C.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}, p.descricao),
                             /*#__PURE__*/React.createElement("span", {style:{display:'inline-block', padding:'2px 8px', borderRadius:'10px', fontSize:'0.62rem', fontWeight:'700', background: p.totalParcelas<=1?'#f0fdf4':'#eff6ff', color: p.totalParcelas<=1?'#15803d':'#1d4ed8', marginTop:'3px'}}, badge)
@@ -4963,7 +4964,7 @@ function App({
             ),
 
             /*#__PURE__*/React.createElement("div", {style:{background:C.bg, borderRadius:'16px', border:'1px solid '+C.border, boxShadow:'0 2px 12px rgba(0,0,0,0.05)', overflow:'hidden'}},
-              /*#__PURE__*/React.createElement("div", {style:{padding:'14px 20px', borderBottom:'1px solid '+C.borderLight, background:'#fafafa', display:'flex', justifyContent:'space-between', alignItems:'center'}},
+              /*#__PURE__*/React.createElement("div", {style:{padding:'14px 20px', borderBottom:'1px solid '+C.borderLight, background:C.bgMuted, display:'flex', justifyContent:'space-between', alignItems:'center'}},
                 /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.6rem', fontWeight:'800', letterSpacing:'1.2px', textTransform:'uppercase', color:C.textFaint}}, '\uD83D\uDCC5 Proje\xE7\xE3o \u2014 Pr\xF3ximos 6 Meses'),
                 /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.68rem', color:C.textFaint}}, 'base + parcelas')
               ),
@@ -5239,7 +5240,7 @@ function App({
               })
             ),
 
-        gastosFiltrados.length>1 && /*#__PURE__*/React.createElement("div", {style:{padding:'12px 20px', borderTop:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fafafa'}},
+        gastosFiltrados.length>1 && /*#__PURE__*/React.createElement("div", {style:{padding:'12px 20px', borderTop:'2px solid '+C.border, display:'flex', justifyContent:'space-between', alignItems:'center', background:C.bgMuted}},
           /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'600', color:C.textMuted}}, "Total \xB7 "+gastosFiltrados.length+" gastos"),
           /*#__PURE__*/React.createElement("span", {style:{fontSize:'1rem', fontWeight:'900', color:'#f97316'}}, "R$ "+totalFiltrado.toFixed(2))
         )
@@ -5666,7 +5667,7 @@ function App({
               })
             ),
 
-        gastosFiltrados.length>1 && /*#__PURE__*/React.createElement("div", {style:{padding:'12px 20px', borderTop:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fafafa'}},
+        gastosFiltrados.length>1 && /*#__PURE__*/React.createElement("div", {style:{padding:'12px 20px', borderTop:'2px solid '+C.border, display:'flex', justifyContent:'space-between', alignItems:'center', background:C.bgMuted}},
           /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'600', color:C.textMuted}}, "Total \xB7 "+gastosFiltrados.length+" gastos"),
           /*#__PURE__*/React.createElement("span", {style:{fontSize:'1rem', fontWeight:'900', color:'#c2410c'}}, "R$ "+totalFiltrado.toFixed(2))
         )
@@ -5826,7 +5827,7 @@ function App({
               )
             ),
 
-        gastosFiltrados.length>1 && /*#__PURE__*/React.createElement("div", {style:{padding:'12px 20px', borderTop:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fafafa'}},
+        gastosFiltrados.length>1 && /*#__PURE__*/React.createElement("div", {style:{padding:'12px 20px', borderTop:'2px solid '+C.border, display:'flex', justifyContent:'space-between', alignItems:'center', background:C.bgMuted}},
           /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'600', color:C.textMuted}}, "Total \xB7 "+gastosFiltrados.length+" gastos"),
           /*#__PURE__*/React.createElement("span", {style:{fontSize:'1rem', fontWeight:'900', color:'#b45309'}}, "R$ "+totalFiltrado.toFixed(2))
         )
@@ -5895,7 +5896,7 @@ function App({
                 /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', marginBottom:'4px', alignItems:'center'}},
                   /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'6px'}},
                     /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.85rem'}}, catIcone[cat] || '\uD83D\uDCB0'),
-                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'600', color:'#374151'}}, cat)
+                    /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'600', color:C.text}}, cat)
                   ),
                   /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', fontWeight:'800', color:'#065f46'}}, (totalMes > 0 ? val/totalMes*100 : 0).toFixed(0) + "%")
                 ),
@@ -5988,7 +5989,7 @@ function App({
           )
         ),
 
-        receitasDoMes.length > 1 && /*#__PURE__*/React.createElement("div", {style:{padding:'13px 22px', borderTop:'2px solid #f9fafb', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fafafa'}},
+        receitasDoMes.length > 1 && /*#__PURE__*/React.createElement("div", {style:{padding:'13px 22px', borderTop:'2px solid '+C.border, display:'flex', justifyContent:'space-between', alignItems:'center', background:C.bgMuted}},
           /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', fontWeight:'600', color:C.textMuted}}, "Total de " + receitasDoMes.length + " receitas"),
           /*#__PURE__*/React.createElement("span", {style:{fontSize:'1rem', fontWeight:'900', color:'#059669'}}, "R$ " + totalMes.toLocaleString('pt-BR',{minimumFractionDigits:2}))
         )
@@ -6549,7 +6550,7 @@ function App({
         /*#__PURE__*/React.createElement("text", {x:45, y:58, textAnchor:'middle', fontSize:'8', fill:'#9ca3af'}, '%')
       ),
       /*#__PURE__*/React.createElement("div", {style:{flex:1}},
-        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:'#374151', marginBottom:'6px'}},
+        /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.78rem', color:C.text, marginBottom:'6px'}},
           orcadoTotal > 0 
             ? `R$ ${gastadoTotal.toFixed(2)} de R$ ${orcadoTotal.toFixed(2)}` 
             : 'Orçamento não definido'
@@ -6704,7 +6705,7 @@ function App({
           /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
             /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#f97316', flexShrink:0}}),
             /*#__PURE__*/React.createElement("div", {style:{flex:1}},
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Cartões'),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:C.text}}, 'Cartões'),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:C.text}},
                 (orcamento.cartoes/orcadoTotal*100).toFixed(0) + '%'
               )
@@ -6714,7 +6715,7 @@ function App({
           /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
             /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#fb923c', flexShrink:0}}),
             /*#__PURE__*/React.createElement("div", {style:{flex:1}},
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Fixos'),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:C.text}}, 'Fixos'),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:C.text}},
                 (orcamento.fixos/orcadoTotal*100).toFixed(0) + '%'
               )
@@ -6724,7 +6725,7 @@ function App({
           /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
             /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#10b981', flexShrink:0}}),
             /*#__PURE__*/React.createElement("div", {style:{flex:1}},
-              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Variáveis'),
+              /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:C.text}}, 'Variáveis'),
               /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:C.text}},
                 (orcamento.variaveis/orcadoTotal*100).toFixed(0) + '%'
               )
@@ -7140,7 +7141,7 @@ function App({
       /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
         /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#10b981', flexShrink:0}}),
         /*#__PURE__*/React.createElement("div", {style:{flex:1}},
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Curto Prazo'),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:C.text}}, 'Curto Prazo'),
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:C.text}},
             metasCurtoPrazo.length + ' ' + (metasCurtoPrazo.length === 1 ? 'meta' : 'metas')
           )
@@ -7150,7 +7151,7 @@ function App({
       /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
         /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#f97316', flexShrink:0}}),
         /*#__PURE__*/React.createElement("div", {style:{flex:1}},
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Médio Prazo'),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:C.text}}, 'Médio Prazo'),
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:C.text}},
             metasMedioPrazo.length + ' ' + (metasMedioPrazo.length === 1 ? 'meta' : 'metas')
           )
@@ -7160,7 +7161,7 @@ function App({
       /*#__PURE__*/React.createElement("div", {style:{display:'flex', alignItems:'center', gap:'10px'}},
         /*#__PURE__*/React.createElement("div", {style:{width:'12px', height:'12px', borderRadius:'50%', background:'#f97316', flexShrink:0}}),
         /*#__PURE__*/React.createElement("div", {style:{flex:1}},
-          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:'#374151'}}, 'Longo Prazo'),
+          /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', color:C.text}}, 'Longo Prazo'),
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.85rem', fontWeight:'800', color:C.text}},
             metasLongoPrazo.length + ' ' + (metasLongoPrazo.length === 1 ? 'meta' : 'metas')
           )
@@ -7397,7 +7398,7 @@ function App({
   (abaAtiva === 'simulacoes') && React.createElement('div', {style:{padding:'0'}},
 
     /* ── BARRA DE ABAS DAS 4 SIMULAÇÕES ── */
-    React.createElement('div', {style:{display:'flex',gap:'6px',marginBottom:'20px',background:'#f8fafc',borderRadius:'14px',padding:'6px',border:'1px solid #e2e8f0',flexWrap:'wrap'}},
+    React.createElement('div', {style:{display:'flex',gap:'6px',marginBottom:'20px',background:C.bgMuted,borderRadius:'14px',padding:'6px',border:'1px solid '+C.border,flexWrap:'wrap'}},
       [
         {key:'compra',       icon:'🛒', label:'Simul. Compra',    rota:'planejamento-compra'},
         {key:'simulador',    icon:'🎲', label:'Cenários',          rota:'planejamento-simulador'},
@@ -7430,20 +7431,20 @@ function App({
           React.createElement('div', {style:{fontSize:'1.8rem',fontWeight:'900',marginBottom:'4px'}}, 'R$ ' + Math.abs(saldo.saldo).toFixed(2)),
           React.createElement('div', {style:{fontSize:'0.75rem',opacity:0.8}}, saldo.positivo ? 'Sobra mensal disponível' : 'Saldo negativo — cuidado!')
         ),
-        React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+        React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
           React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f97316',marginBottom:'14px'}}, '🛒 Dados da Compra'),
           React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
             React.createElement('div', null,
               React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, 'Nome do produto'),
-              React.createElement('input', {type:'text', value:simCompra.nome, onChange:e=>setSimCompra({...simCompra,nome:e.target.value}), placeholder:'Ex: Notebook, TV, Carro...', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}})
+              React.createElement('input', {type:'text', value:simCompra.nome, onChange:e=>setSimCompra({...simCompra,nome:e.target.value}), placeholder:'Ex: Notebook, TV, Carro...', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid '+C.border,fontSize:'0.82rem',boxSizing:'border-box'}})
             ),
             React.createElement('div', null,
               React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, 'Valor (R$)'),
-              React.createElement('input', {type:'number', value:simCompra.valor, onChange:e=>setSimCompra({...simCompra,valor:e.target.value,resultado:null}), placeholder:'0,00', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}})
+              React.createElement('input', {type:'number', value:simCompra.valor, onChange:e=>setSimCompra({...simCompra,valor:e.target.value,resultado:null}), placeholder:'0,00', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid '+C.border,fontSize:'0.82rem',boxSizing:'border-box'}})
             ),
             React.createElement('div', null,
               React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, 'Forma de pagamento'),
-              React.createElement('select', {value:simCompra.forma, onChange:e=>setSimCompra({...simCompra,forma:e.target.value,resultado:null}), style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}},
+              React.createElement('select', {value:simCompra.forma, onChange:e=>setSimCompra({...simCompra,forma:e.target.value,resultado:null}), style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid '+C.border,fontSize:'0.82rem',boxSizing:'border-box'}},
                 React.createElement('option', {value:'avista'}, 'À Vista'),
                 React.createElement('option', {value:'parcelado'}, 'Parcelado')
               )
@@ -7451,11 +7452,11 @@ function App({
             simCompra.forma === 'parcelado' && React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}},
               React.createElement('div', null,
                 React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, 'Parcelas'),
-                React.createElement('input', {type:'number', value:simCompra.parcelas, onChange:e=>setSimCompra({...simCompra,parcelas:parseInt(e.target.value)||1,resultado:null}), min:'1', max:'60', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}})
+                React.createElement('input', {type:'number', value:simCompra.parcelas, onChange:e=>setSimCompra({...simCompra,parcelas:parseInt(e.target.value)||1,resultado:null}), min:'1', max:'60', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid '+C.border,fontSize:'0.82rem',boxSizing:'border-box'}})
               ),
               React.createElement('div', null,
                 React.createElement('label', {style:{fontSize:'0.72rem',fontWeight:'600',color:'#64748b',display:'block',marginBottom:'4px'}}, 'Juros % a.m.'),
-                React.createElement('input', {type:'number', value:simCompra.taxaJuros, onChange:e=>setSimCompra({...simCompra,taxaJuros:parseFloat(e.target.value)||0,resultado:null}), step:'0.1', min:'0', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}})
+                React.createElement('input', {type:'number', value:simCompra.taxaJuros, onChange:e=>setSimCompra({...simCompra,taxaJuros:parseFloat(e.target.value)||0,resultado:null}), step:'0.1', min:'0', style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid '+C.border,fontSize:'0.82rem',boxSizing:'border-box'}})
               )
             ),
             React.createElement('button', {
@@ -7484,7 +7485,7 @@ function App({
 
       /* Coluna Central: resultado */
       React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-        simCompra.resultado ? React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'20px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+        simCompra.resultado ? React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'20px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
           React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f97316',marginBottom:'16px'}}, '📊 Resultado da Simulação'),
           React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'12px'}},
             React.createElement('div', {style:{background: simCompra.resultado.viavel ? '#f0fdf4' : '#fef2f2', borderRadius:'12px', padding:'14px', border: simCompra.resultado.viavel ? '1px solid #86efac' : '1px solid #fca5a5'}},
@@ -7502,14 +7503,14 @@ function App({
               React.createElement('span', {style:{fontSize:'0.88rem',fontWeight:'800',color: item.alerta ? '#92400e' : item.destaque ? '#dc2626' : '#1e293b'}}, item.value)
             ))
           )
-        ) : React.createElement('div', {style:{background:'#f8fafc',borderRadius:'16px',padding:'32px',textAlign:'center',border:'1px solid #e2e8f0'}},
+        ) : React.createElement('div', {style:{background:C.bgMuted,borderRadius:'16px',padding:'32px',textAlign:'center',border:'1px solid '+C.border}},
           React.createElement('div', {style:{fontSize:'2.5rem',marginBottom:'12px'}}, '🛒'),
           React.createElement('div', {style:{fontSize:'0.85rem',color:'#94a3b8',fontWeight:'500'}}, 'Preencha os dados e clique em Simular para ver a análise')
         )
       ),
 
       /* Coluna Direita: dicas */
-      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
         React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f59e0b',marginBottom:'14px'}}, '💡 Dicas Financeiras'),
         React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
           [
@@ -7549,7 +7550,7 @@ function App({
             )
           )
         ),
-        React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+        React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
           React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f97316',marginBottom:'14px'}}, '🎛️ Ajustar Cenário'),
           React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
             React.createElement('div', null,
@@ -7571,7 +7572,7 @@ function App({
               React.createElement('button', {onClick:()=>setSimulacao({...simulacao,gastosAjuste:-20}), style:{padding:'7px 4px',borderRadius:'8px',border:'1px solid #86efac',background:'#f0fdf4',color:'#166534',fontSize:'0.68rem',fontWeight:'700',cursor:'pointer'}}, '-20% Desp.'),
               React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:20,gastosAjuste:-20}), style:{padding:'7px 4px',borderRadius:'8px',border:'1px solid #f97316',background:'#eef2ff',color:'#c2410c',fontSize:'0.68rem',fontWeight:'700',cursor:'pointer'}}, 'Combo')
             ),
-            React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:0,gastosAjuste:0}), style:{padding:'8px',borderRadius:'8px',border:'1px solid #e2e8f0',background:'#f8fafc',color:'#64748b',fontSize:'0.75rem',cursor:'pointer',width:'100%'}}, '↩️ Resetar')
+            React.createElement('button', {onClick:()=>setSimulacao({...simulacao,rendaAjuste:0,gastosAjuste:0}), style:{padding:'8px',borderRadius:'8px',border:'1px solid '+C.border,background:C.bgMuted,color:'#64748b',fontSize:'0.75rem',cursor:'pointer',width:'100%'}}, '↩️ Resetar')
           )
         )
       ),
@@ -7585,7 +7586,7 @@ function App({
           const txPoup   = rendaSim > 0 ? (saldoSim / rendaSim * 100) : 0;
           const meta20   = rendaSim * 0.20;
           return React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'14px'}},
-            React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'20px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+            React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'20px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
               React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f97316',marginBottom:'16px'}}, '🎲 Cenário Simulado'),
               React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
                 [
@@ -7593,7 +7594,7 @@ function App({
                   {label:'💸 Despesas Simuladas', value:'R$ '+despSim.toFixed(2),   color:'#dc2626'},
                   {label:'💼 Saldo Resultante',   value:'R$ '+saldoSim.toFixed(2),  color: saldoSim >= 0 ? '#16a34a' : '#dc2626'},
                   {label:'📊 Taxa de Poupança',   value:txPoup.toFixed(1)+'%',      color: txPoup >= 20 ? '#16a34a' : txPoup >= 10 ? '#f59e0b' : '#dc2626'},
-                ].map((item,i) => React.createElement('div', {key:i, style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:'#f8fafc',borderRadius:'8px',border:'1px solid #e2e8f0'}},
+                ].map((item,i) => React.createElement('div', {key:i, style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:C.bgMuted,borderRadius:'8px',border:'1px solid '+C.border}},
                   React.createElement('span', {style:{fontSize:'0.78rem',color:'#64748b'}}, item.label),
                   React.createElement('span', {style:{fontSize:'0.88rem',fontWeight:'800',color:item.color}}, item.value)
                 ))
@@ -7608,7 +7609,7 @@ function App({
                 '📉 Poupança baixa. Foque em aumentar renda ou cortar despesas.'
               ),
               saldoSim > 0 && React.createElement('div', {style:{marginTop:'10px',padding:'8px 12px',background:'rgba(255,255,255,0.6)',borderRadius:'8px'}},
-                React.createElement('div', {style:{fontSize:'0.75rem',fontWeight:'600',color:'#374151'}}, '💡 Meta recomendada: R$ '+meta20.toFixed(2)+'/mês (20% da renda)'),
+                React.createElement('div', {style:{fontSize:'0.75rem',fontWeight:'600',color:C.text}}, '💡 Meta recomendada: R$ '+meta20.toFixed(2)+'/mês (20% da renda)'),
                 React.createElement('div', {style:{fontSize:'0.75rem',color:C.textMuted,marginTop:'4px'}}, 'Economia anual estimada: R$ '+(saldoSim*12).toFixed(2))
               )
             )
@@ -7617,7 +7618,7 @@ function App({
       ),
 
       /* Coluna Direita: dicas */
-      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
         React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#f59e0b',marginBottom:'14px'}}, '💡 Estratégias'),
         React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
           [
@@ -7639,7 +7640,7 @@ function App({
     (subAba === 'aposentadoria') && React.createElement('div', {style:{display:'grid',gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
 
       /* Coluna Esquerda: formulário */
-      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
         React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#0891b2',marginBottom:'14px'}}, '🏖️ Dados da Aposentadoria'),
         React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
           [
@@ -7655,7 +7656,7 @@ function App({
             React.createElement('input', {
               type:f.type, value:simApos[f.key], min:f.min, max:f.max, step:f.step||1,
               onChange:e=>setSimApos({...simApos,[f.key]:parseFloat(e.target.value)||0,resultado:null}),
-              style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}
+              style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid '+C.border,fontSize:'0.82rem',boxSizing:'border-box'}
             })
           )),
           React.createElement('button', {
@@ -7684,13 +7685,13 @@ function App({
             React.createElement('div', {style:{fontSize:'2rem',fontWeight:'900',marginBottom:'4px'}}, 'R$ '+simApos.resultado.totalAcumulado.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})),
             React.createElement('div', {style:{fontSize:'0.78rem',opacity:0.8}}, 'Acumulado em '+simApos.resultado.anos+' anos')
           ),
-          React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+          React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
             [
               {label:'💰 Renda mensal gerada', value:'R$ '+simApos.resultado.rendaMensal.toFixed(2), color: simApos.resultado.rendaMensal >= simApos.rendaDesejada ? '#16a34a' : '#f59e0b'},
               {label:'🎯 Renda desejada', value:'R$ '+simApos.rendaDesejada.toFixed(2), color:'#f97316'},
               {label:'📊 % da meta atingida', value:simApos.resultado.pctMeta.toFixed(1)+'%', color: simApos.resultado.pctMeta >= 100 ? '#16a34a' : '#dc2626'},
               {label:'📅 Meses de acumulação', value:simApos.resultado.meses+' meses', color:'#64748b'},
-            ].map((item,i) => React.createElement('div', {key:i, style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:'#f8fafc',borderRadius:'8px',border:'1px solid #e2e8f0',marginBottom:'8px'}},
+            ].map((item,i) => React.createElement('div', {key:i, style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:C.bgMuted,borderRadius:'8px',border:'1px solid '+C.border,marginBottom:'8px'}},
               React.createElement('span', {style:{fontSize:'0.78rem',color:'#64748b'}}, item.label),
               React.createElement('span', {style:{fontSize:'0.88rem',fontWeight:'800',color:item.color}}, item.value)
             ))
@@ -7702,14 +7703,14 @@ function App({
                 : '⚠️ Você atingirá '+(simApos.resultado.pctMeta.toFixed(0))+'% da sua meta. Considere aumentar o aporte mensal em R$ '+((simApos.rendaDesejada-simApos.resultado.rendaMensal)/0.04*12/(simApos.resultado.meses||1)).toFixed(0)+'/mês.'
             )
           )
-        ) : React.createElement('div', {style:{background:'#f8fafc',borderRadius:'16px',padding:'32px',textAlign:'center',border:'1px solid #e2e8f0'}},
+        ) : React.createElement('div', {style:{background:C.bgMuted,borderRadius:'16px',padding:'32px',textAlign:'center',border:'1px solid '+C.border}},
           React.createElement('div', {style:{fontSize:'2.5rem',marginBottom:'12px'}}, '🏖️'),
           React.createElement('div', {style:{fontSize:'0.85rem',color:'#94a3b8',fontWeight:'500'}}, 'Preencha os dados e clique em Calcular')
         )
       ),
 
       /* Coluna Direita: dicas */
-      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
         React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#0891b2',marginBottom:'14px'}}, '💡 Dicas de Aposentadoria'),
         React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
           [
@@ -7731,7 +7732,7 @@ function App({
     (subAba === 'quitacao') && React.createElement('div', {style:{display:'grid',gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1fr 1.4fr 1fr',gap:'16px',alignItems:'start'}},
 
       /* Coluna Esquerda: formulário */
-      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
         React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#dc2626',marginBottom:'14px'}}, '💳 Dados da Dívida'),
         React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
           [
@@ -7745,7 +7746,7 @@ function App({
             React.createElement('input', {
               type:f.type, value:simQuit[f.key], placeholder:f.placeholder, step:f.step||undefined,
               onChange:e=>setSimQuit({...simQuit,[f.key]:e.target.value,resultado:null}),
-              style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid #e2e8f0',fontSize:'0.82rem',boxSizing:'border-box'}
+              style:{width:'100%',padding:'8px 10px',borderRadius:'8px',border:'1px solid '+C.border,fontSize:'0.82rem',boxSizing:'border-box'}
             })
           )),
           React.createElement('button', {
@@ -7785,7 +7786,7 @@ function App({
                   React.createElement('div', {style:{fontSize:'1.8rem',fontWeight:'900',marginBottom:'4px',color:'#fca5a5'}}, simQuit.resultado.mesesSem+' meses'),
                   React.createElement('div', {style:{fontSize:'0.78rem',opacity:0.8}}, 'para quitar sem pagamento extra')
                 ),
-                React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+                React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
                   React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#dc2626',marginBottom:'12px'}}, '📊 Comparativo'),
                   React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'12px'}},
                     React.createElement('div', {style:{background:'#fef2f2',borderRadius:'10px',padding:'12px',textAlign:'center'}},
@@ -7805,14 +7806,14 @@ function App({
                   )
                 )
               )
-        ) : React.createElement('div', {style:{background:'#f8fafc',borderRadius:'16px',padding:'32px',textAlign:'center',border:'1px solid #e2e8f0'}},
+        ) : React.createElement('div', {style:{background:C.bgMuted,borderRadius:'16px',padding:'32px',textAlign:'center',border:'1px solid '+C.border}},
             React.createElement('div', {style:{fontSize:'2.5rem',marginBottom:'12px'}}, '💳'),
             React.createElement('div', {style:{fontSize:'0.85rem',color:'#94a3b8',fontWeight:'500'}}, 'Preencha os dados e clique em Simular')
           )
       ),
 
       /* Coluna Direita: dicas */
-      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',padding:'18px',border:'1px solid '+C.border,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
         React.createElement('div', {style:{fontSize:'0.7rem',fontWeight:'800',letterSpacing:'1px',textTransform:'uppercase',color:'#dc2626',marginBottom:'14px'}}, '💡 Estratégias de Quitação'),
         React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
           [
@@ -8384,7 +8385,7 @@ function App({
       })(),
 
       // Preview anual
-      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',border:'1px solid #e2e8f0',overflow:'hidden',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+      React.createElement('div', {style:{background:C.bg,borderRadius:'16px',border:'1px solid '+C.border,overflow:'hidden',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
         React.createElement('div', {style:{padding:'16px 20px',borderBottom:'1px solid #f1f5f9',background:'#fafbff'}},
           React.createElement('h3', {style:{margin:0,fontSize:'0.85rem',fontWeight:'800',color:'#1e1b4b'}}, '📅 Resumo Anual ' + anoAtual),
           React.createElement('p', {style:{margin:'4px 0 0',fontSize:'0.7rem',color:C.textFaint}}, 'Clique em Exportar Excel para ver os detalhes completos em 6 abas')
@@ -8392,7 +8393,7 @@ function App({
         React.createElement('div', {style:{overflowX:'auto', WebkitOverflowScrolling:'touch'}},
           React.createElement('table', {style:{width:'100%',borderCollapse:'collapse',fontSize:'0.78rem'}},
             React.createElement('thead', null,
-              React.createElement('tr', {style:{background:'#f8fafc'}},
+              React.createElement('tr', {style:{background:C.bgMuted}},
                 ['Mês','Receitas','Despesas','Saldo'].map(function(h){
                   return React.createElement('th', {key:h, style:{padding: _isMobRel ? '8px 10px' : '10px 16px',textAlign:'left',fontWeight:'700',color:C.textMuted,letterSpacing:'0.5px',fontSize:'0.7rem',textTransform:'uppercase'}}, h);
                 })
@@ -8961,7 +8962,7 @@ function App({
             /*#__PURE__*/React.createElement("div", {style:{display:'flex', flexDirection:'column', gap:'8px'}},
               /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', paddingBottom:'8px', borderBottom:'1px solid '+C.borderLight}},
                 /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', color:'#64748b'}}, "Total a pagar"),
-                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.82rem', fontWeight:'800', color:'#374151'}}, "R$ " + pagamentos.total.toFixed(0))
+                /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.82rem', fontWeight:'800', color:C.text}}, "R$ " + pagamentos.total.toFixed(0))
               ),
               /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', paddingBottom:'8px', borderBottom:'1px solid '+C.borderLight}},
                 /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.75rem', color:'#64748b'}}, "J\xE1 pago"),
@@ -8985,8 +8986,8 @@ function App({
           style:{background:C.bg, borderRadius:'16px', padding:'24px', maxWidth:'400px', width:'90%', boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}
         },
           /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.1rem', fontWeight:'800', color:C.text, marginBottom:'16px'}}, "\uD83D\uDCB0 Registrar Pagamento"),
-          /*#__PURE__*/React.createElement("div", {style:{background:'#f8fafc', borderRadius:'12px', padding:'16px', marginBottom:'16px'}},
-            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:'#374151', marginBottom:'4px'}}, modalPagamento.nome),
+          /*#__PURE__*/React.createElement("div", {style:{background:C.bgMuted, borderRadius:'12px', padding:'16px', marginBottom:'16px'}},
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.9rem', fontWeight:'700', color:C.text, marginBottom:'4px'}}, modalPagamento.nome),
             /*#__PURE__*/React.createElement("div", {style:{fontSize:'1.6rem', fontWeight:'900', color:'#f97316'}}, "R$ " + modalPagamento.valor.toFixed(2)),
             (() => {
               const st = getStatusFarol(modalPagamento.nome, mesAtual);
@@ -9004,7 +9005,7 @@ function App({
             style:{width:'100%', padding:'12px', border:'none', borderRadius:'10px', background:'#059669', color:'#fff', fontSize:'0.85rem', fontWeight:'700', cursor:'pointer', marginBottom:'12px'}
           }, "\u2705 Marcar como PAGO"),
           /*#__PURE__*/React.createElement("div", {style:{borderTop:'1px solid '+C.border, paddingTop:'12px'}},
-            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', fontWeight:'600', color:'#374151', marginBottom:'8px'}}, "Pagar valor parcial:"),
+            /*#__PURE__*/React.createElement("div", {style:{fontSize:'0.75rem', fontWeight:'600', color:C.text, marginBottom:'8px'}}, "Pagar valor parcial:"),
             /*#__PURE__*/React.createElement("input", {
               type:"number", step:"0.01", value:valorParcial, onChange:e=>setValorParcial(e.target.value), placeholder:"Valor",
               style:{width:'100%', padding:'10px', border:'2px solid '+C.border, borderRadius:'8px', fontSize:'0.85rem', marginBottom:'8px', outline:'none'}
