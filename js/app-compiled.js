@@ -14,6 +14,34 @@ const DADOS_INICIAIS = {
 };
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
+// ── Helpers seguros para localStorage ────────────────────────────────────────
+// Protege contra: JSON corrompido, modo privado do Safari, quota excedida
+const lsGet = (key, fallback) => {
+  try {
+    const v = localStorage.getItem(key);
+    if (v === null) return fallback;
+    return JSON.parse(v);
+  } catch (e) {
+    localStorage.removeItem(key); // limpa dado corrompido
+    return fallback;
+  }
+};
+const lsSet = (key, value) => {
+  try {
+    localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+  } catch (e) {
+    // QuotaExceededError (storage cheio) ou SecurityError (modo privado no Safari)
+  }
+};
+
+// ── Helper seguro para parseFloat ─────────────────────────────────────────────
+// Retorna fallback (padrão 0) para NaN, Infinity ou valores inválidos
+const safeFloat = (v, fallback = 0) => {
+  const n = parseFloat(v);
+  return isFinite(n) ? n : fallback;
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Modal genérico de input (substitui prompt() nativo)
 function InputDialog({titulo, label, valorPadrao = '', onConfirm, onCancel}) {
   const [valor, setValor] = React.useState(valorPadrao);
@@ -140,7 +168,6 @@ function AuthWrapper() {
 
           // Se usuário NÃO existe no Firestore, criar como PENDENTE
           if (!userDoc.exists) {
-            console.log('⚠️ Usuário não existe no Firestore. Criando como PENDENTE...');
             await db.collection('usuarios').doc(user.uid).set({
               nome: user.displayName || '',
               email: user.email,
@@ -223,25 +250,23 @@ function AuthWrapper() {
             const backupDoc = await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').get();
             if (backupDoc.exists) {
               const dadosBackup = backupDoc.data().dados || {};
-              if (dadosBackup.cartoes) localStorage.setItem('cartoes', JSON.stringify(dadosBackup.cartoes));
-              if (dadosBackup.gastosFixos) localStorage.setItem('gastosFixos', JSON.stringify(dadosBackup.gastosFixos));
-              if (dadosBackup.gastosVariaveis) localStorage.setItem('gastosVariaveis', JSON.stringify(dadosBackup.gastosVariaveis));
-              if (dadosBackup.gastosExtras) localStorage.setItem('gastosExtras', JSON.stringify(dadosBackup.gastosExtras));
-              if (dadosBackup.receitas) localStorage.setItem('receitas', JSON.stringify(dadosBackup.receitas));
-              if (dadosBackup.farol) localStorage.setItem('farol', JSON.stringify(dadosBackup.farol));
-              if (dadosBackup.metas) localStorage.setItem('metas', JSON.stringify(dadosBackup.metas));
-              if (dadosBackup.metasFinanceiras) localStorage.setItem('metasFinanceiras', JSON.stringify(dadosBackup.metasFinanceiras));
-              if (dadosBackup.orcamento) localStorage.setItem('orcamento', JSON.stringify(dadosBackup.orcamento));
-              if (dadosBackup.orcamentosMensais) localStorage.setItem('orcamentosMensais', JSON.stringify(dadosBackup.orcamentosMensais));
-              if (dadosBackup.orcamentoAnual) localStorage.setItem('orcamentoAnual', JSON.stringify(dadosBackup.orcamentoAnual));
-              if (dadosBackup.planejadosMes) localStorage.setItem('planejadosMes', JSON.stringify(dadosBackup.planejadosMes));
-              if (dadosBackup.comprasParceladas) localStorage.setItem('comprasParceladas', JSON.stringify(dadosBackup.comprasParceladas));
-              if (dadosBackup.dividas) localStorage.setItem('dividas', JSON.stringify(dadosBackup.dividas));
-              if (dadosBackup.reservaEmergencia !== undefined) localStorage.setItem('reservaEmergencia', dadosBackup.reservaEmergencia.toString());
-              if (dadosBackup.categoriasPersonalizadas) localStorage.setItem('categoriasPersonalizadas', JSON.stringify(dadosBackup.categoriasPersonalizadas));
-              console.log('✅ Dados do usuário', user.uid, 'carregados do Firestore');
+              if (dadosBackup.cartoes) lsSet('cartoes', dadosBackup.cartoes);
+              if (dadosBackup.gastosFixos) lsSet('gastosFixos', dadosBackup.gastosFixos);
+              if (dadosBackup.gastosVariaveis) lsSet('gastosVariaveis', dadosBackup.gastosVariaveis);
+              if (dadosBackup.gastosExtras) lsSet('gastosExtras', dadosBackup.gastosExtras);
+              if (dadosBackup.receitas) lsSet('receitas', dadosBackup.receitas);
+              if (dadosBackup.farol) lsSet('farol', dadosBackup.farol);
+              if (dadosBackup.metas) lsSet('metas', dadosBackup.metas);
+              if (dadosBackup.metasFinanceiras) lsSet('metasFinanceiras', dadosBackup.metasFinanceiras);
+              if (dadosBackup.orcamento) lsSet('orcamento', dadosBackup.orcamento);
+              if (dadosBackup.orcamentosMensais) lsSet('orcamentosMensais', dadosBackup.orcamentosMensais);
+              if (dadosBackup.orcamentoAnual) lsSet('orcamentoAnual', dadosBackup.orcamentoAnual);
+              if (dadosBackup.planejadosMes) lsSet('planejadosMes', dadosBackup.planejadosMes);
+              if (dadosBackup.comprasParceladas) lsSet('comprasParceladas', dadosBackup.comprasParceladas);
+              if (dadosBackup.dividas) lsSet('dividas', dadosBackup.dividas);
+              if (dadosBackup.reservaEmergencia !== undefined) lsSet('reservaEmergencia', dadosBackup.reservaEmergencia.toString());
+              if (dadosBackup.categoriasPersonalizadas) lsSet('categoriasPersonalizadas', dadosBackup.categoriasPersonalizadas);
             } else {
-              console.log('🆕 Usuário', user.uid, '- sem backup, iniciando do zero');
             }
 
             // 3. Salvar o uid atual para comparação futura
@@ -250,7 +275,6 @@ function AuthWrapper() {
             // 4. Se o uid MUDOU (troca de conta), recarregar a página
             //    para que os useState do React reinicializem com os dados corretos
             if (uidMudou) {
-              console.log('🔄 Troca de conta detectada, recarregando...');
               window.location.reload();
               return;
             }
@@ -320,21 +344,18 @@ function AuthWrapper() {
         criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
         ultimoAcesso: firebase.firestore.FieldValue.serverTimestamp()
       });
-      console.log('✅ Usuário salvo no Firestore');
 
       // 3. Enviar email de verificação
       await userCredential.user.sendEmailVerification({
         url: window.location.href,
         handleCodeInApp: false
       });
-      console.log('✅ Email de verificação enviado');
 
       // 4. Aguardar um pouco para garantir que tudo foi processado
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // 5. Fazer logout
       await firebase.auth().signOut();
-      console.log('✅ Logout realizado');
 
       // 6. Resetar estados
       setRegistering(false);
@@ -695,10 +716,7 @@ function FormEdicao({
   });
 
   // Debug: ver dados iniciais
-  console.log('🔍 FormEdicao - item recebido:', item);
-  console.log('🔍 FormEdicao - formData inicial:', formData);
   const handleChange = (campo, valor) => {
-    console.log(`🔄 Mudando ${campo} para:`, valor);
     setFormData(prev => ({
       ...prev,
       [campo]: valor
@@ -706,15 +724,13 @@ function FormEdicao({
   };
   const handleSubmit = e => {
     e.preventDefault();
-    console.log('💾 Salvando formData:', formData);
 
     // Garantir que ano seja número
     const dadosParaSalvar = {
       ...formData,
       ano: parseInt(formData.ano) || new Date().getFullYear(),
-      valor: parseFloat(formData.valor)
+      valor: safeFloat(formData.valor)
     };
-    console.log('💾 Dados após processamento:', dadosParaSalvar);
     onSalvar(dadosParaSalvar);
   };
   return /*#__PURE__*/React.createElement("form", {
@@ -1031,20 +1047,17 @@ function App({
   const [gastosFixos, setGastosFixos] = useState(() => {
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return DADOS_INICIAIS.gastosFixos;
-    const saved = localStorage.getItem('gastosFixos');
-    return saved ? JSON.parse(saved) : DADOS_INICIAIS.gastosFixos;
+    return lsGet('gastosFixos', DADOS_INICIAIS.gastosFixos);
   });
   const [cartoes, setCartoes] = useState(() => {
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return DADOS_INICIAIS.cartoes;
-    const saved = localStorage.getItem('cartoes');
-    return saved ? JSON.parse(saved) : DADOS_INICIAIS.cartoes;
+    return lsGet('cartoes', DADOS_INICIAIS.cartoes);
   });
   const [gastosVariaveis, setGastosVariaveis] = useState(() => {
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return [];
-    const saved = localStorage.getItem('gastosVariaveis');
-    const gastos = saved ? JSON.parse(saved) : [];
+    const gastos = lsGet('gastosVariaveis', []);
 
     // Migração: adicionar dataCompleta para gastos que não têm
     let precisaSalvar = false;
@@ -1059,12 +1072,10 @@ function App({
         if (gasto.data && gasto.data.includes('/')) {
           const [dia, mes, ano] = gasto.data.split('/');
           dataGasto = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
-          console.log('📅 Convertendo data BR:', gasto.data, '→', dataGasto.toISOString().split('T')[0]);
         }
         // 2. Se ID é timestamp válido
         else if (gasto.id && !isNaN(gasto.id) && gasto.id > 1000000000000) {
           dataGasto = new Date(gasto.id);
-          console.log('📅 Usando ID como timestamp:', gasto.id, '→', dataGasto.toISOString().split('T')[0]);
         }
         // 3. Fallback: usar mês e ano atuais com dia 1
         else {
@@ -1073,11 +1084,9 @@ function App({
           const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
           const mesNum = meses.indexOf(mesGasto.toLowerCase());
           dataGasto = new Date(anoGasto, mesNum >= 0 ? mesNum : 0, 1);
-          console.log('📅 Fallback mês/ano:', mesGasto, anoGasto, '→', dataGasto.toISOString().split('T')[0]);
         }
         const dataCompletaGerada = dataGasto.toISOString().split('T')[0];
         const dataFormatada = dataGasto.toLocaleDateString('pt-BR');
-        console.log('✅ Migrado:', gasto.descricao || 'Sem descrição', '-', dataCompletaGerada);
         return {
           ...gasto,
           dataCompleta: dataCompletaGerada,
@@ -1089,10 +1098,8 @@ function App({
 
     // Salvar automaticamente se teve migração
     if (precisaSalvar) {
-      console.log('💾 Salvando', gastosMigrados.length, 'gastos migrados no localStorage...');
       setTimeout(() => {
-        localStorage.setItem('gastosVariaveis', JSON.stringify(gastosMigrados));
-        console.log('✅ Migração de datas concluída para gastos variáveis');
+        lsSet('gastosVariaveis', gastosMigrados);
       }, 100);
     }
     return gastosMigrados;
@@ -1100,8 +1107,7 @@ function App({
   const [gastosExtras, setGastosExtras] = useState(() => {
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return [];
-    const saved = localStorage.getItem('gastosExtras');
-    const gastos = saved ? JSON.parse(saved) : [];
+    const gastos = lsGet('gastosExtras', []);
 
     // Migração: adicionar dataCompleta para gastos que não têm
     let precisaSalvar = false;
@@ -1142,8 +1148,7 @@ function App({
     // Salvar automaticamente se teve migração
     if (precisaSalvar) {
       setTimeout(() => {
-        localStorage.setItem('gastosExtras', JSON.stringify(gastosMigrados));
-        console.log('✅ Migração de datas concluída:', gastosMigrados.length, 'gastos extras');
+        lsSet('gastosExtras', gastosMigrados);
       }, 100);
     }
     return gastosMigrados;
@@ -1151,44 +1156,26 @@ function App({
   const [receitas, setReceitas] = useState(() => {
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return [];
-    const saved = localStorage.getItem('receitas');
-    return saved ? JSON.parse(saved) : [];
+    return lsGet('receitas', []);
   });
   const [cartaoParaNovaCompra, setCartaoParaNovaCompra] = useState(null);
   const [cartaoImport, setCartaoImport] = useState(null);
   const [farol, setFarol] = useState(() => {
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return {};
-    const saved = localStorage.getItem('farol');
-    return saved ? JSON.parse(saved) : {};
+    return lsGet('farol', {});
   });
   const [metas, setMetas] = useState(() => {
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return {};
-    const saved = localStorage.getItem('metas');
-    return saved ? JSON.parse(saved) : {
-      mensal: 0,
-      jan: 0,
-      fev: 0,
-      mar: 0,
-      abr: 0,
-      mai: 0,
-      jun: 0,
-      jul: 0,
-      ago: 0,
-      set: 0,
-      out: 0,
-      nov: 0,
-      dez: 0
-    };
+    return lsGet('metas', { mensal:0, jan:0, fev:0, mar:0, abr:0, mai:0, jun:0, jul:0, ago:0, set:0, out:0, nov:0, dez:0 });
   });
 
   // 🎯 METAS FINANCEIRAS (Curto/Médio/Longo Prazo)
   const [metasFinanceiras, setMetasFinanceiras] = useState(() => {
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return [];
-    const saved = localStorage.getItem('metasFinanceiras');
-    return saved ? JSON.parse(saved) : [];
+    return lsGet('metasFinanceiras', []);
   });
 
   // 💰 RESERVA DE EMERGÊNCIA ATUAL
@@ -1196,131 +1183,46 @@ function App({
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return 0;
     const saved = localStorage.getItem('reservaEmergencia');
-    return saved ? parseFloat(saved) : 0;
+    return saved ? (parseFloat(saved) || 0) : 0;
   });
 
   // 💳 DÍVIDAS
   const [dividas, setDividas] = useState(() => {
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return [];
-    const saved = localStorage.getItem('dividas');
-    return saved ? JSON.parse(saved) : [];
+    return lsGet('dividas', []);
   });
   const [orcamento, setOrcamento] = useState(() => {
     const currentUserId = localStorage.getItem('_currentUserId');
     if (!currentUserId) return {};
-    const saved = localStorage.getItem('orcamento');
-    return saved ? JSON.parse(saved) : {
-      cartoes: 0,
-      fixos: 0,
-      variaveis: 0
-    };
+    return lsGet('orcamento', { cartoes: 0, fixos: 0, variaveis: 0 });
   });
 
   // Categorias personalizadas
   const [categoriasPersonalizadas, setCategoriasPersonalizadas] = useState(() => {
-    const saved = localStorage.getItem('categoriasPersonalizadas');
-    return saved ? JSON.parse(saved) : {
-      gastosFixos: [],
-      gastosVariaveis: [],
-      gastosExtras: []
-    };
+    return lsGet('categoriasPersonalizadas', { gastosFixos: [], gastosVariaveis: [], gastosExtras: [] });
   });
+  const _omz = { cartoes: 0, fixos: 0, variaveis: 0 };
   const [orcamentosMensais, setOrcamentosMensais] = useState(() => {
-    const saved = localStorage.getItem('orcamentosMensais');
-    return saved ? JSON.parse(saved) : {
-      jan: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      },
-      fev: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      },
-      mar: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      },
-      abr: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      },
-      mai: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      },
-      jun: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      },
-      jul: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      },
-      ago: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      },
-      set: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      },
-      out: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      },
-      nov: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      },
-      dez: {
-        cartoes: 0,
-        fixos: 0,
-        variaveis: 0
-      }
-    };
+    return lsGet('orcamentosMensais', {
+      jan: _omz, fev: _omz, mar: _omz, abr: _omz, mai: _omz, jun: _omz,
+      jul: _omz, ago: _omz, set: _omz, out: _omz, nov: _omz, dez: _omz
+    });
   });
   const [orcamentoAnual, setOrcamentoAnual] = useState(() => {
-    const saved = localStorage.getItem('orcamentoAnual');
-    return saved ? JSON.parse(saved) : {
-      jan: 0,
-      fev: 0,
-      mar: 0,
-      abr: 0,
-      mai: 0,
-      jun: 0,
-      jul: 0,
-      ago: 0,
-      set: 0,
-      out: 0,
-      nov: 0,
-      dez: 0
-    };
+    return lsGet('orcamentoAnual', { jan:0, fev:0, mar:0, abr:0, mai:0, jun:0, jul:0, ago:0, set:0, out:0, nov:0, dez:0 });
   });
   const [planejadosMes, setPlanejadosMes] = useState(() => {
-    const saved = localStorage.getItem('planejadosMes');
-    return saved ? JSON.parse(saved) : [];
+    return lsGet('planejadosMes', []);
   });
   const [comprasParceladas, setComprasParceladas] = useState(() => {
-    const saved = localStorage.getItem('comprasParceladas');
-    return saved ? JSON.parse(saved) : [];
+    return lsGet('comprasParceladas', []);
   });
   useEffect(() => {
     localStorage.setItem('anoAtual', anoAtual.toString());
   }, [anoAtual]);
   useEffect(() => {
-    localStorage.setItem('darkMode', darkMode.toString());
+    lsSet('darkMode', darkMode.toString());
     if (darkMode) {
       document.body.classList.add('dark');
       document.body.style.background = '';
@@ -1332,44 +1234,43 @@ function App({
     }
   }, [darkMode]);
   useEffect(() => {
-    localStorage.setItem('gastosFixos', JSON.stringify(gastosFixos));
+    lsSet('gastosFixos', gastosFixos);
   }, [gastosFixos]);
   useEffect(() => {
-    localStorage.setItem('categoriasPersonalizadas', JSON.stringify(categoriasPersonalizadas));
+    lsSet('categoriasPersonalizadas', categoriasPersonalizadas);
   }, [categoriasPersonalizadas]);
   useEffect(() => {
-    console.log('💾 Salvando cartões:', cartoes.length, 'cartões');
-    localStorage.setItem('cartoes', JSON.stringify(cartoes));
+    lsSet('cartoes', cartoes);
   }, [cartoes]);
   useEffect(() => {
-    localStorage.setItem('gastosVariaveis', JSON.stringify(gastosVariaveis));
+    lsSet('gastosVariaveis', gastosVariaveis);
   }, [gastosVariaveis]);
   useEffect(() => {
-    localStorage.setItem('gastosExtras', JSON.stringify(gastosExtras));
+    lsSet('gastosExtras', gastosExtras);
   }, [gastosExtras]);
   useEffect(() => {
-    localStorage.setItem('receitas', JSON.stringify(receitas));
+    lsSet('receitas', receitas);
   }, [receitas]);
   useEffect(() => {
-    localStorage.setItem('farol', JSON.stringify(farol));
+    lsSet('farol', farol);
   }, [farol]);
   useEffect(() => {
-    localStorage.setItem('metas', JSON.stringify(metas));
+    lsSet('metas', metas);
   }, [metas]);
   useEffect(() => {
-    localStorage.setItem('metasFinanceiras', JSON.stringify(metasFinanceiras));
+    lsSet('metasFinanceiras', metasFinanceiras);
   }, [metasFinanceiras]);
   useEffect(() => {
-    localStorage.setItem('reservaEmergencia', reservaEmergencia.toString());
+    lsSet('reservaEmergencia', reservaEmergencia.toString());
   }, [reservaEmergencia]);
   useEffect(() => {
-    localStorage.setItem('dividas', JSON.stringify(dividas));
+    lsSet('dividas', dividas);
   }, [dividas]);
   useEffect(() => {
-    localStorage.setItem('orcamento', JSON.stringify(orcamento));
+    lsSet('orcamento', orcamento);
   }, [orcamento]);
   useEffect(() => {
-    localStorage.setItem('orcamentosMensais', JSON.stringify(orcamentosMensais));
+    lsSet('orcamentosMensais', orcamentosMensais);
   }, [orcamentosMensais]);
 
   // 🔥 AUTO-SAVE NA NUVEM - Salva automaticamente após cada mudança
@@ -1436,19 +1337,13 @@ function App({
                 isAdmin: true
               });
               setIsUserAdmin(true);
-              console.log('✅ Primeiro usuário promovido a admin automaticamente');
-              console.log('🔍 DEBUG: isUserAdmin setado para TRUE (primeiro usuário)');
             } else {
               setIsUserAdmin(false);
-              console.log('⚠️ DEBUG: isUserAdmin setado para FALSE (não é primeiro usuário)');
-              console.log('📊 DEBUG: Total de usuários:', allUsers.size);
             }
           } else {
             // Já tem campo definido, usar o valor
             const adminStatus = userData.isAdmin === true;
             setIsUserAdmin(adminStatus);
-            console.log('🔍 DEBUG: isAdmin do Firestore:', userData.isAdmin);
-            console.log('🔍 DEBUG: isUserAdmin setado para:', adminStatus);
           }
 
           // Se não tem status, é usuário antigo - aprovar automaticamente
@@ -1458,7 +1353,6 @@ function App({
               emailVerificado: true,
               plano: 'premium' // Usuários antigos viram premium
             });
-            console.log('✅ Usuário antigo aprovado e verificado automaticamente');
           }
 
           // ✅ VERIFICAR PLANO E TRIAL
@@ -1482,7 +1376,6 @@ function App({
           }
         } else {
           setIsUserAdmin(false);
-          console.log('❌ DEBUG: Documento do usuário não existe no Firestore');
         }
         const doc = await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').get();
         if (doc.exists) {
@@ -1504,7 +1397,6 @@ function App({
           setOrcamentoAnual(dadosBackup.dados.orcamentoAnual || {});
           setPlanejadosMes(dadosBackup.dados.planejadosMes || []);
           setComprasParceladas(dadosBackup.dados.comprasParceladas || []);
-          console.log('✅ Dados carregados da nuvem');
         }
       } catch (error) {
         console.error('Erro ao carregar da nuvem:', error);
@@ -1513,13 +1405,13 @@ function App({
     carregarDaNuvem();
   }, []);
   useEffect(() => {
-    localStorage.setItem('orcamentoAnual', JSON.stringify(orcamentoAnual));
+    lsSet('orcamentoAnual', orcamentoAnual);
   }, [orcamentoAnual]);
   useEffect(() => {
-    localStorage.setItem('planejadosMes', JSON.stringify(planejadosMes));
+    lsSet('planejadosMes', planejadosMes);
   }, [planejadosMes]);
   useEffect(() => {
-    localStorage.setItem('comprasParceladas', JSON.stringify(comprasParceladas));
+    lsSet('comprasParceladas', comprasParceladas);
   }, [comprasParceladas]);
 
   // MIGRAÇÃO AUTOMÁTICA PARA ESTRUTURA MULTI-ANO
@@ -1527,7 +1419,6 @@ function App({
     const migrated = localStorage.getItem('dataMigradaMultiAno');
     if (migrated) return; // Já migrado
 
-    console.log('🔄 Iniciando migração para estrutura multi-ano...');
 
     // Migrar Cartões
     const cartoesAtualizados = cartoes.map(cartao => {
@@ -1583,7 +1474,6 @@ function App({
 
     // Marcar como migrado
     localStorage.setItem('dataMigradaMultiAno', 'true');
-    console.log('✅ Migração concluída com sucesso!');
   }, []);
   const calcularTotais = mes => {
     // Valor base dos cartões - AGORA USA ANO
@@ -2016,7 +1906,6 @@ function App({
 
   // CRUD Functions
   const adicionarCartao = dados => {
-    console.log('Adicionando cartão:', dados);
     const novoCartao = {
       id: Date.now(),
       nome: dados.nome.toUpperCase(),
@@ -2044,12 +1933,11 @@ function App({
     if(window.showToast) showToast('Cartão adicionado com sucesso!','success'); else alert('Cartão adicionado com sucesso!');
   };
   const adicionarGastoFixo = dados => {
-    console.log('Adicionando gasto fixo:', dados);
     const novoGasto = {
       id: Date.now(),
       categoria: dados.categoria.toUpperCase(),
       descricao: dados.descricao.toUpperCase(),
-      valor: parseFloat(dados.valor),
+      valor: safeFloat(dados.valor),
       vencimento: parseInt(dados.vencimento),
       temporario: dados.temporario || false,
       totalParcelas: dados.totalParcelas || null,
@@ -2066,12 +1954,11 @@ function App({
     }
   };
   const adicionarGastoVariavel = dados => {
-    console.log('Adicionando gasto variável:', dados);
     const novoGasto = {
       id: Date.now(),
       categoria: dados.categoria,
       descricao: dados.descricao || '',
-      valor: parseFloat(dados.valor),
+      valor: safeFloat(dados.valor),
       mes: mesAtual,
       ano: anoAtual,
       data: dados.data || new Date().toLocaleDateString('pt-BR'),
@@ -2087,7 +1974,6 @@ function App({
     }
   };
   const editarCartao = async (id, dadosAtualizados) => {
-    console.log('✏️ Editando cartão:', id, dadosAtualizados);
     const novosCartoes = [];
     cartoes.forEach(c => {
       if (c.id === id) {
@@ -2095,12 +1981,11 @@ function App({
           ...c,
           ...dadosAtualizados,
           ano: parseInt(dadosAtualizados.ano) || c.ano || anoAtual,
-          valor: parseFloat(dadosAtualizados.valor) || c.valor,
+          valor: safeFloat(dadosAtualizados.valor) || c.valor,
           limite: parseFloat(dadosAtualizados.limite) || c.limite || 0,
           // IMPORTANTE!
           diaFechamento: parseInt(dadosAtualizados.diaFechamento) || c.diaFechamento
         };
-        console.log('✅ Cartão atualizado:', cartaoAtualizado);
         novosCartoes.push(cartaoAtualizado);
       } else {
         novosCartoes.push(c);
@@ -2163,7 +2048,7 @@ function App({
           ...g,
           ...dadosAtualizados,
           ano: parseInt(dadosAtualizados.ano) || g.ano || anoAtual,
-          valor: parseFloat(dadosAtualizados.valor) || g.valor
+          valor: safeFloat(dadosAtualizados.valor) || g.valor
         });
       } else {
         novosGastos.push(g);
@@ -2224,7 +2109,7 @@ function App({
           ...g,
           ...dadosAtualizados,
           ano: parseInt(dadosAtualizados.ano) || g.ano || anoAtual,
-          valor: parseFloat(dadosAtualizados.valor) || g.valor
+          valor: safeFloat(dadosAtualizados.valor) || g.valor
         });
       } else {
         novosGastos.push(g);
@@ -2287,7 +2172,7 @@ function App({
           ...g,
           ...dadosAtualizados,
           ano: parseInt(dadosAtualizados.ano) || g.ano || anoAtual,
-          valor: parseFloat(dadosAtualizados.valor) || g.valor
+          valor: safeFloat(dadosAtualizados.valor) || g.valor
         });
       } else {
         novosGastos.push(g);
@@ -2322,16 +2207,12 @@ function App({
       return;
     }
     try {
-      console.log('💳 Iniciando migração de cartões...');
-      console.log('📋 Cartões antes:', cartoes);
       let cartoesAtualizados = 0;
       let valoresMigrados = 0;
       const novosCartoes = cartoes.map(cartao => {
         // Verificar se tem valores no ano de origem
         const valoresOrigem = cartao.valores?.[anoOrigem];
         if (valoresOrigem && Object.keys(valoresOrigem).length > 0) {
-          console.log(`💳 Movendo cartão: ${cartao.nome}`);
-          console.log(`  Valores ${anoOrigem} (antes):`, valoresOrigem);
 
           // Criar objeto de valores zerados para o ano de origem
           const valoresZerados = {};
@@ -2351,15 +2232,12 @@ function App({
               [anoOrigem]: valoresZerados // Zera origem
             }
           };
-          console.log(`  Valores ${anoDestino} (depois):`, novoCartao.valores[anoDestino]);
-          console.log(`  Valores ${anoOrigem} (depois):`, novoCartao.valores[anoOrigem]);
           cartoesAtualizados++;
           valoresMigrados += Object.keys(valoresOrigem).length;
           return novoCartao;
         }
         return cartao;
       });
-      console.log('📋 Cartões depois:', novosCartoes);
       if (cartoesAtualizados === 0) {
         alert(`⚠️ Nenhum cartão tinha valores em ${anoOrigem}!\n\nVerifique se os cartões estão cadastrados.`);
         return;
@@ -2370,7 +2248,6 @@ function App({
 
       // Salvar no Firestore
       if (db && user) {
-        console.log('💾 Salvando no Firestore...');
         await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').set({
           versao: '3.0',
           dataBackup: firebase.firestore.FieldValue.serverTimestamp(),
@@ -2391,7 +2268,6 @@ function App({
             comprasParceladas
           }
         });
-        console.log('✅ Salvo no Firestore!');
       }
       alert(`✅ Migração de cartões concluída!\n\n` + `💳 Cartões movidos: ${cartoesAtualizados}\n` + `📅 Valores mensais migrados: ${valoresMigrados}\n\n` + `✅ Valores copiados para ${anoDestino}\n` + `❌ Valores de ${anoOrigem} foram ZERADOS\n\n` + `Veja o console (F12) para detalhes.`);
     } catch (error) {
@@ -2402,18 +2278,12 @@ function App({
 
   // 🔍 DIAGNÓSTICO COMPLETO - LOCALSTORAGE + FIRESTORE
   const diagnosticarStorage = async () => {
-    console.log('🔍 INICIANDO DIAGNÓSTICO COMPLETO...');
 
     // 1. Ver o que tem no localStorage
     const localReceitas = JSON.parse(localStorage.getItem('receitas') || '[]');
     const localCartoes = JSON.parse(localStorage.getItem('cartoes') || '[]');
     const localFixos = JSON.parse(localStorage.getItem('gastosFixos') || '[]');
     const localVariaveis = JSON.parse(localStorage.getItem('gastosVariaveis') || '[]');
-    console.log('💾 LOCALSTORAGE:');
-    console.log('  Receitas:', localReceitas);
-    console.log('  Cartões:', localCartoes);
-    console.log('  Fixos:', localFixos);
-    console.log('  Variáveis:', localVariaveis);
 
     // 2. Ver o que tem no Firestore
     let firestoreData = null;
@@ -2422,7 +2292,6 @@ function App({
         const doc = await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').get();
         if (doc.exists) {
           firestoreData = doc.data();
-          console.log('☁️ FIRESTORE:', firestoreData.dados);
         }
       } catch (error) {
         console.error('Erro ao buscar Firestore:', error);
@@ -2430,11 +2299,6 @@ function App({
     }
 
     // 3. Ver o que tem nos estados React
-    console.log('⚛️ REACT STATES:');
-    console.log('  Receitas:', receitas);
-    console.log('  Cartões:', cartoes);
-    console.log('  Fixos:', gastosFixos);
-    console.log('  Variáveis:', gastosVariaveis);
 
     // 4. Contar por fonte
     const contagem = {
@@ -2457,16 +2321,11 @@ function App({
         variaveis: gastosVariaveis.length
       }
     };
-    console.log('📊 CONTAGEM:', contagem);
     alert(`🔍 DIAGNÓSTICO COMPLETO\n\n` + `💾 LOCALSTORAGE:\n` + `  Receitas: ${contagem.localStorage.receitas}\n` + `  Cartões: ${contagem.localStorage.cartoes}\n` + `  Fixos: ${contagem.localStorage.fixos}\n` + `  Variáveis: ${contagem.localStorage.variaveis}\n\n` + `☁️ FIRESTORE:\n` + `  Receitas: ${contagem.firestore?.receitas || 0}\n` + `  Cartões: ${contagem.firestore?.cartoes || 0}\n` + `  Fixos: ${contagem.firestore?.fixos || 0}\n` + `  Variáveis: ${contagem.firestore?.variaveis || 0}\n\n` + `⚛️ REACT (sendo usado agora):\n` + `  Receitas: ${contagem.react.receitas}\n` + `  Cartões: ${contagem.react.cartoes}\n` + `  Fixos: ${contagem.react.fixos}\n` + `  Variáveis: ${contagem.react.variaveis}\n\n` + `Veja o CONSOLE (F12) para detalhes completos!`);
   };
 
   // 🔍 DIAGNÓSTICO DE ANOS E MESES
   const diagnosticarAnos = () => {
-    console.log('📊 RECEITAS:', receitas);
-    console.log('💳 CARTÕES:', cartoes);
-    console.log('🏠 FIXOS:', gastosFixos);
-    console.log('🛒 VARIÁVEIS:', gastosVariaveis);
     const diagnostico = {
       receitas: receitas.map(r => ({
         descricao: r.descricao || r.categoria,
@@ -2491,7 +2350,6 @@ function App({
         valor: g.valor
       }))
     };
-    console.log('📊 DIAGNÓSTICO COMPLETO:', diagnostico);
 
     // Contar totais
     const totais = {
@@ -2524,7 +2382,6 @@ function App({
       const ano = g.ano || 'undefined';
       anos.variaveis[ano] = (anos.variaveis[ano] || 0) + 1;
     });
-    console.log('📊 CONTAGEM POR ANO:', anos);
 
     // Verificar mês atual
     const mesAtualDiag = {
@@ -2664,12 +2521,11 @@ function App({
     }
   };
   const adicionarReceita = dados => {
-    console.log('Adicionando receita:', dados);
     const novaReceita = {
       id: Date.now(),
       categoria: dados.categoria,
       descricao: dados.descricao || '',
-      valor: parseFloat(dados.valor),
+      valor: safeFloat(dados.valor),
       mes: mesAtual,
       ano: anoAtual,
       recorrente: dados.recorrente || false,
@@ -2686,9 +2542,6 @@ function App({
     }
   };
   const editarReceita = async (id, dadosAtualizados) => {
-    console.log('📝 editarReceita - ID:', id);
-    console.log('📝 editarReceita - dadosAtualizados:', dadosAtualizados);
-    console.log('📝 receitas atuais:', receitas);
 
     // Criar NOVA array para forçar re-render
     const novasReceitas = [];
@@ -2698,16 +2551,13 @@ function App({
           ...r,
           ...dadosAtualizados,
           ano: parseInt(dadosAtualizados.ano) || r.ano || anoAtual,
-          valor: parseFloat(dadosAtualizados.valor) || r.valor
+          valor: safeFloat(dadosAtualizados.valor) || r.valor
         };
-        console.log('✅ Receita ANTES:', r);
-        console.log('✅ Receita DEPOIS:', receitaAtualizada);
         novasReceitas.push(receitaAtualizada);
       } else {
         novasReceitas.push(r);
       }
     });
-    console.log('📋 NOVA lista de receitas:', novasReceitas);
 
     // Forçar atualização
     setReceitas(novasReceitas);
@@ -2735,9 +2585,7 @@ function App({
             comprasParceladas
           }
         };
-        console.log('💾 Salvando no Firestore...');
         await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').set(dadosBackup);
-        console.log('✅ Salvo no Firestore com sucesso!');
       } catch (error) {
         console.error('❌ Erro ao salvar no Firestore:', error);
         if(window.showToast) showToast('Dados salvos localmente (erro na nuvem)','warning'); else alert('⚠️ Erro ao salvar na nuvem: ' + error.message);
@@ -2762,7 +2610,7 @@ function App({
       id: Date.now(),
       mes: mesAtual,
       descricao: dados.descricao,
-      valor: parseFloat(dados.valor),
+      valor: safeFloat(dados.valor),
       categoria: dados.categoria,
       executado: false
     };
@@ -2805,7 +2653,7 @@ function App({
       if (g.id === id) {
         return {
           ...g,
-          valor: parseFloat(valor) || 0
+          valor: safeFloat(valor)
         };
       }
       return g;
@@ -3018,7 +2866,6 @@ function App({
     if (!confirm(`⚠️ Confirma MOVER todos os dados de ${anoOrigem} para ${anoDestino}?\n\nIsso vai:\n✅ Copiar cartões, receitas e gastos\n✅ Mover status de pagamentos\n⚠️ APAGAR dados de ${anoOrigem}`)) {
       return;
     }
-    console.log(`🔄 Movendo dados de ${anoOrigem} para ${anoDestino}...`);
 
     // Mover Cartões
     const cartoesAtualizados = cartoes.map(cartao => {
@@ -3073,7 +2920,6 @@ function App({
     setGastosVariaveis(variaveisAtualizados);
     setFarol(farolAtualizado);
     alert(`✅ Dados movidos de ${anoOrigem} para ${anoDestino} com sucesso!`);
-    console.log('✅ Migração concluída!');
   };
   const fazerBackup = () => {
     try {
@@ -3258,7 +3104,6 @@ function App({
       // ANO DE INÍCIO DA COMPRA
       meses: mesesCompra
     };
-    console.log('💾 Salvando compra parcelada:', novaCompra);
     setComprasParceladas([...comprasParceladas, novaCompra]);
   };
   const excluirCompraParcelada = id => {
@@ -3308,12 +3153,6 @@ function App({
     const [limite, setLimite] = useState('');
     const handleSubmit = e => {
       e.preventDefault();
-      console.log('Submit cartão:', {
-        nome,
-        vencimento,
-        diaFechamento,
-        limite
-      });
       if (nome.trim()) {
         adicionarCartao({
           nome,
@@ -3445,13 +3284,11 @@ function App({
               mes: mesParcela,
               ano: anoAtualParcela
             };
-            console.log(`📦 Criando parcela ${i + 1}/${totalParcelas}: ${mesParcela}/${anoAtualParcela}`);
             novasParcelas.push(novaParcela);
           }
 
           // ADICIONAR TODAS DE UMA VEZ
           setGastosFixos(prev => [...prev, ...novasParcelas]);
-          console.log(`✅ Total de parcelas criadas: ${novasParcelas.length}`);
           setModalAberto(null);
           alert(`✅ ${novasParcelas.length} ${totalParcelas === 1 ? 'gasto temporário criado' : 'parcelas criadas'} com sucesso!`);
         } else {
@@ -3459,7 +3296,7 @@ function App({
           const novoGasto = {
             categoria: categoriaFinal,
             descricao,
-            valor: parseFloat(valor),
+            valor: safeFloat(valor),
             vencimento: parseInt(vencimento),
             temporario: false,
             totalParcelas: null,
@@ -3771,7 +3608,7 @@ function App({
           id: Date.now(),
           categoria: categoriaFinal,
           descricao: descricao || categoriaFinal,
-          valor: parseFloat(valor),
+          valor: safeFloat(valor),
           data: dataFormatada,
           dataCompleta: dataInput,
           // YYYY-MM-DD
@@ -4054,7 +3891,7 @@ function App({
           descricao,
           cartao,
           categoria,
-          valorTotal: parseFloat(valorTotal),
+          valorTotal: safeFloat(valorTotal),
           parcelas: parseInt(parcelas),
           mesInicio
         });
@@ -4151,11 +3988,6 @@ function App({
     const [recorrente, setRecorrente] = useState(false);
     const handleSubmit = e => {
       e.preventDefault();
-      console.log('Submit receita:', {
-        categoria,
-        descricao,
-        valor
-      });
       if (valor) {
         adicionarReceita({
           categoria,
@@ -4325,24 +4157,19 @@ function App({
     }, []);
     const carregarUsuarios = async () => {
       if (!db || !user) {
-        console.log('❌ DB ou User não disponível');
         return;
       }
       try {
         setLoading(true);
-        console.log('📥 Carregando usuários do Firestore...');
         const usersSnapshot = await db.collection('usuarios').get();
-        console.log('📊 Documentos retornados:', usersSnapshot.size);
         const usersList = [];
         usersSnapshot.forEach(doc => {
           const data = doc.data();
-          console.log('👤 Usuário:', doc.id, data);
           usersList.push({
             uid: doc.id,
             ...data
           });
         });
-        console.log('📋 Total de usuários carregados:', usersList.length);
 
         // Calcular estatísticas
         const agora = new Date();
@@ -4363,12 +4190,6 @@ function App({
           }
         }).length;
         const pendentes = usersList.filter(u => u.status === 'PENDENTE').length;
-        console.log('📊 Estatísticas:', {
-          total: usersList.length,
-          pendentes,
-          ativos,
-          novos
-        });
         setStats({
           total: usersList.length,
           pendentes: pendentes,
@@ -4376,7 +4197,6 @@ function App({
           novos: novos
         });
         setUsuarios(usersList);
-        console.log('✅ Usuários carregados com sucesso!');
       } catch (error) {
         console.error('❌ Erro ao carregar usuários:', error);
         alert('❌ Erro ao carregar usuários: ' + error.message);
@@ -4401,9 +4221,6 @@ function App({
     };
 
     // Usar o isUserAdmin que já foi verificado no componente pai
-    console.log('🔐 TelaAdmin - isUserAdminProp:', isUserAdminProp);
-    console.log('🔐 TelaAdmin - user:', user?.uid, user?.email);
-    console.log('🔐 TelaAdmin - db:', db ? 'Conectado' : 'Desconectado');
     if (!isUserAdminProp) {
       return /*#__PURE__*/React.createElement("div", {
         className: "max-w-4xl mx-auto p-8"
@@ -4469,12 +4286,6 @@ function App({
       className: "opacity-90"
     }, "Gerencie usu\xE1rios e visualize estat\xEDsticas do sistema")), /*#__PURE__*/React.createElement("button", {
       onClick: () => {
-        console.log('🔍 DIAGNÓSTICO COMPLETO:');
-        console.log('• isUserAdmin:', isUserAdminProp);
-        console.log('• user:', user);
-        console.log('• db:', db);
-        console.log('• usuarios.length:', usuarios.length);
-        console.log('• stats:', stats);
         alert(`🔍 DIAGNÓSTICO:\n\n` + `Admin: ${isUserAdminProp}\n` + `User: ${user?.email}\n` + `DB: ${db ? 'OK' : 'ERRO'}\n` + `Usuários: ${usuarios.length}\n\n` + `Veja console (F12) para mais detalhes`);
       },
       className: "px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg font-semibold transition-all"
@@ -4903,7 +4714,7 @@ function App({
                 : /*#__PURE__*/React.createElement("div", {style:{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'8px'}},
                     /*#__PURE__*/React.createElement("span", {style:{fontSize:'0.72rem', color:'#9ca3af'}}, 'Limite n\xE3o definido'),
                     /*#__PURE__*/React.createElement("button", {
-                      onClick: () => setInputDialog({titulo:'Definir Limite \u2014 '+c.nome,label:'Limite (R$):',valorPadrao:'10000',callback:v=>{if(v&&!isNaN(v)){const n=cartoes.map(x=>x.id===c.id?{...x,limite:parseFloat(v)}:x);setCartoes(n);localStorage.setItem('cartoes',JSON.stringify(n));}}}),
+                      onClick: () => setInputDialog({titulo:'Definir Limite \u2014 '+c.nome,label:'Limite (R$):',valorPadrao:'10000',callback:v=>{if(v&&!isNaN(v)){const n=cartoes.map(x=>x.id===c.id?{...x,limite:parseFloat(v)}:x);setCartoes(n);lsSet('cartoes',n);}}}),
                       style:{fontSize:'0.72rem', padding:'4px 10px', border:'none', borderRadius:'7px', background:'#0284c7', color:'#fff', cursor:'pointer', fontWeight:'600'}
                     }, '+ Definir Limite')
                   )
@@ -6501,11 +6312,10 @@ function App({
 
     // 🎯 FUNÇÕES DE METAS FINANCEIRAS
     const adicionarMeta = meta => {
-      console.log('📝 Adicionando meta:', meta);
       const novaMeta = {
         id: Date.now(),
         titulo: meta.titulo,
-        valor: parseFloat(meta.valor),
+        valor: safeFloat(meta.valor),
         valorAtual: 0,
         prazo: meta.prazo,
         // 'curto', 'medio', 'longo'
@@ -6517,9 +6327,7 @@ function App({
         // 'reserva', 'viagem', 'investimento', 'compra', 'outros'
         concluida: false
       };
-      console.log('✅ Meta criada:', novaMeta);
       setMetasFinanceiras([...metasFinanceiras, novaMeta]);
-      console.log('💾 Salvando meta no estado');
       setModalAberto(null);
       alert('✅ Meta criada com sucesso!');
     };
@@ -6547,10 +6355,10 @@ function App({
       const novaDivida = {
         id: Date.now(),
         nome: divida.nome,
-        valorTotal: parseFloat(divida.valorTotal),
-        saldoDevedor: parseFloat(divida.saldoDevedor),
-        taxaJuros: parseFloat(divida.taxaJuros),
-        parcelaMinima: parseFloat(divida.parcelaMinima),
+        valorTotal: safeFloat(divida.valorTotal),
+        saldoDevedor: safeFloat(divida.saldoDevedor),
+        taxaJuros: safeFloat(divida.taxaJuros),
+        parcelaMinima: safeFloat(divida.parcelaMinima),
         vencimento: parseInt(divida.vencimento)
       };
       setDividas([...dividas, novaDivida]);
@@ -9771,7 +9579,7 @@ function App({
         const novaMeta = {
           id: Date.now(),
           titulo: titulo,
-          valor: parseFloat(valor),
+          valor: safeFloat(valor),
           valorAtual: 0,
           prazo: prazo,
           prioridade: parseInt(prioridade),
