@@ -1276,7 +1276,7 @@ function App({
   // 🔥 AUTO-SAVE NA NUVEM - Salva automaticamente após cada mudança
   useEffect(() => {
     const autoSave = async () => {
-      if (!db || !user) return;
+      if (!db || !user || salvando) return;
       setSalvando(true);
       try {
         const dadosBackup = {
@@ -1306,7 +1306,9 @@ function App({
         await db.collection('usuarios').doc(user.uid).collection('backups').doc('atual').set(dadosBackup);
         setUltimoSave(new Date());
       } catch (error) {
-        console.error('Erro no auto-save:', error);
+        if (navigator.onLine && window.showToast) {
+          window.showToast('⚠️ Falha ao salvar na nuvem. Dados salvos localmente.', 'warning', 4000);
+        }
       } finally {
         setSalvando(false);
       }
@@ -1399,7 +1401,9 @@ function App({
           setComprasParceladas(dadosBackup.dados.comprasParceladas || []);
         }
       } catch (error) {
-        console.error('Erro ao carregar da nuvem:', error);
+        if (!navigator.onLine && window.showToast) {
+          window.showToast('📴 Modo offline — usando dados salvos localmente', 'info', 4000);
+        }
       }
     };
     carregarDaNuvem();
